@@ -1,0 +1,63 @@
+using Microsoft.EntityFrameworkCore;
+using Kadari.Application.Abstractions.Access;
+using Kadari.Application.Abstractions.Messaging;
+using Kadari.Application.Abstractions.Persistence;
+using Kadari.Application.Features.Tenancy;
+using Kadari.Domain.Customers;
+using Kadari.Domain.Subjects;
+
+namespace Kadari.Application.Features.GetLedger;
+
+/// <summary>
+/// Read a customer's Live Asset Ledger (deck §14). Customer-scoped — a caller may only read their own
+/// ledger; the owning customer is <see cref="ResourceId"/>.
+/// </summary>
+public sealed record GetLedgerQuery(Guid CustomerId) : IQuery<LedgerDto>, IResourceScopedRequest
+{
+    public Guid ResourceId => CustomerId;
+}
+
+public sealed record LedgerDto(
+    Guid CustomerId,
+    int AssetCount,
+    long RecordedReplacementExposureMinor,
+    string Currency,
+    int CompletenessPercent,
+    IReadOnlyList<LedgerRoomDto> Rooms);
+
+public sealed record LedgerRoomDto(string Room, long RoomTotalMinor, IReadOnlyList<LedgerAssetDto> Assets);
+
+public sealed record LedgerAssetDto(
+    Guid AssetId, string DisplayName, string Category, string Assurance, long? BestValueMinor, string Status);
+
+internal sealed class GetLedgerHandler(IKadariDbContext db, ICurrentTenant tenant)
+    : IQueryHandler<GetLedgerQuery, LedgerDto>
+{
+    public async Task<LedgerDto> Handle(GetLedgerQuery query, CancellationToken ct)
+    {
+        var customerId = new CustomerId(query.CustomerId);
+
+        // The person subject backing this customer owns their assets. No subject yet ⇒ an empty ledger
+        // (a customer who has not captured anything), not a 404 — existence is settled by the resolver.
+        var subjectId = await db.Subjects.AsNoTracking()
+            .Where(s => s.CustomerId == customerId)
+            .Select(s => (SubjectId?)s.Id)
+            .FirstOrDefaultAsync(ct);
+
+        if (subjectId is null)
+        {
+            return LedgerProjection.From(query.CustomerId, []);
+        }
+
+        // The ledger shows what the subject owns — as the primary owner or a household co-owner (deck §31), so
+        // a shared item appears in every member's ledger. Owner-scoping already isolates by tenant (a subject
+        // belongs to one tenant); ForCurrentTenant is defence-in-depth and the deferred insurer-console seam.
+        var assets = await db.Assets.AsNoTracking()
+            .Include(a => a.Evidence)
+            .Where(a => a.OwnerId == subjectId.Value || a.CoOwners.Any(c => c.MemberId == subjectId.Value))
+            .ForCurrentTenant(tenant)
+            .ToListAsync(ct);
+
+        return LedgerProjection.From(query.CustomerId, assets);
+    }
+}

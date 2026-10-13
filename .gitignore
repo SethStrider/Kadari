@@ -1,0 +1,63 @@
+# .NET / build output
+[Bb]in/
+[Oo]bj/
+[Oo]ut/
+artifacts/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider / VS / VS Code
+.vs/
+.idea/
+*.DotSettings.user
+
+# Playwright MCP
+.playwright-mcp/
+
+# Wrangler local state (account id + build cache)
+.wrangler/
+
+# Aspire / local dev
+**/aspire-manifest.json
+*.received.*
+
+# Test / coverage
+[Tt]est[Rr]esult*/
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+
+# User secrets & local env
+*.local.json
+.env
+.env.*
+!.env.example
+
+# Docs scratch (docx extraction, etc.)
+docs/_*/
+docs/_*.txt
+
+# Runtime logs
+*.log
+
+# Personal scratch / handoff notes
+PierreWork.md
+
+# Generated status-report snapshots (the authored planning PDFs stay tracked)
+docs/planning/*Build-Status-Report*.pdf
+
+# OS noise
+.DS_Store
+Thumbs.db
+/Trustli-Programme-Status-Report.pdf
+/Trustli-RBAC-Permission-Reference.pdf
+
+# Production secrets and certificates (deploy/README.md) — never committed.
+deploy/.env
+deploy/certs/
+/docs/planning/AssetSure-Go-Live-Review.pdf
+/docs/planning/Trustli-Go-Live-Review.pdf
+/docs/architecture.zip

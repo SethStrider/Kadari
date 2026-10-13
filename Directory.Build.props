@@ -1,0 +1,29 @@
+<Project>
+
+  <!-- Cross-cutting defaults for every project in the Kadari monorepo. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <!--
+    The inner layers hold the rules, carry no framework dependencies, and are the ones a warning is
+    most likely to be telling the truth about (PAS-002 §13.3). They are warning-free today, so the
+    ratchet costs nothing to hold.
+
+    The outer layers (WebApi, Infrastructure, AppHost, Worker) are deliberately left on warnings-only:
+    they track a preview SDK and its obsoletions, and a deprecation shipped by Microsoft should not
+    stop the build on the morning it lands. CI surfaces those warnings instead.
+  -->
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Kadari.Domain'
+                         Or '$(MSBuildProjectName)' == 'Kadari.Application'
+                         Or '$(MSBuildProjectName)' == 'Kadari.Contracts'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+</Project>

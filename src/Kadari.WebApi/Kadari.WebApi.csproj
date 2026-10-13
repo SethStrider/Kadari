@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <UserSecretsId>kadari-webapi-5b1e0c8e-2f4a-4c39-9d0b-6a7e3c1f2d84</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" />
+    <PackageReference Include="Scalar.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kadari.Application\Kadari.Application.csproj" />
+    <ProjectReference Include="..\Kadari.Infrastructure\Kadari.Infrastructure.csproj" />
+    <ProjectReference Include="..\Kadari.ServiceDefaults\Kadari.ServiceDefaults.csproj" />
+  </ItemGroup>
+
+</Project>

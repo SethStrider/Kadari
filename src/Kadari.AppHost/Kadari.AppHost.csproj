@@ -1,0 +1,17 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.4.6">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <UserSecretsId>kadari-apphost-7c2d9e41-0b6f-4a8e-9f35-1d4c8b2a6e90</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <PackageReference Include="CommunityToolkit.Aspire.Hosting.Minio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Kadari.WebApi\Kadari.WebApi.csproj" />
+  </ItemGroup>
+
+</Project>
