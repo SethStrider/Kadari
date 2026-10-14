@@ -57,6 +57,10 @@ public static class DependencyInjection
         services.TryAddScoped<IIntegrationEventPublisher, NoOpIntegrationEventPublisher>();
         services.TryAddSingleton<Abstractions.Security.ISensitiveDataProtector, PassThroughSensitiveDataProtector>();
 
+        // Asset-export tamper-evidence: a keyless fallback for hosts without Infrastructure (slice tests); the HMAC signer
+        // (server key) replaces it in the composed app.
+        services.TryAddSingleton<Abstractions.Reports.IReportIntegritySigner, Common.UnkeyedReportIntegritySigner>();
+
         // Capture (AnalyzeSnap): once-only external work per capture, and the daily vision quota (AS-09).
         services.AddScoped<Features.AnalyzeSnap.SnapCaptureWork>();
         services.AddScoped<Features.AnalyzeSnap.VisionQuota>();
