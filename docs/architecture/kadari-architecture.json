@@ -1,0 +1,369 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Kadari Module Architecture",
+    "output": "docs/architecture/kadari-architecture.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://gitlab.com/mccarthyfam/trustli.git",
+      "link_mode": "local-only",
+      "revision": "2b422ed15fd696b13b13c19a7191a71faa1314ee"
+    }
+  },
+  "components": [
+    {
+      "id": "customers",
+      "type": "external",
+      "label": "Policyholders",
+      "sublabel": "phone camera",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        130,
+        64
+      ]
+    },
+    {
+      "id": "client",
+      "type": "frontend",
+      "label": "Trustli.Client",
+      "sublabel": "capture + ledger routes",
+      "pos": [
+        230,
+        300
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Trustli.Client/src/routes/kadari/$customerId/capture.tsx",
+          "line": 1,
+          "label": "capture route"
+        },
+        {
+          "path": "src/Trustli.Client/src/routes/kadari/$customerId/ledger.tsx",
+          "line": 1,
+          "label": "ledger route"
+        }
+      ]
+    },
+    {
+      "id": "staff",
+      "type": "external",
+      "label": "Insurer staff",
+      "sublabel": "tenant users",
+      "pos": [
+        40,
+        130
+      ],
+      "size": [
+        130,
+        64
+      ]
+    },
+    {
+      "id": "admin",
+      "type": "frontend",
+      "label": "Trustli.Admin",
+      "sublabel": "insurer console",
+      "pos": [
+        230,
+        130
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Trustli.Admin/src/routes/dashboard/portfolio.tsx",
+          "line": 103,
+          "end_line": 112,
+          "label": "portfolio queries"
+        }
+      ]
+    },
+    {
+      "id": "valuer",
+      "type": "external",
+      "label": "Pro valuer",
+      "sublabel": "staff Verifier",
+      "pos": [
+        470,
+        480
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Trustli.WebApi/Endpoints/KadariEndpoints.cs",
+          "line": 187,
+          "end_line": 197,
+          "label": "valuations endpoint"
+        }
+      ]
+    },
+    {
+      "id": "endpoints",
+      "type": "security",
+      "label": "Kadari endpoints",
+      "sublabel": "WebApi · permission gates",
+      "pos": [
+        470,
+        300
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Trustli.WebApi/Endpoints/KadariEndpoints.cs",
+          "line": 34,
+          "end_line": 46,
+          "label": "customer group"
+        },
+        {
+          "path": "src/Trustli.WebApi/Endpoints/KadariEndpoints.cs",
+          "line": 199,
+          "end_line": 257,
+          "label": "insurer console"
+        },
+        {
+          "path": "src/Trustli.WebApi/Endpoints/KadariEndpoints.cs",
+          "line": 271,
+          "end_line": 273,
+          "label": "public export verify"
+        }
+      ]
+    },
+    {
+      "id": "slices",
+      "type": "backend",
+      "label": "Kadari slices",
+      "sublabel": "Application · CQRS",
+      "pos": [
+        720,
+        300
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "tag": "tenant-guarded",
+      "sources": [
+        {
+          "path": "src/Trustli.Application/Features/Kadari/AnalyzeSnap/AnalyzeSnapCommand.cs",
+          "line": 31,
+          "end_line": 88,
+          "label": "capture"
+        },
+        {
+          "path": "src/Trustli.Application/Features/Kadari/Tenancy/InsurerTenantGuard.cs",
+          "line": 16,
+          "end_line": 18,
+          "label": "tenant guard"
+        },
+        {
+          "path": "src/Trustli.Application/Features/Kadari/GetTenantPortfolio/GetTenantPortfolioQuery.cs",
+          "line": 18,
+          "end_line": 43,
+          "label": "portfolio"
+        }
+      ]
+    },
+    {
+      "id": "vision",
+      "type": "external",
+      "label": "Vision enricher",
+      "sublabel": "Gemini / OpenAI-compatible",
+      "pos": [
+        720,
+        480
+      ],
+      "size": [
+        170,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Trustli.Infrastructure/DependencyInjection.cs",
+          "line": 105,
+          "end_line": 130,
+          "label": "provider switch"
+        }
+      ]
+    },
+    {
+      "id": "blobs",
+      "type": "cloud",
+      "label": "MinIO / S3",
+      "sublabel": "evidence images",
+      "pos": [
+        970,
+        130
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Trustli.Application/Features/Kadari/AnalyzeSnap/AnalyzeSnapCommand.cs",
+          "line": 50,
+          "end_line": 58,
+          "label": "upload still"
+        }
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "assets · evidence · tenants",
+      "pos": [
+        970,
+        300
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Trustli.Application/Abstractions/Persistence/ITrustliDbContext.cs",
+          "line": 121,
+          "end_line": 124,
+          "label": "Kadari DbSets"
+        }
+      ]
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "Trustli.Worker",
+      "sublabel": "evidence retention sweep",
+      "pos": [
+        970,
+        480
+      ],
+      "size": [
+        160,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Trustli.Infrastructure/Tasks/AssetEvidenceRetentionService.cs",
+          "line": 16,
+          "end_line": 44,
+          "label": "hosted service"
+        }
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "cust-client",
+      "from": "customers",
+      "to": "client",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "client-api",
+      "from": "client",
+      "to": "endpoints",
+      "label": "snap upload",
+      "variant": "emphasis"
+    },
+    {
+      "id": "staff-admin",
+      "from": "staff",
+      "to": "admin",
+      "label": "HTTPS"
+    },
+    {
+      "id": "admin-api",
+      "from": "admin",
+      "to": "endpoints",
+      "label": "portfolio · branding"
+    },
+    {
+      "id": "valuer-api",
+      "from": "valuer",
+      "to": "endpoints",
+      "label": "valuation"
+    },
+    {
+      "id": "api-slices",
+      "from": "endpoints",
+      "to": "slices",
+      "label": "sender.Send",
+      "variant": "emphasis"
+    },
+    {
+      "id": "slices-db",
+      "from": "slices",
+      "to": "db",
+      "label": "EF Core",
+      "variant": "emphasis"
+    },
+    {
+      "id": "slices-vision",
+      "from": "slices",
+      "to": "vision",
+      "label": "still if consented",
+      "variant": "security"
+    },
+    {
+      "id": "slices-blobs",
+      "from": "slices",
+      "to": "blobs",
+      "label": "canonical still",
+      "variant": "dashed"
+    },
+    {
+      "id": "worker-db",
+      "from": "worker",
+      "to": "db",
+      "label": "purge frames",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Three audiences",
+      "items": [
+        "Policyholders capture into their own ledger (ownership-scoped)",
+        "Insurer staff read their tenant's cohort (InsurerPortfolioView)",
+        "Valuers attach independent value evidence (AssetValuate)"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Protection",
+      "items": [
+        "Cross-border AI enrichment needs a distinct POPIA consent",
+        "InsurerTenantGuard confines insurer reads to their tenant",
+        "Asset-for-sale exports are verified publicly by token"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Reuses Trustli rails",
+      "items": [
+        "Same WebApi, Postgres, MinIO and Worker as the platform",
+        "Retention sweep purges ephemeral frames and their blobs",
+        "Insurer tenants carry their own console branding"
+      ]
+    }
+  ]
+}

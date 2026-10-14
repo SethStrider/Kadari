@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "e8075957-3828-47ae-8fdd-aea49fa5d439",
+  "status": "current",
+  "command": "deliver",
+  "type": "dataflow",
+  "input": "D:\\Work\\Trustli\\docs\\architecture\\kadari-dataflow.json",
+  "output": "D:\\Work\\Trustli\\docs\\architecture\\kadari-dataflow.html",
+  "specification": {
+    "sha256": "df40ab4c5fa0715875552556578026f85c76f7fd5996b34f1669236984104cc3",
+    "bytes": 9535
+  },
+  "artifact": {
+    "sha256": "ac9db749b8d5d5abbbe9f04a6d6e2d862d3a16d951c77b00e4d9431736c31cdd",
+    "bytes": 767197
+  }
+}

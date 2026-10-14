@@ -1,0 +1,26 @@
+/* Sample insurer theme — "Meridian Cover" is FICTIONAL, used only to prove white-labelling.
+ * Loaded after kadari.tokens.css. Overrides only the white-label contract tokens. */
+[data-brand="meridian"] {
+  --color-primary: #7C3367;
+  --color-primary-hover: #692256;
+  --color-primary-pressed: #561A46;
+  --color-on-primary: #FFFFFF;
+  --color-primary-subtle: #FBE8F4;
+  --color-on-primary-subtle: #561A46;
+  --color-focus-ring: #7C3367;
+  --color-accent: #C0559B;
+  --color-brand-mark: #7C3367;
+  --color-text-link: #7C3367;
+}
+[data-theme="dark"][data-brand="meridian"] {
+  --color-primary: #E7A6D1;
+  --color-primary-hover: #F0BFE0;
+  --color-primary-pressed: #D98DC0;
+  --color-on-primary: #2A0C21;
+  --color-primary-subtle: #3A1630;
+  --color-on-primary-subtle: #F6D3EA;
+  --color-focus-ring: #E7A6D1;
+  --color-accent: #E7A6D1;
+  --color-brand-mark: #E7A6D1;
+  --color-text-link: #E7A6D1;
+}

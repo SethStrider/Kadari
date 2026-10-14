@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "b3663158-f498-482f-955d-e9b1b37381ce",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "D:\\Work\\Trustli\\docs\\architecture\\kadari-architecture.json",
+  "output": "D:\\Work\\Trustli\\docs\\architecture\\kadari-architecture.html",
+  "specification": {
+    "sha256": "03ea2730fe1c0e8136f856697161c94ddeb8c8b3611b000ea2f2089d2c1efa59",
+    "bytes": 8129
+  },
+  "artifact": {
+    "sha256": "620e5a4a03d823c82f64af87ff00faf5f6eb9f65f2ac25fc85197c5e8c67bb8a",
+    "bytes": 768012
+  }
+}

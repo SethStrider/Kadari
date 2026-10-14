@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Kadari Evidence Data Flow",
+    "output": "docs/architecture/kadari-dataflow.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://gitlab.com/mccarthyfam/trustli.git",
+      "link_mode": "local-only",
+      "revision": "2b422ed15fd696b13b13c19a7191a71faa1314ee"
+    },
+    "viewBox": [
+      1080,
+      540
+    ]
+  },
+  "stages": [
+    {
+      "label": "Capture"
+    },
+    {
+      "label": "Ingest"
+    },
+    {
+      "label": "Enrich + value"
+    },
+    {
+      "label": "Evidence store"
+    },
+    {
+      "label": "Consume"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "camera",
+      "type": "frontend",
+      "label": "Capture camera",
+      "sublabel": "on-device detector",
+      "stage": 0,
+      "row": 1,
+      "tag": "client",
+      "sources": [
+        {
+          "path": "src/Trustli.Client/src/lib/vision/objectDetector.ts",
+          "line": 26,
+          "end_line": 35,
+          "label": "AssetDetector"
+        },
+        {
+          "path": "src/Trustli.Client/src/lib/api/kadari.ts",
+          "line": 50,
+          "end_line": 62,
+          "label": "multipart upload"
+        }
+      ]
+    },
+    {
+      "id": "valuer",
+      "type": "external",
+      "label": "Pro valuer",
+      "sublabel": "AssetValuate permission",
+      "stage": 0,
+      "row": 2,
+      "sources": [
+        {
+          "path": "src/Trustli.WebApi/Endpoints/KadariEndpoints.cs",
+          "line": 187,
+          "end_line": 197,
+          "label": "valuer endpoint"
+        }
+      ]
+    },
+    {
+      "id": "snap",
+      "type": "backend",
+      "label": "AnalyzeSnap",
+      "sublabel": "POST …/snaps",
+      "stage": 1,
+      "row": 1,
+      "tag": "AssetCapture",
+      "sources": [
+        {
+          "path": "src/Trustli.WebApi/Endpoints/KadariEndpoints.cs",
+          "line": 46,
+          "end_line": 75,
+          "label": "endpoint"
+        },
+        {
+          "path": "src/Trustli.Application/Features/Kadari/AnalyzeSnap/AnalyzeSnapCommand.cs",
+          "line": 42,
+          "end_line": 88,
+          "label": "handler"
+        }
+      ]
+    },
+    {
+      "id": "submit",
+      "type": "backend",
+      "label": "SubmitValuation",
+      "sublabel": "certificate + amount",
+      "stage": 1,
+      "row": 2,
+      "sources": [
+        {
+          "path": "src/Trustli.Application/Features/Kadari/SubmitValuation/SubmitAssetValuationCommand.cs",
+          "line": 26,
+          "end_line": 44,
+          "label": "handler"
+        }
+      ]
+    },
+    {
+      "id": "gate",
+      "type": "security",
+      "label": "Cross-border gate",
+      "sublabel": "POPIA consent",
+      "stage": 2,
+      "row": 0,
+      "tag": "D8",
+      "sources": [
+        {
+          "path": "src/Trustli.Application/Features/Kadari/AnalyzeSnap/AnalyzeSnapCommand.cs",
+          "line": 60,
+          "end_line": 74,
+          "label": "consent check"
+        }
+      ]
+    },
+    {
+      "id": "vision",
+      "type": "external",
+      "label": "Vision enricher",
+      "sublabel": "Gemini / OpenAI / none",
+      "stage": 2,
+      "row": 1,
+      "sources": [
+        {
+          "path": "src/Trustli.Infrastructure/DependencyInjection.cs",
+          "line": 105,
+          "end_line": 130,
+          "label": "provider switch"
+        }
+      ]
+    },
+    {
+      "id": "rail",
+      "type": "backend",
+      "label": "Valuation rail",
+      "sublabel": "AI baseline",
+      "stage": 2,
+      "row": 2,
+      "tag": "self-asserted",
+      "sources": [
+        {
+          "path": "src/Trustli.Application/Features/Kadari/Valuation/ValuationRailRouter.cs",
+          "line": 11,
+          "end_line": 28,
+          "label": "router"
+        },
+        {
+          "path": "src/Trustli.Application/Features/Kadari/Valuation/AiBaselineValuationRail.cs",
+          "line": 13,
+          "end_line": 27,
+          "label": "AI baseline"
+        }
+      ]
+    },
+    {
+      "id": "blobs",
+      "type": "cloud",
+      "label": "Evidence images",
+      "sublabel": "MinIO / S3",
+      "stage": 3,
+      "row": 0,
+      "sources": [
+        {
+          "path": "src/Trustli.Application/Features/Kadari/AnalyzeSnap/AnalyzeSnapCommand.cs",
+          "line": 50,
+          "end_line": 58,
+          "label": "upload still"
+        }
+      ]
+    },
+    {
+      "id": "ledger",
+      "type": "database",
+      "label": "Asset ledger",
+      "sublabel": "assets + evidence",
+      "stage": 3,
+      "row": 1,
+      "tag": "append-only",
+      "sources": [
+        {
+          "path": "src/Trustli.Domain/Kadari/Asset.cs",
+          "line": 75,
+          "end_line": 79,
+          "label": "assurance from evidence"
+        },
+        {
+          "path": "src/Trustli.Domain/Kadari/Asset.cs",
+          "line": 196,
+          "label": "Attach"
+        }
+      ]
+    },
+    {
+      "id": "sweep",
+      "type": "backend",
+      "label": "Retention sweep",
+      "sublabel": "Trustli.Worker",
+      "stage": 4,
+      "row": 0,
+      "sources": [
+        {
+          "path": "src/Trustli.Infrastructure/Tasks/AssetEvidenceRetentionService.cs",
+          "line": 16,
+          "end_line": 44,
+          "label": "hosted service"
+        },
+        {
+          "path": "src/Trustli.Application/Features/Kadari/PurgeEphemeralFrames/PurgeEphemeralFramesCommand.cs",
+          "line": 10,
+          "end_line": 15,
+          "label": "purge rules"
+        }
+      ]
+    },
+    {
+      "id": "portfolio",
+      "type": "frontend",
+      "label": "Insurer portfolio",
+      "sublabel": "admin portal",
+      "stage": 4,
+      "row": 1,
+      "tag": "InsurerPortfolioView",
+      "sources": [
+        {
+          "path": "src/Trustli.Admin/src/routes/dashboard/portfolio.tsx",
+          "line": 103,
+          "end_line": 112,
+          "label": "queries"
+        },
+        {
+          "path": "src/Trustli.Application/Features/Kadari/GetTenantPortfolio/GetTenantPortfolioQuery.cs",
+          "line": 18,
+          "end_line": 43,
+          "label": "tenant-guarded read"
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "id": "still-upload",
+      "from": "camera",
+      "to": "snap",
+      "label": "still + detections",
+      "classification": "customer media",
+      "variant": "emphasis"
+    },
+    {
+      "id": "consent-check",
+      "from": "snap",
+      "to": "gate",
+      "label": "consent lookup",
+      "classification": "PII gate",
+      "variant": "security"
+    },
+    {
+      "id": "offshore-image",
+      "from": "gate",
+      "to": "vision",
+      "label": "image if consented",
+      "classification": "cross-border",
+      "variant": "security",
+      "labelAt": [
+        530,
+        201
+      ]
+    },
+    {
+      "id": "store-still",
+      "from": "snap",
+      "to": "blobs",
+      "label": "canonical still",
+      "classification": "kept long-term",
+      "variant": "dashed",
+      "fromSide": "top",
+      "toSide": "top",
+      "via": [
+        [
+          315,
+          108
+        ],
+        [
+          745,
+          108
+        ]
+      ]
+    },
+    {
+      "id": "identified",
+      "from": "vision",
+      "to": "rail",
+      "label": "identified items",
+      "classification": "AI output",
+      "labelAt": [
+        530,
+        315
+      ]
+    },
+    {
+      "id": "valued-assets",
+      "from": "rail",
+      "to": "ledger",
+      "label": "assets + value",
+      "classification": "self-asserted",
+      "variant": "emphasis"
+    },
+    {
+      "id": "certificate",
+      "from": "valuer",
+      "to": "submit",
+      "label": "valuation cert",
+      "classification": "staff input"
+    },
+    {
+      "id": "independent-value",
+      "from": "submit",
+      "to": "ledger",
+      "label": "independent value",
+      "classification": "upgrades assurance",
+      "variant": "emphasis",
+      "fromSide": "bottom",
+      "toSide": "bottom",
+      "via": [
+        [
+          315,
+          445
+        ],
+        [
+          745,
+          445
+        ]
+      ]
+    },
+    {
+      "id": "cohort",
+      "from": "ledger",
+      "to": "portfolio",
+      "label": "tenant cohort",
+      "classification": "read-only",
+      "variant": "emphasis"
+    },
+    {
+      "id": "purge",
+      "from": "sweep",
+      "to": "blobs",
+      "label": "purge expired frames",
+      "classification": "POPIA minimisation",
+      "variant": "dashed",
+      "labelAt": [
+        853,
+        201
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "One capture command",
+      "items": [
+        "AnalyzeSnap uploads the still, enriches, values and writes assets",
+        "Blob upload and enrichment are an accepted at-least-once hazard in v1",
+        "Assurance is derived from the append-only evidence set"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Data protection",
+      "items": [
+        "Without cross-border AI consent, on-device detections are used",
+        "Canonical stills are kept; ephemeral scan frames are purged",
+        "Insurer reads are confined to their tenant by InsurerTenantGuard"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Value strength",
+      "items": [
+        "The AI baseline rail is self-asserted and never reaches ValueSupported",
+        "A professional valuation attaches independent value evidence",
+        "Professional rails plug into the router without touching capture",
+        "Minting an Asset Passport snapshots the ledger evidence (one per asset)"
+      ]
+    }
+  ]
+}
