@@ -1,0 +1,72 @@
+{
+  "name": "kadari-portal",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "routes:generate": "tsr generate",
+    "build": "tsr generate && tsc -b && vite build",
+    "preview": "vite preview",
+    "api:types": "openapi-typescript ../../openapi/v1.json -o src/lib/api/schema.d.ts",
+    "api:check": "openapi-typescript ../../openapi/v1.json -o node_modules/.cache/schema.check.d.ts && node -e \"const fs=require('fs');const a=fs.readFileSync('src/lib/api/schema.d.ts','utf8');const b=fs.readFileSync('node_modules/.cache/schema.check.d.ts','utf8');if(a!==b){console.error('schema.d.ts is stale — run: pnpm api:types');process.exit(1)}\"",
+    "lint": "eslint .",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
+    "prepare": "husky || true"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.9.1",
+    "@radix-ui/react-slot": "^1.1.1",
+    "@tanstack/react-query": "^5.62.7",
+    "@tanstack/react-router": "^1.87.0",
+    "@xyflow/react": "^12.11.6",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "gsap": "^3.12.5",
+    "lucide-react": "^0.468.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-hook-form": "^7.54.0",
+    "sonner": "^1.7.1",
+    "tailwind-merge": "^2.5.5",
+    "three": "^0.185.1",
+    "zod": "^3.24.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@tailwindcss/vite": "^4.0.0",
+    "@tanstack/router-cli": "^1.87.0",
+    "@tanstack/router-plugin": "^1.87.0",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.0.1",
+    "@types/react-dom": "^19.0.2",
+    "@types/three": "^0.185.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-react-hooks": "^5.1.0",
+    "eslint-plugin-react-refresh": "^0.4.16",
+    "globals": "^15.13.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.11",
+    "openapi-typescript": "^7.13.0",
+    "prettier": "^3.4.2",
+    "tailwindcss": "^4.0.0",
+    "tw-animate-css": "^1.0.0",
+    "typescript": "~5.7.2",
+    "typescript-eslint": "^8.18.0",
+    "vite": "^6.0.3"
+  },
+  "lint-staged": {
+    "*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{css,json,md}": [
+      "prettier --write"
+    ]
+  }
+}

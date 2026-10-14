@@ -40,4 +40,15 @@ builder.AddDockerfile("client", "../Kadari.Client")
     .WithEnvironment("API_URL", webapi.GetEndpoint("http"))
     .WaitFor(webapi);
 
+// ---------------------------------------------------------------------------
+// Portal — insurers (their portfolio, under their own branding) and KADARI staff (users and roles). Same nginx shape
+// as the customer app. Fixed port 8300.
+// ---------------------------------------------------------------------------
+builder.AddDockerfile("portal", "../Kadari.Portal")
+    .WithHttpEndpoint(port: 8300, targetPort: 8080, name: "http")
+    .WithExternalHttpEndpoints()
+    .WithReference(webapi)
+    .WithEnvironment("API_URL", webapi.GetEndpoint("http"))
+    .WaitFor(webapi);
+
 builder.Build().Run();

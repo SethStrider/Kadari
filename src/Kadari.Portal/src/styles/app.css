@@ -1,0 +1,178 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* Dark mode is driven by the `.dark` class on <html> (forced by default). */
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------------
+   Trustli brand palette + type scale — exposed as Tailwind theme tokens.
+   Usage: bg-trustli-midnight, text-trustli-cyan, font-heading, etc.
+--------------------------------------------------------------------------- */
+@theme {
+  /* Backgrounds / primary dark */
+  --color-trustli-midnight: #020a20;
+  --color-trustli-navy: #00133f;
+
+  /* Brand accents */
+  --color-trustli-cyan: #00dcc2;
+  --color-trustli-azure: #009df2;
+  --color-trustli-blue: #095bff;
+
+  /* Typography / greys */
+  --color-off-white: #f8fafc;
+  --color-cloud: #f2f4f7;
+  --color-soft-grey: #d0d5dd;
+  --color-mid-grey: #667085;
+  --color-slate: #344054;
+
+  /* Status */
+  --color-success: #12b76a;
+  --color-info: #009df2;
+  --color-attention: #f79009;
+  --color-error: #f04438;
+
+  /* Fonts */
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+
+  /* Primary brand gradient: Cyan -> Azure -> Blue */
+  --gradient-brand: linear-gradient(
+    90deg,
+    #00dcc2 0%,
+    #009df2 50%,
+    #095bff 100%
+  );
+
+  /* Glow used for card hover shadows */
+  --shadow-glow:
+    0 0 0 1px rgba(0, 220, 194, 0.25), 0 8px 30px -8px rgba(0, 157, 242, 0.35);
+}
+
+/* ---------------------------------------------------------------------------
+   shadcn/ui semantic tokens, mapped onto the Trustli palette.
+   The app forces dark mode, so :root carries the dark values and .dark
+   simply re-affirms them (keeps shadcn components portable).
+--------------------------------------------------------------------------- */
+:root {
+  --radius: 1rem;
+
+  --background: #020a20; /* Midnight */
+  --foreground: #f8fafc; /* Off White */
+
+  --card: #00133f; /* Navy */
+  --card-foreground: #f8fafc;
+
+  --popover: #00133f;
+  --popover-foreground: #f8fafc;
+
+  --primary: #009df2; /* Azure (mid-stop of the brand gradient) */
+  --primary-foreground: #ffffff;
+
+  --secondary: #00133f;
+  --secondary-foreground: #f8fafc;
+
+  --muted: #0a1c44;
+  --muted-foreground: #667085; /* Mid Grey */
+
+  --accent: #00dcc2; /* Cyan */
+  --accent-foreground: #020a20;
+
+  --destructive: #f04438; /* Error */
+  --destructive-foreground: #f8fafc;
+
+  --border: #344054; /* Slate */
+  --input: #344054;
+  --ring: #00dcc2; /* Cyan focus ring */
+}
+
+.dark {
+  --background: #020a20;
+  --foreground: #f8fafc;
+  --card: #00133f;
+  --card-foreground: #f8fafc;
+  --popover: #00133f;
+  --popover-foreground: #f8fafc;
+  --primary: #009df2;
+  --primary-foreground: #ffffff;
+  --secondary: #00133f;
+  --secondary-foreground: #f8fafc;
+  --muted: #0a1c44;
+  --muted-foreground: #667085;
+  --accent: #00dcc2;
+  --accent-foreground: #020a20;
+  --destructive: #f04438;
+  --destructive-foreground: #f8fafc;
+  --border: #344054;
+  --input: #344054;
+  --ring: #00dcc2;
+}
+
+/* Bridge the semantic CSS variables into Tailwind's utility tokens so
+   `bg-background`, `text-foreground`, `border-border`, etc. resolve. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 8px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    min-height: 100dvh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+  }
+
+  /* Numbers, codes, technical values */
+  .font-technical {
+    @apply font-mono tracking-tight tabular-nums;
+  }
+}
+
+@utility text-gradient {
+  background: var(--gradient-brand);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@utility bg-gradient-brand {
+  background-image: var(--gradient-brand);
+}
