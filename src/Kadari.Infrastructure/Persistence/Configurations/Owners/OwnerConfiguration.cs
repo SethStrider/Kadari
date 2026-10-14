@@ -2,30 +2,30 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Kadari.Domain.Customers;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 using Kadari.Infrastructure.Persistence.Converters;
 
-namespace Kadari.Infrastructure.Persistence.Configurations.Subjects;
+namespace Kadari.Infrastructure.Persistence.Configurations.Owners;
 
 /// <summary>
-/// Maps the <see cref="Subject"/> aggregate (DES-001b). Identifiers are <c>jsonb</c> (read as a whole with
+/// Maps the <see cref="Owner"/> aggregate (DES-001b). Identifiers are <c>jsonb</c> (read as a whole with
 /// the subject). The nullable <c>CustomerId</c> link is indexed so "the subject for this customer" is a
-/// cheap lookup (the Customer→Subject bridge).
+/// cheap lookup (the Customer→Owner bridge).
 /// </summary>
-public sealed class SubjectConfiguration : IEntityTypeConfiguration<Subject>
+public sealed class OwnerConfiguration : IEntityTypeConfiguration<Owner>
 {
     private static ValueComparer<IReadOnlyDictionary<string, string>> DictComparer() => new(
         (a, b) => a!.Count == b!.Count && !a.Except(b).Any(),
         v => v.Aggregate(0, (h, kv) => HashCode.Combine(h, kv.Key.GetHashCode(), kv.Value.GetHashCode())),
         v => v.ToDictionary(kv => kv.Key, kv => kv.Value));
 
-    public void Configure(EntityTypeBuilder<Subject> builder)
+    public void Configure(EntityTypeBuilder<Owner> builder)
     {
-        builder.ToTable("Subjects");
+        builder.ToTable("Owners");
 
         builder.HasKey(s => s.Id);
         builder.Property(s => s.Id)
-            .HasConversion(id => id.Value, value => new SubjectId(value))
+            .HasConversion(id => id.Value, value => new OwnerId(value))
             .ValueGeneratedNever();
 
         builder.Property(s => s.Type).HasConversion<string>().HasMaxLength(16).IsRequired();

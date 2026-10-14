@@ -76,8 +76,8 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
                     ActorKind = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
                     ActorId = table.Column<Guid>(type: "uuid", nullable: true),
-                    SubjectType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
-                    SubjectId = table.Column<Guid>(type: "uuid", nullable: false),
+                    OwnerType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    OwnerId = table.Column<Guid>(type: "uuid", nullable: false),
                     Action = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     PreviousState = table.Column<string>(type: "text", nullable: true),
                     NewState = table.Column<string>(type: "text", nullable: true),
@@ -180,6 +180,28 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Owners",
+                schema: "kadari",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uuid", nullable: false),
+                    Type = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
+                    DisplayName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    CustomerId = table.Column<Guid>(type: "uuid", nullable: true),
+                    Identifiers = table.Column<string>(type: "text", nullable: false),
+                    IdentityKeyHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
+                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Owners", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "PendingExternalLogins",
                 schema: "kadari",
                 columns: table => new
@@ -229,28 +251,6 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Sessions", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Subjects",
-                schema: "kadari",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    Type = table.Column<string>(type: "character varying(16)", maxLength: 16, nullable: false),
-                    DisplayName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
-                    CustomerId = table.Column<Guid>(type: "uuid", nullable: true),
-                    Identifiers = table.Column<string>(type: "text", nullable: false),
-                    IdentityKeyHash = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: true),
-                    xmin = table.Column<uint>(type: "xid", rowVersion: true, nullable: false),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true),
-                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false),
-                    DeletedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Subjects", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -503,10 +503,10 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                 column: "TenantId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AuditEvents_SubjectType_SubjectId_OccurredAt",
+                name: "IX_AuditEvents_OwnerType_OwnerId_OccurredAt",
                 schema: "kadari",
                 table: "AuditEvents",
-                columns: new[] { "SubjectType", "SubjectId", "OccurredAt" });
+                columns: new[] { "OwnerType", "OwnerId", "OccurredAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Customers_MobileNumber",
@@ -555,6 +555,18 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                 columns: new[] { "MobileNumber", "Status" });
 
             migrationBuilder.CreateIndex(
+                name: "IX_Owners_CustomerId",
+                schema: "kadari",
+                table: "Owners",
+                column: "CustomerId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Owners_IdentityKeyHash",
+                schema: "kadari",
+                table: "Owners",
+                column: "IdentityKeyHash");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PendingExternalLogins_Provider_Subject",
                 schema: "kadari",
                 table: "PendingExternalLogins",
@@ -583,18 +595,6 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                 schema: "kadari",
                 table: "Sessions",
                 column: "UserAccountId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Subjects_CustomerId",
-                schema: "kadari",
-                table: "Subjects",
-                column: "CustomerId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Subjects_IdentityKeyHash",
-                schema: "kadari",
-                table: "Subjects",
-                column: "IdentityKeyHash");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TenantMemberships_CustomerId",
@@ -677,15 +677,15 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                 schema: "kadari");
 
             migrationBuilder.DropTable(
+                name: "Owners",
+                schema: "kadari");
+
+            migrationBuilder.DropTable(
                 name: "PendingExternalLogins",
                 schema: "kadari");
 
             migrationBuilder.DropTable(
                 name: "Sessions",
-                schema: "kadari");
-
-            migrationBuilder.DropTable(
-                name: "Subjects",
                 schema: "kadari");
 
             migrationBuilder.DropTable(

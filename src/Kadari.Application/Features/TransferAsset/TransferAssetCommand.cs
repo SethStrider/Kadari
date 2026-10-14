@@ -3,10 +3,10 @@ using Kadari.Application.Abstractions.Access;
 using Kadari.Application.Abstractions.Messaging;
 using Kadari.Application.Abstractions.Persistence;
 using Kadari.Application.Exceptions;
-using Kadari.Application.Features.Subjects.Services;
+using Kadari.Application.Features.Owners.Services;
 using Kadari.Domain.Assets;
 using Kadari.Domain.Customers;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Application.Features.TransferAsset;
 
@@ -24,7 +24,7 @@ public sealed record TransferAssetCommand(Guid CustomerId, Guid AssetId, Guid Re
 
 public sealed record TransferAssetResponse(Guid AssetId, Guid NewOwnerCustomerId);
 
-internal sealed class TransferAssetHandler(IKadariDbContext db, SubjectRegistrar subjects, TimeProvider clock)
+internal sealed class TransferAssetHandler(IKadariDbContext db, OwnerRegistrar subjects, TimeProvider clock)
     : ICommandHandler<TransferAssetCommand, TransferAssetResponse>
 {
     public async Task<TransferAssetResponse> Handle(TransferAssetCommand cmd, CancellationToken ct)
@@ -38,9 +38,9 @@ internal sealed class TransferAssetHandler(IKadariDbContext db, SubjectRegistrar
             throw new NotFoundException(nameof(Customer), cmd.RecipientCustomerId);
         }
 
-        var ownerSubjectId = await db.Subjects.AsNoTracking()
+        var ownerSubjectId = await db.Owners.AsNoTracking()
             .Where(s => s.CustomerId == customerId)
-            .Select(s => (SubjectId?)s.Id)
+            .Select(s => (OwnerId?)s.Id)
             .FirstOrDefaultAsync(ct);
 
         var assetId = new AssetId(cmd.AssetId);

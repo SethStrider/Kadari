@@ -1,11 +1,11 @@
 using Kadari.Domain.Abstractions;
 using Kadari.Domain.Customers;
 
-namespace Kadari.Domain.Subjects;
+namespace Kadari.Domain.Owners;
 
-public readonly record struct SubjectId(Guid Value)
+public readonly record struct OwnerId(Guid Value)
 {
-    public static SubjectId New() => new(Guid.CreateVersion7());
+    public static OwnerId New() => new(Guid.CreateVersion7());
 }
 
 /// <summary>
@@ -16,12 +16,12 @@ public readonly record struct SubjectId(Guid Value)
 /// account); a business or third-party subject has no customer link (<see cref="CustomerId"/> is null),
 /// which is what enables counterparty vetting later.
 /// </summary>
-public sealed class Subject : AggregateRoot<SubjectId>
+public sealed class Owner : AggregateRoot<OwnerId>
 {
-    private Subject() { }   // EF
+    private Owner() { }   // EF
 
-    private Subject(
-        SubjectId id, SubjectType type, string displayName, CustomerId? customerId,
+    private Owner(
+        OwnerId id, OwnerType type, string displayName, CustomerId? customerId,
         IReadOnlyDictionary<string, string> identifiers) : base(id)
     {
         Type = type;
@@ -30,7 +30,7 @@ public sealed class Subject : AggregateRoot<SubjectId>
         Identifiers = new Dictionary<string, string>(identifiers);
     }
 
-    public SubjectType Type { get; private set; }
+    public OwnerType Type { get; private set; }
     public string DisplayName { get; private set; } = null!;
 
     /// <summary>The onboarded customer account backing this subject, when it is one of our customers; else null.</summary>
@@ -46,16 +46,16 @@ public sealed class Subject : AggregateRoot<SubjectId>
     public string? IdentityKeyHash { get; private set; }
 
     /// <summary>A person subject backed by an onboarded customer.</summary>
-    public static Subject ForCustomer(CustomerId customerId, string displayName, IReadOnlyDictionary<string, string>? identifiers = null)
-        => Create(SubjectType.Person, displayName, customerId, identifiers);
+    public static Owner ForCustomer(CustomerId customerId, string displayName, IReadOnlyDictionary<string, string>? identifiers = null)
+        => Create(OwnerType.Person, displayName, customerId, identifiers);
 
     /// <summary>A person subject not (yet) linked to a customer account — e.g. a third party being assessed.</summary>
-    public static Subject ForPerson(string displayName, IReadOnlyDictionary<string, string>? identifiers = null)
-        => Create(SubjectType.Person, displayName, null, identifiers);
+    public static Owner ForPerson(string displayName, IReadOnlyDictionary<string, string>? identifiers = null)
+        => Create(OwnerType.Person, displayName, null, identifiers);
 
     /// <summary>A business subject.</summary>
-    public static Subject ForBusiness(string displayName, IReadOnlyDictionary<string, string>? identifiers = null)
-        => Create(SubjectType.Business, displayName, null, identifiers);
+    public static Owner ForBusiness(string displayName, IReadOnlyDictionary<string, string>? identifiers = null)
+        => Create(OwnerType.Business, displayName, null, identifiers);
 
     /// <summary>Back this subject with an onboarded customer account (idempotent — the first link wins).</summary>
     public void LinkToCustomer(CustomerId customerId) => CustomerId ??= customerId;
@@ -80,11 +80,11 @@ public sealed class Subject : AggregateRoot<SubjectId>
         IdentityKeyHash = null;
     }
 
-    private static Subject Create(
-        SubjectType type, string displayName, CustomerId? customerId, IReadOnlyDictionary<string, string>? identifiers)
+    private static Owner Create(
+        OwnerType type, string displayName, CustomerId? customerId, IReadOnlyDictionary<string, string>? identifiers)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
-        return new Subject(SubjectId.New(), type, displayName.Trim(), customerId,
+        return new Owner(OwnerId.New(), type, displayName.Trim(), customerId,
             identifiers ?? new Dictionary<string, string>());
     }
 }

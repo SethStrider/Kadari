@@ -3,10 +3,10 @@ using Kadari.Application.Abstractions.Access;
 using Kadari.Application.Abstractions.Messaging;
 using Kadari.Application.Abstractions.Persistence;
 using Kadari.Application.Exceptions;
-using Kadari.Application.Features.Subjects.Services;
+using Kadari.Application.Features.Owners.Services;
 using Kadari.Domain.Assets;
 using Kadari.Domain.Customers;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Application.Features.SettleEstate;
 
@@ -21,7 +21,7 @@ public sealed record SettleEstateCommand(Guid DeceasedCustomerId, Guid HeirCusto
 
 public sealed record SettleEstateResponse(int AssetsInherited);
 
-internal sealed class SettleEstateHandler(IKadariDbContext db, SubjectRegistrar subjects, TimeProvider clock)
+internal sealed class SettleEstateHandler(IKadariDbContext db, OwnerRegistrar subjects, TimeProvider clock)
     : ICommandHandler<SettleEstateCommand, SettleEstateResponse>
 {
     public async Task<SettleEstateResponse> Handle(SettleEstateCommand cmd, CancellationToken ct)
@@ -40,9 +40,9 @@ internal sealed class SettleEstateHandler(IKadariDbContext db, SubjectRegistrar 
             throw new NotFoundException(nameof(Customer), cmd.HeirCustomerId);
         }
 
-        var deceasedSubjectId = await db.Subjects.AsNoTracking()
+        var deceasedSubjectId = await db.Owners.AsNoTracking()
             .Where(s => s.CustomerId == deceasedId)
-            .Select(s => (SubjectId?)s.Id)
+            .Select(s => (OwnerId?)s.Id)
             .FirstOrDefaultAsync(ct);
 
         if (deceasedSubjectId is null)

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Kadari.Domain.Assets;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Infrastructure.Persistence.Configurations.Assets;
 
@@ -20,7 +20,7 @@ public sealed class AssetConfiguration : IEntityTypeConfiguration<Asset>
         builder.Property(a => a.TenantId)
             .HasConversion(id => id.Value, value => new TenantId(value));
         builder.Property(a => a.OwnerId)
-            .HasConversion(id => id.Value, value => new SubjectId(value));
+            .HasConversion(id => id.Value, value => new OwnerId(value));
 
         builder.Property(a => a.DisplayName).HasMaxLength(200).IsRequired();
         builder.Property(a => a.Category).HasConversion<string>().HasMaxLength(32).IsRequired();
@@ -62,7 +62,7 @@ public sealed class AssetCoOwnerConfiguration : IEntityTypeConfiguration<AssetCo
             .ValueGeneratedNever();
 
         builder.Property(c => c.MemberId)
-            .HasConversion(id => id.Value, value => new SubjectId(value));
+            .HasConversion(id => id.Value, value => new OwnerId(value));
         builder.HasIndex(c => c.MemberId);   // the ledger scans co-owned assets by member
 
         builder.Property(c => c.AddedAt);

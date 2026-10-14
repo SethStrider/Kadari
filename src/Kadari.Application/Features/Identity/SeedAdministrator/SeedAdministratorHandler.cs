@@ -16,7 +16,7 @@ internal sealed class SeedAdministratorHandler(IKadariDbContext db, IPasswordHas
     /// too (ProductAdministrator — the PF-001 draft/publish flow is gated on ProductCreate/ProductPublish).
     /// Roles are additive; a Customer role the account already carries survives.
     /// </summary>
-    private static readonly Role[] SeededRoles = [Role.SystemAdministrator, Role.ProductAdministrator];
+    private static readonly Role[] SeededRoles = [Role.SystemAdministrator];
 
     public async Task<SeedAdministratorResponse> Handle(SeedAdministratorCommand command, CancellationToken ct)
     {

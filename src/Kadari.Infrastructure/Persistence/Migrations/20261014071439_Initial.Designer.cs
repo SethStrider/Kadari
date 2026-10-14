@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kadari.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(KadariDbContext))]
-    [Migration("20261013194433_Initial")]
+    [Migration("20261014071439_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -521,20 +521,20 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset>("OccurredAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("PreviousState")
-                        .HasColumnType("text");
-
-                    b.Property<Guid>("SubjectId")
+                    b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
 
-                    b.Property<string>("SubjectType")
+                    b.Property<string>("OwnerType")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("PreviousState")
+                        .HasColumnType("text");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("SubjectType", "SubjectId", "OccurredAt");
+                    b.HasIndex("OwnerType", "OwnerId", "OccurredAt");
 
                     b.ToTable("AuditEvents", "kadari");
                 });
@@ -946,7 +946,7 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                     b.ToTable("UserAccounts", "kadari");
                 });
 
-            modelBuilder.Entity("Kadari.Domain.Subjects.Subject", b =>
+            modelBuilder.Entity("Kadari.Domain.Owners.Owner", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("uuid");
@@ -997,7 +997,7 @@ namespace Kadari.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("IdentityKeyHash");
 
-                    b.ToTable("Subjects", "kadari");
+                    b.ToTable("Owners", "kadari");
                 });
 
             modelBuilder.Entity("Kadari.Domain.Assets.AssetCoOwner", b =>

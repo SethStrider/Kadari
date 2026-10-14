@@ -13,7 +13,7 @@ public static class AccessPolicies
     /// Verifier must open the journey they are verifying, and Customer Success must read the payment
     /// they are being asked about.
     /// </summary>
-    private static readonly Role[] SelfServiceRoles = [Role.Customer, Role.Connector, Role.PublicVisitor];
+    private static readonly Role[] SelfServiceRoles = [Role.Customer, Role.PublicVisitor];
 
     /// <summary>
     /// Whether ownership must be proven for this caller, on top of the role permission check

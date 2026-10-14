@@ -1,6 +1,6 @@
 using Kadari.Domain.Abstractions;
 using Kadari.Domain.Assets.Events;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 using Kadari.Domain.ValueObjects;
 
 namespace Kadari.Domain.Assets;
@@ -43,7 +43,7 @@ public enum AssetLifecycleStatus
 /// can be reported stolen and matched by AssetCheck independent of its owner, deck §30). The rich
 /// identification and valuation facts live on <c>AssetEvidence</c> (each with its own provenance); the
 /// aggregate itself stays lean and holds only what the ledger needs to list it and what governs its
-/// lifecycle. Ownership is a reference to a <see cref="SubjectId"/> so a later transfer is a re-point,
+/// lifecycle. Ownership is a reference to a <see cref="OwnerId"/> so a later transfer is a re-point,
 /// not a rewrite.
 /// </summary>
 public sealed class Asset : AggregateRoot<AssetId>, ITenantScoped
@@ -54,7 +54,7 @@ public sealed class Asset : AggregateRoot<AssetId>, ITenantScoped
     private Asset() { }   // EF
 
     private Asset(
-        AssetId id, TenantId tenantId, SubjectId ownerId, string displayName, AssetCategory category,
+        AssetId id, TenantId tenantId, OwnerId ownerId, string displayName, AssetCategory category,
         string? roomLabel, DateTimeOffset registeredAt) : base(id)
     {
         TenantId = tenantId;
@@ -98,14 +98,14 @@ public sealed class Asset : AggregateRoot<AssetId>, ITenantScoped
     /// <summary>The primary subject who owns the asset — the registrar/capture key, and the seam for transfer.
     /// Household members who share the item are <see cref="CoOwners"/>; the full ownership set is
     /// <see cref="IsOwnedBy"/>.</summary>
-    public SubjectId OwnerId { get; private set; }
+    public OwnerId OwnerId { get; private set; }
 
     /// <summary>The household members who co-own the asset alongside the primary owner (deck §31).</summary>
     public IReadOnlyList<AssetCoOwner> CoOwners => _coOwners.AsReadOnly();
 
     /// <summary>Whether the subject owns the asset — as the primary owner or a household co-owner. The
     /// authorization/ledger predicate for "is this theirs".</summary>
-    public bool IsOwnedBy(SubjectId subject) => OwnerId == subject || _coOwners.Any(c => c.MemberId == subject);
+    public bool IsOwnedBy(OwnerId subject) => OwnerId == subject || _coOwners.Any(c => c.MemberId == subject);
 
     /// <summary>The best current human label for the item (from identification); denormalised for the ledger.</summary>
     public string DisplayName { get; private set; } = null!;
@@ -124,7 +124,7 @@ public sealed class Asset : AggregateRoot<AssetId>, ITenantScoped
     /// separately as evidence; this creates the item and stamps it <see cref="AssetLifecycleStatus.Active"/>.
     /// </summary>
     public static Asset Register(
-        TenantId tenantId, SubjectId ownerId, string displayName, AssetCategory category,
+        TenantId tenantId, OwnerId ownerId, string displayName, AssetCategory category,
         DateTimeOffset registeredAt, string? roomLabel = null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(displayName);
@@ -153,7 +153,7 @@ public sealed class Asset : AggregateRoot<AssetId>, ITenantScoped
     /// <c>AssetTransferredDomainEvent</c> records it. Only an active item may be transferred (you cannot gift
     /// one reported stolen), and transferring to the current owner is a no-op.
     /// </summary>
-    public void Transfer(SubjectId newOwner, DateTimeOffset at)
+    public void Transfer(OwnerId newOwner, DateTimeOffset at)
     {
         if (Status != AssetLifecycleStatus.Active)
         {
@@ -180,7 +180,7 @@ public sealed class Asset : AggregateRoot<AssetId>, ITenantScoped
     /// applies even to an item reported stolen (the estate passes everything) and raises the distinct
     /// <c>AssetInheritedDomainEvent</c>. Inheriting to the current owner is a no-op.
     /// </summary>
-    public void Inherit(SubjectId heir, DateTimeOffset at)
+    public void Inherit(OwnerId heir, DateTimeOffset at)
     {
         if (heir == OwnerId)
         {
@@ -249,7 +249,7 @@ public sealed class Asset : AggregateRoot<AssetId>, ITenantScoped
     /// becomes primary ownership; the rest of the household keeps its share. Returns the new owner, or
     /// <c>null</c> when there is no co-owner to receive it (the caller then erases the item).
     /// </summary>
-    public SubjectId? HandOverToCoOwner(DateTimeOffset at)
+    public OwnerId? HandOverToCoOwner(DateTimeOffset at)
     {
         var successor = _coOwners.OrderBy(c => c.AddedAt).FirstOrDefault();
         if (successor is null)
@@ -268,7 +268,7 @@ public sealed class Asset : AggregateRoot<AssetId>, ITenantScoped
     /// Add a household member as a co-owner (deck §31), so the shared item appears in their ledger too.
     /// Idempotent; the primary owner cannot be added as their own co-owner.
     /// </summary>
-    public void AddCoOwner(SubjectId member, DateTimeOffset at)
+    public void AddCoOwner(OwnerId member, DateTimeOffset at)
     {
         if (member == OwnerId || _coOwners.Any(c => c.MemberId == member))
         {
@@ -280,7 +280,7 @@ public sealed class Asset : AggregateRoot<AssetId>, ITenantScoped
     }
 
     /// <summary>Remove a household co-owner. A no-op if they are not a co-owner (the primary owner is never one).</summary>
-    public void RemoveCoOwner(SubjectId member, DateTimeOffset at)
+    public void RemoveCoOwner(OwnerId member, DateTimeOffset at)
     {
         var existing = _coOwners.FirstOrDefault(c => c.MemberId == member);
         if (existing is null)

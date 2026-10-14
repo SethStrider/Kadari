@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Kadari.Domain.Assets;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Infrastructure.Persistence.Configurations.Assets;
 
@@ -23,7 +23,7 @@ public sealed class AssetPassportConfiguration : IEntityTypeConfiguration<AssetP
 
         // Scoping keys — soft references (converted, indexed), not hard FK constraints (cf. Asset).
         builder.Property(p => p.OwnerId)
-            .HasConversion(id => id.Value, value => new SubjectId(value));
+            .HasConversion(id => id.Value, value => new OwnerId(value));
         builder.Property(p => p.TenantId)
             .HasConversion(id => id.Value, value => new TenantId(value));
         builder.HasIndex(p => p.OwnerId);

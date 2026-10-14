@@ -5,7 +5,7 @@ using Kadari.Application.Abstractions.Persistence;
 using Kadari.Application.Exceptions;
 using Kadari.Domain.Assets;
 using Kadari.Domain.Customers;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Application.Features.AssignTenant;
 
@@ -53,9 +53,9 @@ internal sealed class AssignCustomerToTenantHandler(IKadariDbContext db, TimePro
 
         // Re-stamp the customer's existing assets (via their backing subject) onto the tenant.
         var reassigned = 0;
-        var subjectId = await db.Subjects.AsNoTracking()
+        var subjectId = await db.Owners.AsNoTracking()
             .Where(s => s.CustomerId == customerId)
-            .Select(s => (SubjectId?)s.Id)
+            .Select(s => (OwnerId?)s.Id)
             .FirstOrDefaultAsync(ct);
 
         if (subjectId is not null)

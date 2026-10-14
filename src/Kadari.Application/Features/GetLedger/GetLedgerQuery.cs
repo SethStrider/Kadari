@@ -4,7 +4,7 @@ using Kadari.Application.Abstractions.Messaging;
 using Kadari.Application.Abstractions.Persistence;
 using Kadari.Application.Features.Tenancy;
 using Kadari.Domain.Customers;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Application.Features.GetLedger;
 
@@ -39,9 +39,9 @@ internal sealed class GetLedgerHandler(IKadariDbContext db, ICurrentTenant tenan
 
         // The person subject backing this customer owns their assets. No subject yet ⇒ an empty ledger
         // (a customer who has not captured anything), not a 404 — existence is settled by the resolver.
-        var subjectId = await db.Subjects.AsNoTracking()
+        var subjectId = await db.Owners.AsNoTracking()
             .Where(s => s.CustomerId == customerId)
-            .Select(s => (SubjectId?)s.Id)
+            .Select(s => (OwnerId?)s.Id)
             .FirstOrDefaultAsync(ct);
 
         if (subjectId is null)

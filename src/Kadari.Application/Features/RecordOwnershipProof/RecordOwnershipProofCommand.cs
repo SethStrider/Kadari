@@ -6,7 +6,7 @@ using Kadari.Application.Abstractions.Storage;
 using Kadari.Application.Exceptions;
 using Kadari.Domain.Assets;
 using Kadari.Domain.Customers;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 using Kadari.Domain.ValueObjects;
 
 namespace Kadari.Application.Features.RecordOwnershipProof;
@@ -43,9 +43,9 @@ internal sealed class RecordOwnershipProofHandler(
     {
         var customerId = new CustomerId(cmd.CustomerId);
 
-        var subjectId = await db.Subjects.AsNoTracking()
+        var subjectId = await db.Owners.AsNoTracking()
             .Where(s => s.CustomerId == customerId)
-            .Select(s => (SubjectId?)s.Id)
+            .Select(s => (OwnerId?)s.Id)
             .FirstOrDefaultAsync(ct);
 
         var assetId = new AssetId(cmd.AssetId);

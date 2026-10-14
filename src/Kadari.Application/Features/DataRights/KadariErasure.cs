@@ -34,7 +34,7 @@ public sealed class KadariErasure(IKadariDbContext db, IBlobStorage blobs, ILogg
             consent.Withdraw(now);
         }
 
-        var subject = await db.Subjects.FirstOrDefaultAsync(s => s.CustomerId == customerId, ct);
+        var subject = await db.Owners.FirstOrDefaultAsync(s => s.CustomerId == customerId, ct);
         if (subject is null)
         {
             return new KadariErasureResult(0, 0, 0);   // never captured anything

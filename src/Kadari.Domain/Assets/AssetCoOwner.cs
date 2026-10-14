@@ -1,5 +1,5 @@
 using Kadari.Domain.Abstractions;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Domain.Assets;
 
@@ -18,15 +18,15 @@ public sealed class AssetCoOwner : Entity<AssetCoOwnerId>
 {
     private AssetCoOwner() { }   // EF
 
-    private AssetCoOwner(AssetCoOwnerId id, SubjectId memberId, DateTimeOffset addedAt) : base(id)
+    private AssetCoOwner(AssetCoOwnerId id, OwnerId memberId, DateTimeOffset addedAt) : base(id)
     {
         MemberId = memberId;
         AddedAt = addedAt;
     }
 
-    public SubjectId MemberId { get; private set; }
+    public OwnerId MemberId { get; private set; }
     public DateTimeOffset AddedAt { get; private set; }
 
-    internal static AssetCoOwner Add(SubjectId memberId, DateTimeOffset addedAt) =>
+    internal static AssetCoOwner Add(OwnerId memberId, DateTimeOffset addedAt) =>
         new(AssetCoOwnerId.New(), memberId, addedAt);
 }

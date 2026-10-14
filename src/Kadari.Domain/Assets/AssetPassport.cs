@@ -1,6 +1,6 @@
 using Kadari.Domain.Abstractions;
 using Kadari.Domain.Assets.Events;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 using Kadari.Domain.ValueObjects;
 
 namespace Kadari.Domain.Assets;
@@ -37,7 +37,7 @@ public sealed class AssetPassport : AggregateRoot<AssetPassportId>, ITenantScope
     private AssetPassport() { }   // EF
 
     private AssetPassport(
-        AssetPassportId id, AssetId assetId, SubjectId ownerId, TenantId tenantId, string verificationId,
+        AssetPassportId id, AssetId assetId, OwnerId ownerId, TenantId tenantId, string verificationId,
         DateTimeOffset at) : base(id)
     {
         AssetId = assetId;
@@ -53,7 +53,7 @@ public sealed class AssetPassport : AggregateRoot<AssetPassportId>, ITenantScope
     public AssetId AssetId { get; private set; }
 
     /// <summary>The subject who owns the asset — denormalised for owner-scoped reads/authz.</summary>
-    public SubjectId OwnerId { get; private set; }
+    public OwnerId OwnerId { get; private set; }
 
     /// <summary>The tenant partition the asset belongs to — denormalised for row-scoping (D2/D11).</summary>
     public TenantId TenantId { get; private set; }
@@ -121,7 +121,7 @@ public sealed class AssetPassport : AggregateRoot<AssetPassportId>, ITenantScope
 
     /// <summary>Re-point the credential to a new owner when the asset changes hands (transfer/inheritance) —
     /// keeps the denormalised <see cref="OwnerId"/> in step so the new owner's scoped reads resolve it.</summary>
-    public void ReassignOwner(SubjectId newOwner, DateTimeOffset at)
+    public void ReassignOwner(OwnerId newOwner, DateTimeOffset at)
     {
         OwnerId = newOwner;
         LastUpdatedAt = at;

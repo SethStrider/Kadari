@@ -3,7 +3,7 @@ using Kadari.Domain.Abstractions;
 using Kadari.Domain.Assets;
 using Kadari.Domain.Customers;
 using Kadari.Domain.Identity;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Application.Abstractions.Persistence;
 
@@ -15,7 +15,7 @@ public interface IKadariDbContext
 {
     // Customers and the owners their assets belong to.
     DbSet<Customer> Customers { get; }
-    DbSet<Subject> Subjects { get; }
+    DbSet<Owner> Owners { get; }
 
     // Sign-in.
     DbSet<UserAccount> UserAccounts { get; }

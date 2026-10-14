@@ -1,19 +1,23 @@
 namespace Kadari.Domain.Access;
 
-/// <summary>The core platform roles (PRS-001 §3).</summary>
+/// <summary>Who a KADARI user is. Roles are additive; permissions come from <see cref="RolePermissions"/>.</summary>
 public enum Role
 {
+    /// <summary>Not signed in.</summary>
     PublicVisitor,
-    Customer,
-    Connector,
-    Verifier,
-    QualityAssurance,
-    CustomerSuccess,
-    Finance,
-    ProductAdministrator,
-    SystemAdministrator,
 
-    /// <summary>An insurer-console user (Kadari §27–28). Staff-like (not self-service): reads a tenant's
-    /// cohort, confined to their own tenant by the InsurerUser mapping rather than by ownership.</summary>
+    /// <summary>A household building their own asset ledger.</summary>
+    Customer,
+
+    /// <summary>A professional valuer: an independent valuation lifts an asset to Value supported.</summary>
+    Valuer,
+
+    /// <summary>KADARI support staff.</summary>
+    CustomerSuccess,
+
+    /// <summary>An insurer's user, confined to their own tenant's customers.</summary>
     Insurer,
+
+    /// <summary>Platform administration.</summary>
+    SystemAdministrator,
 }

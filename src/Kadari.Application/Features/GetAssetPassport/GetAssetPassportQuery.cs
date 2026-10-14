@@ -6,7 +6,7 @@ using Kadari.Application.Exceptions;
 using Kadari.Application.Features.Tenancy;
 using Kadari.Domain.Assets;
 using Kadari.Domain.Customers;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Application.Features.GetAssetPassport;
 
@@ -49,9 +49,9 @@ internal sealed class GetAssetPassportHandler(IKadariDbContext db, ICurrentTenan
     {
         var customerId = new CustomerId(query.CustomerId);
 
-        var subjectId = await db.Subjects.AsNoTracking()
+        var subjectId = await db.Owners.AsNoTracking()
             .Where(s => s.CustomerId == customerId)
-            .Select(s => (SubjectId?)s.Id)
+            .Select(s => (OwnerId?)s.Id)
             .FirstOrDefaultAsync(ct);
 
         var assetId = new AssetId(query.AssetId);

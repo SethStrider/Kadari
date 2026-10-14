@@ -1,5 +1,5 @@
 using Kadari.Domain.Assets;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Application.Features.GetTenantPortfolio;
 
@@ -40,7 +40,7 @@ public sealed class TenantPortfolioAccumulator(Guid tenantId)
 {
     private const string DefaultCurrency = "ZAR";
 
-    private readonly HashSet<SubjectId> _policyholders = [];
+    private readonly HashSet<OwnerId> _policyholders = [];
     private readonly Dictionary<AssetAssuranceLevel, int> _assurance = [];
     private readonly Dictionary<AssetCategory, int> _categoryCounts = [];
     private readonly Dictionary<(AssetCategory Category, string Currency), long> _categoryExposure = [];

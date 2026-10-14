@@ -6,7 +6,7 @@ using Kadari.Application.Exceptions;
 using Kadari.Application.Features.AddHouseholdMember;
 using Kadari.Domain.Assets;
 using Kadari.Domain.Customers;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Application.Features.RemoveHouseholdMember;
 
@@ -29,9 +29,9 @@ internal sealed class RemoveHouseholdMemberHandler(IKadariDbContext db, TimeProv
         var customerId = new CustomerId(cmd.CustomerId);
         var memberId = new CustomerId(cmd.MemberCustomerId);
 
-        var ownerSubjectId = await db.Subjects.AsNoTracking()
+        var ownerSubjectId = await db.Owners.AsNoTracking()
             .Where(s => s.CustomerId == customerId)
-            .Select(s => (SubjectId?)s.Id)
+            .Select(s => (OwnerId?)s.Id)
             .FirstOrDefaultAsync(ct);
 
         var assetId = new AssetId(cmd.AssetId);
@@ -46,9 +46,9 @@ internal sealed class RemoveHouseholdMemberHandler(IKadariDbContext db, TimeProv
             throw new NotFoundException(nameof(Asset), cmd.AssetId);
         }
 
-        var memberSubjectId = await db.Subjects.AsNoTracking()
+        var memberSubjectId = await db.Owners.AsNoTracking()
             .Where(s => s.CustomerId == memberId)
-            .Select(s => (SubjectId?)s.Id)
+            .Select(s => (OwnerId?)s.Id)
             .FirstOrDefaultAsync(ct);
 
         if (memberSubjectId is not null)

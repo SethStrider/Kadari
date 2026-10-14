@@ -6,7 +6,7 @@ using Kadari.Application.Abstractions.Storage;
 using Kadari.Application.Exceptions;
 using Kadari.Application.Features.Tenancy;
 using Kadari.Application.Features.Valuation;
-using Kadari.Application.Features.Subjects.Services;
+using Kadari.Application.Features.Owners.Services;
 using Kadari.Domain.Assets;
 using Kadari.Domain.Customers;
 
@@ -35,7 +35,7 @@ internal sealed class AnalyzeSnapHandler(
     IVisionEnricher enricher,
     ValuationRailRouter valuation,
     TenantMembershipResolver tenants,
-    SubjectRegistrar subjects,
+    OwnerRegistrar subjects,
     SnapCaptureWork captureWork,
     VisionQuota quota,
     TimeProvider clock) : ICommandHandler<AnalyzeSnapCommand, AnalyzeSnapResponse>

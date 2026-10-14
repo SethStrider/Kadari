@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Kadari.Application.Abstractions.Access;
 using Kadari.Application.Abstractions.Persistence;
 using Kadari.Domain.Assets;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Application.Features.SubmitValuation;
 
@@ -20,7 +20,7 @@ internal sealed class SubmitAssetValuationOwnerResolver(IKadariDbContext db)
 
         var ownerId = await db.Assets.AsNoTracking()
             .Where(a => a.Id == assetId)
-            .Select(a => (SubjectId?)a.OwnerId)
+            .Select(a => (OwnerId?)a.OwnerId)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (ownerId is null)
@@ -28,7 +28,7 @@ internal sealed class SubmitAssetValuationOwnerResolver(IKadariDbContext db)
             return null;   // no such asset → 404
         }
 
-        var customerId = await db.Subjects.AsNoTracking()
+        var customerId = await db.Owners.AsNoTracking()
             .Where(s => s.Id == ownerId.Value)
             .Select(s => s.CustomerId)
             .FirstOrDefaultAsync(cancellationToken);

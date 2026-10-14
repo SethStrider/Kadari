@@ -41,7 +41,7 @@ public sealed class KadariDataExport(IKadariDbContext db)
             .Join(db.Tenants.AsNoTracking(), m => m.TenantId, t => t.Id, (_, t) => t.Name)
             .FirstOrDefaultAsync(ct);
 
-        var subject = await db.Subjects.AsNoTracking().FirstOrDefaultAsync(s => s.CustomerId == customerId, ct);
+        var subject = await db.Owners.AsNoTracking().FirstOrDefaultAsync(s => s.CustomerId == customerId, ct);
         if (subject is null)
         {
             return new KadariDataExportDto(insurer, [], [], consents);

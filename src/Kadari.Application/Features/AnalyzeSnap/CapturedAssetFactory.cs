@@ -1,5 +1,5 @@
 using Kadari.Domain.Assets;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 using AssetValuation = Kadari.Application.Features.Valuation.Valuation;
 
 namespace Kadari.Application.Features.AnalyzeSnap;
@@ -17,7 +17,7 @@ public static class CapturedAssetFactory
     public const string CaptureSource = "capture";
 
     public static Asset Create(
-        TenantId tenantId, SubjectId ownerId, string imageKey, string enricherSource,
+        TenantId tenantId, OwnerId ownerId, string imageKey, string enricherSource,
         IdentifiedItem item, AssetValuation? valuation, DateTimeOffset now, string? roomLabel)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(imageKey);

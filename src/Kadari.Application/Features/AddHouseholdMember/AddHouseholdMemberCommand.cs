@@ -3,10 +3,10 @@ using Kadari.Application.Abstractions.Access;
 using Kadari.Application.Abstractions.Messaging;
 using Kadari.Application.Abstractions.Persistence;
 using Kadari.Application.Exceptions;
-using Kadari.Application.Features.Subjects.Services;
+using Kadari.Application.Features.Owners.Services;
 using Kadari.Domain.Assets;
 using Kadari.Domain.Customers;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Application.Features.AddHouseholdMember;
 
@@ -23,7 +23,7 @@ public sealed record AddHouseholdMemberCommand(Guid CustomerId, Guid AssetId, Gu
 
 public sealed record HouseholdMemberResponse(Guid AssetId, Guid MemberCustomerId, int CoOwnerCount);
 
-internal sealed class AddHouseholdMemberHandler(IKadariDbContext db, SubjectRegistrar subjects, TimeProvider clock)
+internal sealed class AddHouseholdMemberHandler(IKadariDbContext db, OwnerRegistrar subjects, TimeProvider clock)
     : ICommandHandler<AddHouseholdMemberCommand, HouseholdMemberResponse>
 {
     public async Task<HouseholdMemberResponse> Handle(AddHouseholdMemberCommand cmd, CancellationToken ct)
@@ -37,9 +37,9 @@ internal sealed class AddHouseholdMemberHandler(IKadariDbContext db, SubjectRegi
             throw new NotFoundException(nameof(Customer), cmd.MemberCustomerId);
         }
 
-        var ownerSubjectId = await db.Subjects.AsNoTracking()
+        var ownerSubjectId = await db.Owners.AsNoTracking()
             .Where(s => s.CustomerId == customerId)
-            .Select(s => (SubjectId?)s.Id)
+            .Select(s => (OwnerId?)s.Id)
             .FirstOrDefaultAsync(ct);
 
         var assetId = new AssetId(cmd.AssetId);

@@ -63,7 +63,7 @@ public static class DependencyInjection
         services.AddOptions<Features.AnalyzeSnap.VisionQuotaOptions>();
 
         // Owners: the customer -> owning subject bridge (get-or-create).
-        services.AddScoped<Features.Subjects.Services.SubjectRegistrar>();
+        services.AddScoped<Features.Owners.Services.OwnerRegistrar>();
 
         // Valuation rails: the router picks the first rail that values an asset's category, in registration
         // order. The professional rail claims jewellery/art (declines to auto-value them); the AI baseline covers

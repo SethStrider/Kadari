@@ -4,7 +4,7 @@ using Kadari.Domain.Abstractions;
 using Kadari.Domain.Assets;
 using Kadari.Domain.Customers;
 using Kadari.Domain.Identity;
-using Kadari.Domain.Subjects;
+using Kadari.Domain.Owners;
 
 namespace Kadari.Infrastructure.Persistence;
 
@@ -19,7 +19,7 @@ public class KadariDbContext(DbContextOptions<KadariDbContext> options)
     public const string DefaultSchema = "kadari";
 
     public DbSet<Customer> Customers => Set<Customer>();
-    public DbSet<Subject> Subjects => Set<Subject>();
+    public DbSet<Owner> Owners => Set<Owner>();
 
     public DbSet<UserAccount> UserAccounts => Set<UserAccount>();
     public DbSet<Session> Sessions => Set<Session>();

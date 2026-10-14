@@ -29,8 +29,8 @@ public sealed class AuditEvent
         Id = id;
         ActorKind = actorKind;
         ActorId = actorId;
-        SubjectType = subjectType;
-        SubjectId = subjectId;
+        OwnerType = subjectType;
+        OwnerId = subjectId;
         Action = action;
         PreviousState = previousState;
         NewState = newState;
@@ -41,8 +41,8 @@ public sealed class AuditEvent
     public AuditEventId Id { get; private init; }
     public ActorKind ActorKind { get; private init; }
     public Guid? ActorId { get; private init; }
-    public string SubjectType { get; private init; } = null!;
-    public Guid SubjectId { get; private init; }
+    public string OwnerType { get; private init; } = null!;
+    public Guid OwnerId { get; private init; }
     public string Action { get; private init; } = null!;
     public string? PreviousState { get; private init; }
     public string? NewState { get; private init; }
