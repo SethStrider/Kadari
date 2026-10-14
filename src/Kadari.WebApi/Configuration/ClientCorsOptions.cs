@@ -8,6 +8,6 @@ public sealed class ClientCorsOptions
 {
     public const string SectionName = "Cors";
 
-    /// <summary>Absolute origins, scheme included and no trailing slash (e.g. "https://app.trustli.co.za").</summary>
+    /// <summary>Absolute origins, scheme included and no trailing slash (e.g. "https://app.kadari.co.za").</summary>
     public string[] AllowedOrigins { get; init; } = [];
 }

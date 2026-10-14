@@ -4,7 +4,7 @@ using Microsoft.OpenApi;
 namespace Kadari.WebApi.OpenApi;
 
 /// <summary>
-/// Stamps the OpenAPI document with Trustli's API metadata (API design standard, #3).
+/// Stamps the OpenAPI document with KADARI's API metadata (API design standard, #3).
 /// Auth scheme wiring is a placeholder here and is completed with Identity &amp; Auth (#7).
 /// </summary>
 public sealed class ApiInfoTransformer : IOpenApiDocumentTransformer
@@ -14,10 +14,10 @@ public sealed class ApiInfoTransformer : IOpenApiDocumentTransformer
     {
         document.Info = new OpenApiInfo
         {
-            Title = "Trustli API",
+            Title = "KADARI API",
             Version = "v1",
             Description = """
-                Trustli Decision Intelligence API. List endpoints are paged; mutating calls take an
+                KADARI asset-ledger API. List endpoints are paged; mutating calls take an
                 `Idempotency-Key`.
 
                 **Errors.** Every failure — thrown or framework-generated — is

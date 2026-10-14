@@ -73,9 +73,9 @@ public static class Extensions
                 metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
                     .AddRuntimeInstrumentation()
-                    // Trustli's own meters (AS-27: KADARI capture outcomes, error-queue depth) and MassTransit's
+                    // KADARI's own meters (AS-27: KADARI capture outcomes, error-queue depth) and MassTransit's
                     // consume/fault counters.
-                    .AddMeter("Trustli.*")
+                    .AddMeter("Kadari.*")
                     .AddMeter("MassTransit");
             })
             .WithTracing(tracing =>

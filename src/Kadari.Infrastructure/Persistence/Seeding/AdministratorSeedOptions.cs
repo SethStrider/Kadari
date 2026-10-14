@@ -18,7 +18,7 @@ public sealed class AdministratorSeedOptions
 
     /// <summary>
     /// Optional initial portal password. When set, the seed hashes it and sets it on the administrator
-    /// account (re-seeding rotates it), enabling password sign-in to portal.trustli.co.za. Left blank in
+    /// account (re-seeding rotates it), enabling password sign-in to portal.kadari.co.za. Left blank in
     /// production — set it once out-of-band, or leave the admin on OTP-only. Never commit a real value.
     /// </summary>
     public string? Password { get; set; }

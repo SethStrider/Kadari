@@ -141,8 +141,6 @@ app.UseRequestTimeouts();
 
 // After UseForwardedHeaders (so the client IP is real) and after authentication is configured but
 // before endpoints run, so the global limiter can partition authenticated callers by subject.
-// Signed pushes (report intake) verify an HMAC over the raw body, so it must stay readable after binding.
-app.UseBufferedBodiesForSignedEndpoints();
 
 app.UseAuthentication();
 app.UseAuthorization();

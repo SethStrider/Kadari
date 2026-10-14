@@ -14,7 +14,7 @@ public sealed class NotificationOtpDelivery(INotificationChannel channel) : IOtp
     public Task SendAsync(string mobileNumber, string code, CancellationToken cancellationToken = default)
         => channel.SendAsync(
             NotificationChannel.WhatsApp, mobileNumber,
-            $"Your Trustli verification code is {code}. It expires in 5 minutes.",
+            $"Your KADARI verification code is {code}. It expires in 5 minutes.",
             containsSecret: true,   // the body is the credential — never log it (PAS-002 §3)
             cancellationToken);
 }

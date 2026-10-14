@@ -12,7 +12,7 @@ namespace Kadari.Application.Features.Exit;
 
 /// <summary>
 /// Produce the signed "asset-for-sale" export for one of a customer's assets (spec §7) — the one-way handoff a
-/// marketplace (PoziSnap) imports to pre-fill a listing with Trustli-verified provenance. Customer-scoped: a
+/// marketplace (PoziSnap) imports to pre-fill a listing with KADARI-verified provenance. Customer-scoped: a
 /// caller may only export their own asset. Requires a minted Asset Passport (the provenance the payload
 /// carries); until one exists it is a 404, so the client mints then exports.
 /// </summary>

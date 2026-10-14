@@ -10,7 +10,7 @@ public enum CustomerStatus
 }
 
 /// <summary>
-/// An individual using Trustli (CDM-001). The anchor most other entities hang off. Created through
+/// An individual using KADARI (CDM-001). The anchor most other entities hang off. Created through
 /// <see cref="Register"/>, which enforces the required-field invariants; state changes go through
 /// methods, never public setters (CLAUDE.md §5).
 /// </summary>

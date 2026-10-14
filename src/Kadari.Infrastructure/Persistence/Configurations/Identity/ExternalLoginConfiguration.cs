@@ -26,7 +26,7 @@ public sealed class ExternalLoginConfiguration : IEntityTypeConfiguration<Extern
         builder.Property(l => l.RevokedAt);
 
         // One live credential per provider subject, platform-wide — otherwise the same Google account
-        // could sign into two Trustli accounts. Partial, so a revoked row stays for audit and does not
+        // could sign into two KADARI accounts. Partial, so a revoked row stays for audit and does not
         // block the same subject being linked again later.
         builder.HasIndex(l => new { l.Provider, l.Subject })
             .IsUnique()

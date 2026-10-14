@@ -45,7 +45,7 @@ public static class AuthEndpoints
             .WithName("VerifyOtp")
             .WithSummary("Verify an OTP: an access token in the body, the refresh token in an HttpOnly cookie (auto-registers a Customer).");
 
-        // Staff admin-portal sign-in (portal.trustli.co.za). Public like the OTP flow — it *is* the
+        // Staff admin-portal sign-in (portal.kadari.co.za). Public like the OTP flow — it *is* the
         // login. The handler refuses non-staff accounts and enforces per-account lockout; this policy
         // bounds cross-account guessing per source.
         group.MapPost("/login", async (

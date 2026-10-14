@@ -8,6 +8,7 @@ public static class KadariApiEndpoints
         app.MapAuthEndpoints();
         app.MapSessionEndpoints();
         app.MapAdminUserEndpoints();
+        app.MapCustomerDataEndpoints();
         app.MapKadariEndpoints();
 
         return app;

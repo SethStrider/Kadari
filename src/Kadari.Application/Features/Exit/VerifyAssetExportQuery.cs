@@ -9,8 +9,8 @@ namespace Kadari.Application.Features.Exit;
 
 /// <summary>
 /// Public, no-login verification of an asset-for-sale export token (spec §7) — what PoziSnap (or anyone) calls
-/// to confirm the "Trustli-verified provenance" before trusting a listing. Two checks: the token's signature
-/// must be genuine (only Trustli could mint it), and the referenced Asset Passport must still be live (a
+/// to confirm the "KADARI-verified provenance" before trusting a listing. Two checks: the token's signature
+/// must be genuine (only KADARI could mint it), and the referenced Asset Passport must still be live (a
 /// revoked/suspended passport fails, even with a valid signature). No login, so <see cref="IUnscopedRequest"/>.
 /// </summary>
 public sealed record VerifyAssetExportQuery(string Token) : IQuery<AssetExportVerificationDto>, IUnscopedRequest;

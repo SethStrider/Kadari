@@ -9,7 +9,7 @@ public sealed class CorrelationIdMiddleware(RequestDelegate next, ILogger<Correl
 {
     public const string HeaderName = "X-Correlation-ID";
 
-    private const string ItemKey = "Trustli.CorrelationId";
+    private const string ItemKey = "Kadari.CorrelationId";
 
     /// <summary>An id longer than this is not a correlation id; it is someone probing the log pipeline.</summary>
     private const int MaxLength = 128;

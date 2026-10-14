@@ -30,7 +30,7 @@ public sealed record ApiProblem(int Status, string Code, string Title, bool Expo
     /// branch on <see cref="Code"/> are unaffected.
     /// </para>
     /// </summary>
-    public string Type { get; } = $"urn:trustli:problem:{Code}";
+    public string Type { get; } = $"urn:kadari:problem:{Code}";
 }
 
 /// <summary>

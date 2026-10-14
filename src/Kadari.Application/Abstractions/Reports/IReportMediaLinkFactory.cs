@@ -6,7 +6,7 @@ namespace Kadari.Application.Abstractions.Reports;
 /// <remarks>
 /// <para>
 /// The PDF endpoint is unauthenticated by necessity — the WhatsApp provider fetches the media itself
-/// and carries no Trustli credentials. It was previously keyed on the report id alone, which made
+/// and carries no KADARI credentials. It was previously keyed on the report id alone, which made
 /// every issued report a permanent, world-readable URL for a document full of personal information:
 /// no expiry, no revocation, and no check that the report had even been approved.
 /// </para>

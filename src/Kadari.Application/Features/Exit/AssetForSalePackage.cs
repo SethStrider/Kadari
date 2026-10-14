@@ -6,7 +6,7 @@ namespace Kadari.Application.Features.Exit;
 
 /// <summary>
 /// The attributes of an asset offered for sale (spec §7). Carries a <see cref="PassportVerificationId"/> so a
-/// marketplace (PoziSnap) can independently verify the "Trustli-verified provenance" that a plain marketplace
+/// marketplace (PoziSnap) can independently verify the "KADARI-verified provenance" that a plain marketplace
 /// cannot offer — the whole point of the exit seam.
 /// </summary>
 public sealed record AssetForSalePackage(
@@ -23,8 +23,8 @@ public sealed record AssetForSalePackage(
 /// <summary>
 /// The one-way, signed handoff format for the exit-to-PoziSnap seam (spec §7): a self-contained token
 /// <c>base64url(payload) "." signature</c> that PoziSnap imports to pre-fill a listing and can verify without a
-/// shared database or bus. The signature is an HMAC over the encoded payload with Trustli's server key
-/// (<see cref="IReportIntegritySigner"/>), so only Trustli can mint one and any tampering fails the check.
+/// shared database or bus. The signature is an HMAC over the encoded payload with KADARI's server key
+/// (<see cref="IReportIntegritySigner"/>), so only KADARI can mint one and any tampering fails the check.
 /// </summary>
 public static class AssetExportProtocol
 {

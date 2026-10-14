@@ -5,7 +5,7 @@ namespace Kadari.Domain.Assets;
 /// <summary>
 /// White-label branding for an insurer <see cref="Tenant"/> (deck §27–28): the display colours and logo the
 /// Admin console re-skins itself with when one of that tenant's users signs in. Mapped as an EF owned type on
-/// the tenant; a tenant with no branding falls back to the platform (Trustli) palette. Colours are ISO hex
+/// the tenant; a tenant with no branding falls back to the platform (KADARI) palette. Colours are ISO hex
 /// (<c>#RRGGBB</c>) so the frontend can inject them straight onto its CSS custom properties.
 /// </summary>
 public sealed partial record TenantBranding

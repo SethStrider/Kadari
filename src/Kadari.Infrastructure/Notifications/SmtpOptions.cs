@@ -24,9 +24,9 @@ public sealed class SmtpOptions
     public string Username { get; init; } = string.Empty;
     public string Password { get; init; } = string.Empty;
 
-    /// <summary>A DKIM-signed sending address, e.g. <c>no-reply@mail.trustli.co.za</c>.</summary>
+    /// <summary>A DKIM-signed sending address, e.g. <c>no-reply@mail.kadari.co.za</c>.</summary>
     public string FromAddress { get; init; } = string.Empty;
-    public string FromName { get; init; } = "Trustli";
+    public string FromName { get; init; } = "KADARI";
 
     public bool IsConfigured => !string.IsNullOrWhiteSpace(Host);
 }

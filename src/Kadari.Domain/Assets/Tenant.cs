@@ -14,7 +14,7 @@ public readonly record struct TenantId(Guid Value)
     public static readonly TenantId Default = new(new Guid("11111111-1111-1111-1111-111111111111"));
 }
 
-/// <summary>Whether a tenant is Trustli itself (the default that owns consumer-direct users) or an insurer
+/// <summary>Whether a tenant is KADARI itself (the default that owns consumer-direct users) or an insurer
 /// (a white-label / licence partner, deck §27–28).</summary>
 public enum TenantKind
 {
@@ -55,7 +55,7 @@ public sealed class Tenant : AggregateRoot<TenantId>
     public TenantBranding? Branding { get; private set; }
 
     /// <summary>The seeded default tenant that owns consumer-direct customers.</summary>
-    public static Tenant CreatePlatformDefault() => new(TenantId.Default, "Trustli", TenantKind.Platform);
+    public static Tenant CreatePlatformDefault() => new(TenantId.Default, "KADARI", TenantKind.Platform);
 
     /// <summary>Onboard an insurer as a white-label / licence tenant.</summary>
     public static Tenant CreateInsurer(string name)

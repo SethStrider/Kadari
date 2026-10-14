@@ -10,7 +10,7 @@ namespace Kadari.Application.Features.AnalyzeSnap;
 /// </summary>
 internal static class SnapMetrics
 {
-    public const string MeterName = "Trustli.Kadari";
+    public const string MeterName = "Kadari.Capture";
 
     private static readonly Meter Meter = new(MeterName);
 

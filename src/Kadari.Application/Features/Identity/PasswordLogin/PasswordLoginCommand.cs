@@ -11,7 +11,7 @@ using Kadari.Domain.Identity;
 namespace Kadari.Application.Features.Identity.PasswordLogin;
 
 /// <summary>
-/// Email + password sign-in for the staff admin portal (portal.trustli.co.za). Unscoped — it *is* the
+/// Email + password sign-in for the staff admin portal (portal.kadari.co.za). Unscoped — it *is* the
 /// authentication step, so there is no signed-in caller yet to scope against.
 /// </summary>
 public sealed record PasswordLoginCommand(string Email, string Password)

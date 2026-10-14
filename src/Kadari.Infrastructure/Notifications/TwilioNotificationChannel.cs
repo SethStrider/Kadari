@@ -20,8 +20,8 @@ public sealed class TwilioNotificationChannel(
     TwilioMessageSender sender, IOptions<TwilioOptions> options, IEmailSender? email = null)
     : INotificationChannel
 {
-    /// <summary>The channel carries no subject; every Trustli email goes out under this one.</summary>
-    public const string EmailSubject = "A message from Trustli";
+    /// <summary>The channel carries no subject; every KADARI email goes out under this one.</summary>
+    public const string EmailSubject = "A message from KADARI";
 
     private readonly TwilioOptions _options = options.Value;
 

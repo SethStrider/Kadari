@@ -35,7 +35,7 @@ public sealed class TwilioOtpDelivery(TwilioMessageSender sender, IOptions<Twili
         {
             ["From"] = _options.SmsFrom,
             ["To"] = mobileNumber,
-            ["Body"] = $"Your Trustli verification code is {code}. It expires in 5 minutes.",
+            ["Body"] = $"Your KADARI verification code is {code}. It expires in 5 minutes.",
         }, cancellationToken);
     }
 }
