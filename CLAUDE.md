@@ -43,8 +43,7 @@ tests/
   Kadari.Domain.Tests / Kadari.Application.Tests / Kadari.Infrastructure.Tests / Kadari.ArchitectureTests
 ```
 
-Stack: .NET 10 · Aspire 13 · Minimal APIs + Scalar docs · **MediatR 12.5** (CQRS) · **MassTransit 8**
-on RabbitMQ · **EF Core 10 / PostgreSQL** · **AWS S3 SDK → MinIO** · **xUnit**. Package versions are
+Stack: .NET 10 · Aspire 13 · Minimal APIs + Scalar docs · **MediatR 12.5** (CQRS) · **EF Core 10 / PostgreSQL** · **AWS S3 SDK → MinIO** · **xUnit**. Package versions are
 centralised in `Directory.Packages.props` (CPM) — add packages **without** a `Version` attribute.
 
 ---
@@ -257,66 +256,14 @@ PostgreSQL 17 + EF Core 10 (Npgsql), single `kadari` schema. Full detail: `docs/
 
 ---
 
-## 6a. Async messaging — the outbox → worker flow
+## 6a. No message bus
 
-Two message mechanisms exist; **do not confuse them**:
-
-- **Domain events** (`KADARI.Domain`, e.g. `PaymentSettledDomainEvent`) are **in-process only**. Raised inside an
-  aggregate, dispatched by `TransactionalDispatchBehavior` **inside the command's transaction**, handled by
-  `INotificationHandler`s in the **same request, same process**. Use for intra-boundary reactions
-  (payment → workflow → tasks → comms). This is not the bus.
-- **Integration events** (`KADARI.Contracts`, e.g. `WhatsAppMessageReceivedIntegrationEvent`) **cross the process
-  boundary** via the transactional outbox → RabbitMQ → worker. Use for provider webhooks, work that
-  must ack fast, or anything that should scale/fail independently of the API.
-
-**The guaranteed async flow (the standard for webhooks / offloaded work):**
-
-1. **Thin endpoint.** The endpoint binds the request and sends a *command* — no business logic
-   (e.g. `POST /webhooks/whatsapp` → `IngestWhatsAppMessageCommand`).
-2. **Handler publishes, doesn't process.** The ingest handler persists whatever state belongs in that
-   transaction (often none) and publishes an integration event through
-   **`IIntegrationEventPublisher`** (never inject MassTransit's `IPublishEndpoint` into Application).
-   Give it a **deterministic message id** (e.g. from a provider id) so retries de-dupe.
-3. **Outbox = atomic, no dual write.** The publish is *buffered* into the `OutboxMessage` table **in the
-   same transaction as `SaveChanges`**. Nothing is sent to RabbitMQ inside the transaction — the row and
-   any state commit together or not at all. After commit, MassTransit's delivery service ships it to the
-   broker (retrying until it succeeds). The endpoint acks fast.
-4. **Worker drains the queue.** A **separate `KADARI.Worker` process** owns consumption. Its
-   `IConsumer<T>` (in `Infrastructure/Messaging`, a thin adapter) dispatches an Application command
-   (e.g. `ProcessWhatsAppMessageCommand`) that does the real work. The **inbox** de-dupes on the message
-   id, so a provider retry is processed exactly once; the worker's own `SaveChanges` commits the result
-   atomically.
-
-**Process topology (enforced by DI):** `AddInfrastructure()` registers the bus **publish-only** (WebApi
-— never drains the queue). `AddInfrastructure(withConsumers: true)` registers consumers + inbox + receive
-endpoints (the **worker** — the only process that drains queues). Reference: the WhatsApp inbound slice
-(`Features/WhatsApp/IngestWhatsAppMessage` → outbox → `Features/WhatsApp/ProcessWhatsAppMessage`).
-
-### Transactional commands & the domain→integration bridge
-
-Every command runs in **one transaction** (`TransactionalDispatchBehavior` + `IUnitOfWork`), and its domain
-events are dispatched **inside** that transaction. So the command's writes, the whole synchronous reaction
-cascade, and any integration events published to the outbox commit **atomically — both or neither**.
-Queries never open a transaction.
-
-- **Raise integration events from a decoupled translator, not the command handler.** A state change raises a
-  *domain* event; a dedicated `INotificationHandler<DomainEventNotification<T>>` (the "translator", e.g.
-  `OnUserRegisteredPublishIntegrationEvent`) maps it to a `Contracts` integration event via
-  `IIntegrationEventPublisher`. Because it runs inside the transaction, the `OutboxMessage` row commits with
-  the state. The aggregate and command handler stay ignorant of `Contracts`/the bus.
-- **Rollback is all-or-nothing across the cascade.** A downstream reaction that throws rolls back the
-  primary command too. To *persist a side-effect while still rejecting* (e.g. a failed OTP attempt bumping
-  the brute-force counter), throw an exception marked `IPersistableRejection` — the UoW commits, then
-  rethrows.
-- **⚠️ Retry re-runs the whole command delegate.** Postgres has the Npgsql **retrying execution strategy**
-  on by default, so on a transient DB error the UoW re-executes the command + its cascade in a fresh
-  transaction. **DB state is safe** (each failed attempt rolls back), **but external I/O inside a handler
-  (payment / notification / WhatsApp sends) can re-fire.** Don't do external side-effects inline in a
-  command handler — **move them to post-commit integration events** (publish through the outbox, let a
-  consumer do the send). This is the same outbox→worker pattern above and is the intended fix; until a
-  given send is migrated, treat it as a known at-least-once hazard.
-
----
+KADARI has no RabbitMQ, outbox or worker. Every command runs synchronously in one transaction
+(`TransactionalDispatchBehavior` + `IUnitOfWork`), and its domain events are dispatched inside that transaction, so the
+writes and every reaction commit atomically. External I/O that must not repeat when a transaction retries (sending a
+sign-in code, the vision call) goes through `IPostCommitActions` (after commit) or a once-only guard (`SnapCaptureWork`).
+Background sweeps (evidence retention) are hosted services in the API. If a real cross-process need appears, add the
+outbox then; don't pre-build it.
 
 ## 7. Testing (xUnit)
 
