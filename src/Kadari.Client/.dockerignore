@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+.tanstack
+.husky
+.vs
+.vscode
+.idea
+*.log
+Dockerfile
+.dockerignore
+.gitignore
+src/routeTree.gen.ts

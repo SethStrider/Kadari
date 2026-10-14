@@ -1,0 +1,449 @@
+/* KADARI tokens, SCOPED to `.kadari` so they never leak into the Trustli shell (whose Tailwind theme
+ * also defines --color-primary/--color-success/--font-sans on :root). Mechanical transform of the
+ * design source docs/design/kadari/kadari.tokens.css: `:root` → `.kadari`, `[data-theme]` →
+ * `.kadari[data-theme]`. Update the source first, then re-apply the same selector swap here. */
+/*!
+ * KADARI design tokens · v0.1.0 (draft)
+ * Σ(V × C) — every asset, accounted for.
+ * Generated from kadari.tokens.json — edit the source, not this file.
+ *
+ * WHITE-LABEL CONTRACT — an insurer theme may override ONLY:
+ *   --color-primary, --color-primary-hover, --color-primary-pressed,
+ *   --color-on-primary, --color-primary-subtle, --color-on-primary-subtle,
+ *   --color-focus-ring, --color-accent, --color-brand-mark, --brand-logo-*
+ * Confidence, semantic and neutral tokens are locked: they carry meaning.
+ */
+
+.kadari {
+  color-scheme: light;
+  /* ---- primitives ---- */
+  --kd-neutral-0: #ffffff;
+  --kd-neutral-25: #f8fbfb;
+  --kd-neutral-50: #f0f4f5;
+  --kd-neutral-100: #e5ebec;
+  --kd-neutral-200: #d0d9dc;
+  --kd-neutral-300: #b4c0c3;
+  --kd-neutral-400: #92a2a5;
+  --kd-neutral-500: #738488;
+  --kd-neutral-600: #576a6f;
+  --kd-neutral-700: #405459;
+  --kd-neutral-800: #293e44;
+  --kd-neutral-850: #192f35;
+  --kd-neutral-900: #0c242a;
+  --kd-neutral-950: #001920;
+  --kd-teal-50: #e7faf6;
+  --kd-teal-100: #cdf3ec;
+  --kd-teal-200: #a0e4d9;
+  --kd-teal-300: #67d0c2;
+  --kd-teal-400: #25b2a3;
+  --kd-teal-500: #038b7f;
+  --kd-teal-600: #00776c;
+  --kd-teal-700: #006057;
+  --kd-teal-800: #004b44;
+  --kd-teal-900: #02332e;
+  --kd-mint-200: #afdecc;
+  --kd-mint-400: #3cc792;
+  --kd-blue-50: #eaf8ff;
+  --kd-blue-100: #ceedfe;
+  --kd-blue-200: #a3daf7;
+  --kd-blue-300: #6dc0e9;
+  --kd-blue-400: #33a1d2;
+  --kd-blue-500: #007fac;
+  --kd-blue-600: #00698f;
+  --kd-blue-700: #005473;
+  --kd-blue-800: #004059;
+  --kd-blue-900: #002d40;
+
+  /* ---- brand slots (white-label) ---- */
+  --brand-name: "KADARI";
+  --brand-logo-light: none; /* url() to the lockup for light surfaces */
+  --brand-logo-dark: none; /* url() to the lockup for dark surfaces  */
+  --brand-logo-mark: none; /* url() to the square mark               */
+
+  /* ---- semantic: light ---- */
+  --color-primary: var(--kd-teal-600);
+  --color-primary-hover: var(--kd-teal-700);
+  --color-primary-pressed: var(--kd-teal-800);
+  --color-on-primary: #ffffff;
+  --color-primary-subtle: var(--kd-teal-50);
+  --color-on-primary-subtle: var(--kd-teal-800);
+  --color-focus-ring: var(--kd-teal-500);
+  --color-accent: var(--kd-mint-400);
+  --color-accent-subtle: var(--kd-mint-200);
+  --color-secondary: var(--kd-blue-600);
+  --color-secondary-subtle: var(--kd-blue-50);
+  --color-brand-mark: var(--kd-teal-500);
+  --color-bg: var(--kd-neutral-25);
+  --color-surface: var(--kd-neutral-0);
+  --color-surface-raised: var(--kd-neutral-0);
+  --color-surface-sunken: var(--kd-neutral-50);
+  --color-surface-inverse: var(--kd-neutral-950);
+  --color-scrim: rgb(0 25 32 / 0.48);
+  --color-text: var(--kd-neutral-950);
+  --color-text-muted: var(--kd-neutral-600);
+  --color-text-inverse: var(--kd-neutral-25);
+  --color-text-link: var(--kd-teal-600);
+  --color-text-disabled: var(--kd-neutral-400);
+  --color-border: var(--kd-neutral-200);
+  --color-border-strong: var(--kd-neutral-400);
+  --color-divider: var(--kd-neutral-100);
+  --color-control-disabled: var(--kd-neutral-100);
+  --color-success: #007742;
+  --color-success-subtle: #e2f6e8;
+  --color-warning: #8e5300;
+  --color-warning-subtle: #feeddd;
+  --color-danger: #b02b27;
+  --color-danger-subtle: #ffebe8;
+  --color-info: #0068a5;
+  --color-info-subtle: #e4f2ff;
+  --color-confidence-none: #c5cfd7;
+  --color-confidence-none-text: #59656e;
+  --color-confidence-none-subtle: #edf1f3;
+  --color-confidence-none-border: #bfc5ca;
+  --color-confidence-observed: #a19fe4;
+  --color-confidence-observed-text: #714ca6;
+  --color-confidence-observed-subtle: #f2edff;
+  --color-confidence-observed-border: #cbbaeb;
+  --color-confidence-identified: #2d86c8;
+  --color-confidence-identified-text: #2f62ac;
+  --color-confidence-identified-subtle: #e7f1ff;
+  --color-confidence-identified-border: #aac6ef;
+  --color-confidence-ownership: #007176;
+  --color-confidence-ownership-text: #006e89;
+  --color-confidence-ownership-subtle: #dff4fc;
+  --color-confidence-ownership-border: #a1ccdc;
+  --color-confidence-value: #005227;
+  --color-confidence-value-text: #007749;
+  --color-confidence-value-subtle: #dff7e8;
+  --color-confidence-value-border: #a1d1b4;
+  --color-on-confidence-value: #ffffff;
+  --shadow-1: 0 1px 2px rgb(0 25 32 / 0.06), 0 1px 1px rgb(0 25 32 / 0.04);
+  --shadow-2: 0 2px 6px rgb(0 25 32 / 0.06), 0 8px 24px rgb(0 25 32 / 0.06);
+  --shadow-3: 0 8px 20px rgb(0 25 32 / 0.08), 0 24px 56px rgb(0 25 32 / 0.12);
+
+  /* ---- type, space, shape, motion ---- */
+  --font-sans:
+    "Inter", "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+  --font-numeric: "Inter", system-ui, sans-serif;
+  --font-features-money: "tnum" 1, "lnum" 1;
+  --font-features-id: "tnum" 1, "zero" 1;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --text-display-size: 2.75rem;
+  --text-display-line: 3rem;
+  --text-display-weight: 500;
+  --text-display-tracking: -0.025em;
+  --text-h1-size: 1.875rem;
+  --text-h1-line: 2.25rem;
+  --text-h1-weight: 600;
+  --text-h1-tracking: -0.02em;
+  --text-h2-size: 1.375rem;
+  --text-h2-line: 1.75rem;
+  --text-h2-weight: 600;
+  --text-h2-tracking: -0.015em;
+  --text-h3-size: 1.125rem;
+  --text-h3-line: 1.5rem;
+  --text-h3-weight: 600;
+  --text-h3-tracking: -0.01em;
+  --text-body-lg-size: 1.0625rem;
+  --text-body-lg-line: 1.625rem;
+  --text-body-lg-weight: 400;
+  --text-body-lg-tracking: -0.005em;
+  --text-body-size: 0.9375rem;
+  --text-body-line: 1.375rem;
+  --text-body-weight: 400;
+  --text-body-tracking: 0;
+  --text-body-sm-size: 0.8125rem;
+  --text-body-sm-line: 1.125rem;
+  --text-body-sm-weight: 400;
+  --text-body-sm-tracking: 0;
+  --text-caption-size: 0.75rem;
+  --text-caption-line: 1rem;
+  --text-caption-weight: 500;
+  --text-caption-tracking: 0.005em;
+  --text-overline-size: 0.6875rem;
+  --text-overline-line: 0.875rem;
+  --text-overline-weight: 600;
+  --text-overline-tracking: 0.12em;
+  --text-money-xl-size: 2.5rem;
+  --text-money-xl-line: 2.75rem;
+  --text-money-xl-weight: 600;
+  --text-money-xl-tracking: -0.02em;
+  --text-money-lg-size: 1.75rem;
+  --text-money-lg-line: 2rem;
+  --text-money-lg-weight: 600;
+  --text-money-lg-tracking: -0.015em;
+  --text-money-md-size: 1.0625rem;
+  --text-money-md-line: 1.375rem;
+  --text-money-md-weight: 600;
+  --text-money-md-tracking: -0.005em;
+  --text-formula-size: 1.25rem;
+  --text-formula-line: 1.5rem;
+  --text-formula-weight: 300;
+  --text-formula-tracking: 0.18em;
+  --money-currency-scale: 0.58em;
+  --money-minor-scale: 0.62em;
+  --space-0: 0px;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 20px;
+  --space-7: 24px;
+  --space-8: 32px;
+  --space-9: 40px;
+  --space-10: 48px;
+  --space-11: 64px;
+  --space-12: 80px;
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-pill: 999px;
+  --border-width: 1px;
+  --border-width-strong: 1.5px;
+  --focus-ring-width: 3px;
+  --focus-ring-offset: 2px;
+  --icon-stroke: 1.5;
+  --icon-size-sm: 16px;
+  --icon-size-md: 20px;
+  --icon-size-lg: 24px;
+  --tap-target-min: 44px;
+  --rule-accent-width: 40px;
+  --rule-accent-height: 3px;
+  --duration-instant: 80ms;
+  --duration-fast: 140ms;
+  --duration-base: 220ms;
+  --duration-slow: 360ms;
+  --duration-deliberate: 600ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter: cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-emphasized: cubic-bezier(0.3, 0, 0, 1);
+  --z-nav: 100;
+  --z-sheet: 200;
+  --z-toast: 300;
+  --z-modal: 400;
+}
+
+.kadari[data-theme="dark"] {
+  color-scheme: dark;
+  --color-primary: var(--kd-mint-400);
+  --color-primary-hover: #5ed6a8;
+  --color-primary-pressed: #2fb07f;
+  --color-on-primary: var(--kd-neutral-950);
+  --color-primary-subtle: #0b3a33;
+  --color-on-primary-subtle: var(--kd-teal-200);
+  --color-focus-ring: var(--kd-mint-400);
+  --color-accent: var(--kd-mint-400);
+  --color-accent-subtle: #0b3a33;
+  --color-secondary: var(--kd-blue-300);
+  --color-secondary-subtle: #0e2f43;
+  --color-brand-mark: var(--kd-teal-400);
+  --color-bg: var(--kd-neutral-950);
+  --color-surface: var(--kd-neutral-900);
+  --color-surface-raised: var(--kd-neutral-850);
+  --color-surface-sunken: #00131a;
+  --color-surface-inverse: var(--kd-neutral-25);
+  --color-scrim: rgb(0 10 14 / 0.64);
+  --color-text: var(--kd-neutral-50);
+  --color-text-muted: var(--kd-neutral-300);
+  --color-text-inverse: var(--kd-neutral-950);
+  --color-text-link: var(--kd-teal-300);
+  --color-text-disabled: var(--kd-neutral-600);
+  --color-border: var(--kd-neutral-800);
+  --color-border-strong: var(--kd-neutral-600);
+  --color-divider: var(--kd-neutral-850);
+  --color-control-disabled: var(--kd-neutral-800);
+  --color-success: #81d39e;
+  --color-success-subtle: #113620;
+  --color-warning: #efaf6f;
+  --color-warning-subtle: #422708;
+  --color-danger: #ffa196;
+  --color-danger-subtle: #4d1c18;
+  --color-info: #80c5ff;
+  --color-info-subtle: #103049;
+  --color-confidence-none: #464e55;
+  --color-confidence-none-text: #b4c0c8;
+  --color-confidence-none-subtle: #272c2f;
+  --color-confidence-none-border: #474e53;
+  --color-confidence-observed: #6863b1;
+  --color-confidence-observed-text: #c9acff;
+  --color-confidence-observed-subtle: #302346;
+  --color-confidence-observed-border: #544274;
+  --color-confidence-identified: #4b99d7;
+  --color-confidence-identified-text: #95c0ff;
+  --color-confidence-identified-subtle: #182b48;
+  --color-confidence-identified-border: #314d77;
+  --color-confidence-ownership: #5ac8cd;
+  --color-confidence-ownership-text: #78cbe7;
+  --color-confidence-ownership-subtle: #0c303b;
+  --color-confidence-ownership-border: #215465;
+  --color-confidence-value: #8df1b2;
+  --color-confidence-value-text: #77d5a1;
+  --color-confidence-value-subtle: #0b3420;
+  --color-confidence-value-border: #205a3c;
+  --color-on-confidence-value: var(--kd-neutral-950);
+  --shadow-1: 0 0 0 1px rgb(255 255 255 / 0.04);
+  --shadow-2: 0 0 0 1px rgb(255 255 255 / 0.05), 0 8px 24px rgb(0 0 0 / 0.32);
+  --shadow-3: 0 0 0 1px rgb(255 255 255 / 0.06), 0 24px 56px rgb(0 0 0 / 0.48);
+}
+
+/* explicit light scope (wins over the OS preference below for a subtree) */
+.kadari[data-theme="light"] {
+  color-scheme: light;
+  --color-primary: var(--kd-teal-600);
+  --color-primary-hover: var(--kd-teal-700);
+  --color-primary-pressed: var(--kd-teal-800);
+  --color-on-primary: #ffffff;
+  --color-primary-subtle: var(--kd-teal-50);
+  --color-on-primary-subtle: var(--kd-teal-800);
+  --color-focus-ring: var(--kd-teal-500);
+  --color-accent: var(--kd-mint-400);
+  --color-accent-subtle: var(--kd-mint-200);
+  --color-secondary: var(--kd-blue-600);
+  --color-secondary-subtle: var(--kd-blue-50);
+  --color-brand-mark: var(--kd-teal-500);
+  --color-bg: var(--kd-neutral-25);
+  --color-surface: var(--kd-neutral-0);
+  --color-surface-raised: var(--kd-neutral-0);
+  --color-surface-sunken: var(--kd-neutral-50);
+  --color-surface-inverse: var(--kd-neutral-950);
+  --color-scrim: rgb(0 25 32 / 0.48);
+  --color-text: var(--kd-neutral-950);
+  --color-text-muted: var(--kd-neutral-600);
+  --color-text-inverse: var(--kd-neutral-25);
+  --color-text-link: var(--kd-teal-600);
+  --color-text-disabled: var(--kd-neutral-400);
+  --color-border: var(--kd-neutral-200);
+  --color-border-strong: var(--kd-neutral-400);
+  --color-divider: var(--kd-neutral-100);
+  --color-control-disabled: var(--kd-neutral-100);
+  --color-success: #007742;
+  --color-success-subtle: #e2f6e8;
+  --color-warning: #8e5300;
+  --color-warning-subtle: #feeddd;
+  --color-danger: #b02b27;
+  --color-danger-subtle: #ffebe8;
+  --color-info: #0068a5;
+  --color-info-subtle: #e4f2ff;
+  --color-confidence-none: #c5cfd7;
+  --color-confidence-none-text: #59656e;
+  --color-confidence-none-subtle: #edf1f3;
+  --color-confidence-none-border: #bfc5ca;
+  --color-confidence-observed: #a19fe4;
+  --color-confidence-observed-text: #714ca6;
+  --color-confidence-observed-subtle: #f2edff;
+  --color-confidence-observed-border: #cbbaeb;
+  --color-confidence-identified: #2d86c8;
+  --color-confidence-identified-text: #2f62ac;
+  --color-confidence-identified-subtle: #e7f1ff;
+  --color-confidence-identified-border: #aac6ef;
+  --color-confidence-ownership: #007176;
+  --color-confidence-ownership-text: #006e89;
+  --color-confidence-ownership-subtle: #dff4fc;
+  --color-confidence-ownership-border: #a1ccdc;
+  --color-confidence-value: #005227;
+  --color-confidence-value-text: #007749;
+  --color-confidence-value-subtle: #dff7e8;
+  --color-confidence-value-border: #a1d1b4;
+  --color-on-confidence-value: #ffffff;
+  --shadow-1: 0 1px 2px rgb(0 25 32 / 0.06), 0 1px 1px rgb(0 25 32 / 0.04);
+  --shadow-2: 0 2px 6px rgb(0 25 32 / 0.06), 0 8px 24px rgb(0 25 32 / 0.06);
+  --shadow-3: 0 8px 20px rgb(0 25 32 / 0.08), 0 24px 56px rgb(0 25 32 / 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  .kadari:not([data-theme="light"]) {
+    --color-primary: var(--kd-mint-400);
+    --color-primary-hover: #5ed6a8;
+    --color-primary-pressed: #2fb07f;
+    --color-on-primary: var(--kd-neutral-950);
+    --color-primary-subtle: #0b3a33;
+    --color-on-primary-subtle: var(--kd-teal-200);
+    --color-focus-ring: var(--kd-mint-400);
+    --color-accent: var(--kd-mint-400);
+    --color-accent-subtle: #0b3a33;
+    --color-secondary: var(--kd-blue-300);
+    --color-secondary-subtle: #0e2f43;
+    --color-brand-mark: var(--kd-teal-400);
+    --color-bg: var(--kd-neutral-950);
+    --color-surface: var(--kd-neutral-900);
+    --color-surface-raised: var(--kd-neutral-850);
+    --color-surface-sunken: #00131a;
+    --color-surface-inverse: var(--kd-neutral-25);
+    --color-scrim: rgb(0 10 14 / 0.64);
+    --color-text: var(--kd-neutral-50);
+    --color-text-muted: var(--kd-neutral-300);
+    --color-text-inverse: var(--kd-neutral-950);
+    --color-text-link: var(--kd-teal-300);
+    --color-text-disabled: var(--kd-neutral-600);
+    --color-border: var(--kd-neutral-800);
+    --color-border-strong: var(--kd-neutral-600);
+    --color-divider: var(--kd-neutral-850);
+    --color-control-disabled: var(--kd-neutral-800);
+    --color-success: #81d39e;
+    --color-success-subtle: #113620;
+    --color-warning: #efaf6f;
+    --color-warning-subtle: #422708;
+    --color-danger: #ffa196;
+    --color-danger-subtle: #4d1c18;
+    --color-info: #80c5ff;
+    --color-info-subtle: #103049;
+    --color-confidence-none: #464e55;
+    --color-confidence-none-text: #b4c0c8;
+    --color-confidence-none-subtle: #272c2f;
+    --color-confidence-none-border: #474e53;
+    --color-confidence-observed: #6863b1;
+    --color-confidence-observed-text: #c9acff;
+    --color-confidence-observed-subtle: #302346;
+    --color-confidence-observed-border: #544274;
+    --color-confidence-identified: #4b99d7;
+    --color-confidence-identified-text: #95c0ff;
+    --color-confidence-identified-subtle: #182b48;
+    --color-confidence-identified-border: #314d77;
+    --color-confidence-ownership: #5ac8cd;
+    --color-confidence-ownership-text: #78cbe7;
+    --color-confidence-ownership-subtle: #0c303b;
+    --color-confidence-ownership-border: #215465;
+    --color-confidence-value: #8df1b2;
+    --color-confidence-value-text: #77d5a1;
+    --color-confidence-value-subtle: #0b3420;
+    --color-confidence-value-border: #205a3c;
+    --color-on-confidence-value: var(--kd-neutral-950);
+    --shadow-1: 0 0 0 1px rgb(255 255 255 / 0.04);
+    --shadow-2: 0 0 0 1px rgb(255 255 255 / 0.05), 0 8px 24px rgb(0 0 0 / 0.32);
+    --shadow-3:
+      0 0 0 1px rgb(255 255 255 / 0.06), 0 24px 56px rgb(0 0 0 / 0.48);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kadari {
+    --duration-fast: 0ms;
+    --duration-base: 0ms;
+    --duration-slow: 0ms;
+    --duration-deliberate: 0ms;
+  }
+}
+
+/* ---- helpers the components rely on ---- */
+.kd-num {
+  font-feature-settings: var(--font-features-money);
+  font-variant-numeric: tabular-nums lining-nums;
+}
+.kd-id {
+  font-feature-settings: var(--font-features-id);
+  font-variant-numeric: tabular-nums slashed-zero;
+  letter-spacing: 0.04em;
+}
+.kd-focus:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-ring-offset);
+}

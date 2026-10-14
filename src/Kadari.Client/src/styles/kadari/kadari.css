@@ -1,0 +1,111 @@
+@import "./kadari.tokens.css";
+
+/* Bridge: inside a KADARI surface, the shared shadcn/ui primitives (Button, inputs) read the
+   KADARI semantic tokens instead of the Trustli palette — so a white-label override of
+   --color-primary re-skins them too. */
+.kadari {
+  --primary: var(--color-primary);
+  --primary-foreground: var(--color-on-primary);
+  --ring: var(--color-focus-ring);
+  --background: var(--color-bg);
+  --foreground: var(--color-text);
+  --border: var(--color-border);
+  --input: var(--color-border);
+  --muted-foreground: var(--color-text-muted);
+  --radius: var(--radius-md);
+
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+}
+
+/* Insurer white-label from the backend (TenantBranding: one primary + one accent hex). KadariShell sets
+   data-brand="tenant" and the raw --tenant-* vars inline; the rest of the white-label contract is derived
+   here. Selectors out-rank the token file's theme blocks so the insurer wins in light AND dark. */
+.kadari[data-brand="tenant"] {
+  --color-primary: var(--tenant-primary);
+  --color-primary-hover: color-mix(in oklab, var(--tenant-primary) 88%, black);
+  --color-primary-pressed: color-mix(
+    in oklab,
+    var(--tenant-primary) 76%,
+    black
+  );
+  --color-on-primary: var(--tenant-on-primary);
+  --color-primary-subtle: color-mix(in oklab, var(--tenant-primary) 10%, white);
+  --color-on-primary-subtle: color-mix(
+    in oklab,
+    var(--tenant-primary) 80%,
+    black
+  );
+  --color-focus-ring: var(--tenant-primary);
+  --color-accent: var(--tenant-accent);
+  --color-brand-mark: var(--tenant-primary);
+  --color-text-link: var(--tenant-primary);
+}
+
+/* Dark: lift the brand colour so it holds contrast on the dark surfaces, with dark text on it. */
+.kadari[data-theme="dark"][data-brand="tenant"] {
+  --color-primary: color-mix(in oklab, var(--tenant-primary) 50%, white);
+  --color-primary-hover: color-mix(in oklab, var(--tenant-primary) 40%, white);
+  --color-primary-pressed: color-mix(
+    in oklab,
+    var(--tenant-primary) 60%,
+    white
+  );
+  --color-on-primary: var(--kd-neutral-950);
+  --color-primary-subtle: color-mix(
+    in oklab,
+    var(--tenant-primary) 30%,
+    var(--kd-neutral-950)
+  );
+  --color-on-primary-subtle: color-mix(
+    in oklab,
+    var(--tenant-primary) 35%,
+    white
+  );
+  --color-focus-ring: var(--color-primary);
+  --color-accent: color-mix(in oklab, var(--tenant-accent) 50%, white);
+  --color-brand-mark: var(--color-primary);
+  --color-text-link: var(--color-primary);
+}
+
+@media (prefers-color-scheme: dark) {
+  .kadari[data-brand="tenant"]:not([data-theme="light"]) {
+    --color-primary: color-mix(in oklab, var(--tenant-primary) 50%, white);
+    --color-primary-hover: color-mix(
+      in oklab,
+      var(--tenant-primary) 40%,
+      white
+    );
+    --color-primary-pressed: color-mix(
+      in oklab,
+      var(--tenant-primary) 60%,
+      white
+    );
+    --color-on-primary: var(--kd-neutral-950);
+    --color-primary-subtle: color-mix(
+      in oklab,
+      var(--tenant-primary) 30%,
+      var(--kd-neutral-950)
+    );
+    --color-on-primary-subtle: color-mix(
+      in oklab,
+      var(--tenant-primary) 35%,
+      white
+    );
+    --color-focus-ring: var(--color-primary);
+    --color-accent: color-mix(in oklab, var(--tenant-accent) 50%, white);
+    --color-brand-mark: var(--color-primary);
+    --color-text-link: var(--color-primary);
+  }
+}
+
+/* Categorical series for the Asset Position donut — brand hues spaced for contrast, in sheet order. */
+.kadari {
+  --kd-series-1: var(--kd-blue-500);
+  --kd-series-2: var(--kd-teal-400);
+  --kd-series-3: var(--kd-mint-200);
+  --kd-series-4: var(--kd-blue-300);
+  --kd-series-5: var(--kd-teal-700);
+  --kd-series-6: var(--kd-neutral-400);
+}

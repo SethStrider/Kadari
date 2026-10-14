@@ -1,0 +1,20 @@
+allowBuilds:
+  esbuild: true
+# Dev-toolchain security fixes (GL-42): patched versions are newer than the release-age window, and the
+# overrides pin only the vulnerable transitive packages. No runtime dependency changes.
+minimumReleaseAgeExclude:
+  - js-yaml@4.3.2
+  - brace-expansion@1.1.18 || 2.1.4 || 5.0.9
+  - postcss@8.5.23
+  - nanoid@3.3.18
+  - browserslist@4.28.7
+  - baseline-browser-mapping@2.11.0
+overrides:
+  baseline-browser-mapping@>=2.0.0 <2.11.0: ^2.11.0
+  brace-expansion@<1.1.18: ^1.1.18
+  brace-expansion@>=2.0.0 <2.1.4: ^2.1.4
+  brace-expansion@>=4.0.0 <5.0.9: ^5.0.9
+  browserslist@<=4.28.6: ^4.28.7
+  js-yaml@>=4.0.0 <4.3.2: ^4.3.2
+  nanoid@<3.3.18: ^3.3.18
+  postcss@<=8.5.22: ^8.5.23
