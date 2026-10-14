@@ -1,0 +1,8 @@
+# Everything under deploy/ runs inside Linux containers: keep LF endings even on a Windows checkout
+# (a CRLF shebang line fails with "/bin/sh^M: not found").
+*.sh        text eol=lf
+*.conf      text eol=lf
+*.template  text eol=lf
+*.yml       text eol=lf
+Dockerfile* text eol=lf
+.env*       text eol=lf

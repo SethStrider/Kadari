@@ -1,0 +1,340 @@
+# KADARI production stack for one VPS behind Cloudflare.
+#
+#   cp deploy/.env.example deploy/.env   # fill in every value; see deploy/README.md
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env build
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env run --rm migrations
+#   docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env up -d
+#
+# One port is published: 443 on the edge nginx, which only Cloudflare can complete a TLS handshake with.
+# Everything else talks over Docker networks:
+#   edge     edge nginx <-> SPA containers and the API (fixed subnet: the API trusts exactly this hop)
+#   backend  internal — no route to the internet; the data stores live only here
+#   egress   outbound for the API and backup (Twilio, the vision model, SMTP, the off-site bucket)
+#
+# KADARI has no message bus: the API does all the work, including the evidence-retention sweep.
+
+name: kadari
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
+x-hardening: &hardening
+  restart: unless-stopped
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+  logging: *logging
+
+# The API's settings. Everything secret comes from deploy/.env.
+x-kadari-env: &kadari-env
+  ASPNETCORE_ENVIRONMENT: Production
+  DOTNET_ENVIRONMENT: Production
+  HOME: /tmp
+  AllowedHosts: "app.${KADARI_DOMAIN};portal.${KADARI_DOMAIN};localhost"
+  S3__ServiceUrl: http://minio:9000
+  S3__AccessKey: ${MINIO_APP_USER}
+  S3__SecretKey: ${MINIO_APP_PASSWORD}
+  S3__BucketName: kadari
+  S3__ForcePathStyle: "true"
+  Jwt__SigningKey: ${JWT_SIGNING_KEY}
+  Jwt__Issuer: kadari
+  Jwt__Audience: kadari
+  Jwt__AccessTokenMinutes: "15"
+  FieldEncryption__Key: ${FIELD_ENCRYPTION_KEY}
+  FieldEncryption__KeyId: ${FIELD_ENCRYPTION_KEY_ID:-1}
+  FieldEncryption__RetiredKeyId: ${FIELD_ENCRYPTION_RETIRED_KEY_ID:-}
+  FieldEncryption__RetiredKey: ${FIELD_ENCRYPTION_RETIRED_KEY:-}
+  IdentityHash__Secret: ${IDENTITY_HASH_SECRET}
+  ReportIntegrity__SigningKey: ${REPORT_INTEGRITY_KEY}
+  ReportMedia__SigningKey: ${REPORT_MEDIA_KEY}
+  Cors__AllowedOrigins__0: https://app.${KADARI_DOMAIN}
+  Cors__AllowedOrigins__1: https://portal.${KADARI_DOMAIN}
+  ReverseProxy__KnownNetworks__0: 172.30.0.0/24
+  ReverseProxy__ForwardLimit: "1"
+  # Launch switches (AS-05): ownership changes and the insurer console stay off until the customer's sharing consent
+  # exists.
+  Features__AssetOwnershipChanges: "false"
+  Features__InsurerConsole: "false"
+  Twilio__AccountSid: ${TWILIO_ACCOUNT_SID}
+  Twilio__AuthToken: ${TWILIO_AUTH_TOKEN}
+  Twilio__FromNumber: ${TWILIO_WHATSAPP_FROM}
+  Twilio__SmsFrom: ${TWILIO_SMS_FROM}
+  Twilio__OtpContentSid: ${TWILIO_OTP_CONTENT_SID}
+  Smtp__Host: ${SMTP_HOST}
+  Smtp__Port: ${SMTP_PORT:-587}
+  Smtp__Security: ${SMTP_SECURITY:-StartTls}
+  Smtp__Username: ${SMTP_USERNAME}
+  Smtp__Password: ${SMTP_PASSWORD}
+  Smtp__FromAddress: ${SMTP_FROM_ADDRESS}
+  VisionEnricher__Provider: ${VISION_PROVIDER:-PassThrough}
+  Gemini__ApiKey: ${GEMINI_API_KEY:-}
+  # OpenAI-compatible vision (Groq, OpenRouter, a self-hosted model), when VISION_PROVIDER=OpenAiCompatible.
+  OpenAiVision__BaseUrl: ${OPENAI_VISION_BASE_URL:-https://api.openai.com/v1}
+  OpenAiVision__Model: ${OPENAI_VISION_MODEL:-gpt-4o-mini}
+  OpenAiVision__ApiKey: ${OPENAI_VISION_API_KEY:-}
+  OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+  OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+  OTEL_SERVICE_NAME: kadari
+
+networks:
+  edge:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+  backend:
+    internal: true
+  egress: {}
+
+volumes:
+  postgres-data: {}
+  minio-data: {}
+
+services:
+  # -----------------------------------------------------------------------------------------------------------------
+  # Edge: the only published port.
+  # -----------------------------------------------------------------------------------------------------------------
+  edge:
+    <<: *hardening
+    image: nginxinc/nginx-unprivileged:1.28-alpine
+    ports:
+      - "443:8443"
+    environment:
+      KADARI_DOMAIN: ${KADARI_DOMAIN}
+    volumes:
+      - ./nginx/templates:/etc/nginx/templates:ro
+      - ./nginx/snippets:/etc/nginx/snippets:ro
+      - ./certs:/etc/nginx/certs:ro
+    tmpfs:
+      - /tmp
+      # The entrypoint renders the template here; starting empty also drops the image's default site on :8080.
+      - /etc/nginx/conf.d:mode=1777
+    read_only: true
+    networks: [edge]
+    depends_on:
+      - client
+      - portal
+      - webapi
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8081/healthz"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+    mem_limit: 128m
+
+  client:
+    <<: *hardening
+    build: ../src/Kadari.Client
+    image: kadari/client:${GIT_SHA:-latest}
+    networks: [edge]
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/index.html"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    mem_limit: 64m
+
+  portal:
+    <<: *hardening
+    build: ../src/Kadari.Portal
+    image: kadari/portal:${GIT_SHA:-latest}
+    networks: [edge]
+    tmpfs:
+      - /tmp
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/index.html"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    mem_limit: 64m
+
+  # -----------------------------------------------------------------------------------------------------------------
+  # .NET hosts: non-root, read-only root filesystem, one image recipe.
+  # -----------------------------------------------------------------------------------------------------------------
+  webapi:
+    <<: *hardening
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.dotnet
+      args:
+        PROJECT: Kadari.WebApi
+    image: kadari/webapi:${GIT_SHA:-latest}
+    environment:
+      <<: *kadari-env
+      ConnectionStrings__kadaridb: "Host=postgres;Database=kadari;Username=kadari_app;Password=${DB_APP_PASSWORD};Maximum Pool Size=40"
+    read_only: true
+    tmpfs:
+      - /tmp:size=1g,mode=1777        # upload spill: ~80 concurrent 12 MB uploads
+    networks: [edge, backend, egress]
+    labels: ["autoheal=true"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 4
+      start_period: 30s
+    mem_limit: 1g
+
+  # Compose's restart policy only reacts to a container exiting, never to 'unhealthy'. Autoheal restarts any
+  # labelled container that turns unhealthy. It needs the Docker socket, so it has no network at all.
+  autoheal:
+    image: willfarrell/autoheal:1.2.0
+    restart: unless-stopped
+    environment:
+      AUTOHEAL_CONTAINER_LABEL: autoheal
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    network_mode: none
+    mem_limit: 32m
+
+  # One-shot: schema migrations and seeds, as the schema owner. Run before every deploy; a non-zero exit stops it.
+  migrations:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.dotnet
+      args:
+        PROJECT: Kadari.Migration
+    image: kadari/migration:${GIT_SHA:-latest}
+    restart: "no"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *logging
+    environment:
+      DOTNET_ENVIRONMENT: Production
+      HOME: /tmp
+      ConnectionStrings__kadaridb: "Host=postgres;Database=kadari;Username=kadari_migrator;Password=${DB_MIGRATOR_PASSWORD}"
+      AdministratorSeed__MobileNumber: ${ADMIN_MOBILE}
+      AdministratorSeed__Email: ${ADMIN_EMAIL}
+      # The same key ring as the API, for `run --rm migrations --reencrypt-fields` after a rotation (GL-24).
+      FieldEncryption__Key: ${FIELD_ENCRYPTION_KEY}
+      FieldEncryption__KeyId: ${FIELD_ENCRYPTION_KEY_ID:-1}
+      FieldEncryption__RetiredKeyId: ${FIELD_ENCRYPTION_RETIRED_KEY_ID:-}
+      FieldEncryption__RetiredKey: ${FIELD_ENCRYPTION_RETIRED_KEY:-}
+    read_only: true
+    tmpfs:
+      - /tmp
+    networks: [backend]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    profiles: ["tools"]
+
+  # -----------------------------------------------------------------------------------------------------------------
+  # Data stores: backend network only, nothing published.
+  # -----------------------------------------------------------------------------------------------------------------
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      POSTGRES_DB: kadari
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_SUPERUSER_PASSWORD}
+      DB_MIGRATOR_PASSWORD: ${DB_MIGRATOR_PASSWORD}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD}
+    command:
+      - postgres
+      - -c
+      - max_connections=100
+      - -c
+      - shared_buffers=1GB
+      - -c
+      - password_encryption=scram-sha-256
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks: [backend]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d kadari"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+    mem_limit: 2g
+    shm_size: 256m
+
+  minio:
+    image: ${MINIO_IMAGE}
+    restart: unless-stopped
+    logging: *logging
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+    volumes:
+      - minio-data:/data
+    networks: [backend]
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+    mem_limit: 512m
+
+  # One-shot: the private bucket plus an application user that can reach only that bucket (not the root user).
+  minio-init:
+    image: ${MINIO_IMAGE}
+    restart: "no"
+    logging: *logging
+    entrypoint: ["/bin/sh", "/init/minio-init.sh"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_APP_USER: ${MINIO_APP_USER}
+      MINIO_APP_PASSWORD: ${MINIO_APP_PASSWORD}
+    volumes:
+      - ./minio:/init:ro
+    networks: [backend]
+    depends_on:
+      minio:
+        condition: service_healthy
+
+  # -----------------------------------------------------------------------------------------------------------------
+  # Backups: nightly encrypted database dump + blob sync to a bucket at another provider.
+  # -----------------------------------------------------------------------------------------------------------------
+  backup:
+    <<: *hardening
+    build: ./backup
+    image: kadari/backup:${GIT_SHA:-latest}
+    command: ["schedule"]
+    environment:
+      PGHOST: postgres
+      PGDATABASE: kadari
+      PGUSER: kadari_migrator
+      PGPASSWORD: ${DB_MIGRATOR_PASSWORD}
+      BACKUP_HOUR_UTC: ${BACKUP_HOUR_UTC:-0}
+      BACKUP_RETENTION_DAYS: ${BACKUP_RETENTION_DAYS:-30}
+      BACKUP_HEARTBEAT_URL: ${BACKUP_HEARTBEAT_URL:-}
+      BACKUP_ENCRYPTION_PASSWORD: ${BACKUP_ENCRYPTION_PASSWORD}
+      BACKUP_ENCRYPTION_SALT: ${BACKUP_ENCRYPTION_SALT}
+      RCLONE_CONFIG_MINIO_TYPE: s3
+      RCLONE_CONFIG_MINIO_PROVIDER: Minio
+      RCLONE_CONFIG_MINIO_ENDPOINT: http://minio:9000
+      RCLONE_CONFIG_MINIO_ACCESS_KEY_ID: ${MINIO_APP_USER}
+      RCLONE_CONFIG_MINIO_SECRET_ACCESS_KEY: ${MINIO_APP_PASSWORD}
+      RCLONE_CONFIG_OFFSITE_TYPE: s3
+      RCLONE_CONFIG_OFFSITE_PROVIDER: ${OFFSITE_PROVIDER}
+      RCLONE_CONFIG_OFFSITE_ENDPOINT: ${OFFSITE_ENDPOINT}
+      RCLONE_CONFIG_OFFSITE_REGION: ${OFFSITE_REGION:-auto}
+      RCLONE_CONFIG_OFFSITE_ACCESS_KEY_ID: ${OFFSITE_ACCESS_KEY_ID}
+      RCLONE_CONFIG_OFFSITE_SECRET_ACCESS_KEY: ${OFFSITE_SECRET_ACCESS_KEY}
+      OFFSITE_BUCKET: ${OFFSITE_BUCKET}
+    tmpfs:
+      - /tmp:size=4g,mode=1777
+    read_only: true
+    networks: [backend, egress]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    mem_limit: 256m

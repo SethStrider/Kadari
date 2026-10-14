@@ -1,0 +1,48 @@
+# syntax=docker/dockerfile:1
+#
+# One image recipe for every KADARI .NET host (GL-07). Build with the project to publish:
+#
+#   docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=Kadari.WebApi   -t kadari/webapi:$GIT_SHA .
+
+#   docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=Kadari.Migration -t kadari/migration:$GIT_SHA .
+#
+# The context is the repository root (Directory.Packages.props, global.json and the project graph live there).
+
+ARG DOTNET_VERSION=10.0
+
+# ---------------------------------------------------------------------------------------------------------------
+# Build: restore against the project graph first so the layer is cached until a project file changes.
+# ---------------------------------------------------------------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/sdk:${DOTNET_VERSION}-noble AS build
+ARG PROJECT
+WORKDIR /repo
+
+COPY global.json Directory.Build.props Directory.Packages.props ./
+COPY src/ src/
+RUN dotnet restore "src/${PROJECT}/${PROJECT}.csproj"
+RUN dotnet publish "src/${PROJECT}/${PROJECT}.csproj" -c Release --no-restore -o /app /p:UseAppHost=false
+
+# ---------------------------------------------------------------------------------------------------------------
+# Runtime: Ubuntu Noble ASP.NET image (glibc + ICU, which QuestPDF and South African formatting need), plus curl
+# for the container health check, running as the image's unprivileged 'app' user.
+# ---------------------------------------------------------------------------------------------------------------
+FROM mcr.microsoft.com/dotnet/aspnet:${DOTNET_VERSION}-noble AS runtime
+ARG PROJECT
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY --from=build --chown=root:root /app ./
+
+ENV ASPNETCORE_HTTP_PORTS=8080 \
+    DOTNET_RUNNING_IN_CONTAINER=true \
+    DOTNET_gcServer=0 \
+    KADARI_ENTRY=${PROJECT}.dll
+
+USER $APP_UID
+EXPOSE 8080
+
+# Shell form so KADARI_ENTRY expands; exec keeps dotnet as PID 1 for clean SIGTERM handling.
+ENTRYPOINT ["/bin/sh", "-c", "exec dotnet \"$KADARI_ENTRY\" \"$@\"", "--"]

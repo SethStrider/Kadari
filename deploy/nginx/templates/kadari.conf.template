@@ -1,0 +1,88 @@
+# Edge server blocks. nginx's entrypoint fills ${KADARI_DOMAIN} at start (only defined environment variables are
+# substituted, so nginx's own $variables are left alone).
+
+# Don't advertise the nginx version (this file is included at http level).
+server_tokens off;
+
+# A connection for any other host name is refused at the TLS handshake — no default site, no certificate leak.
+server {
+    listen 8443 ssl default_server;
+    http2 on;
+    ssl_reject_handshake on;
+}
+
+# Customer app: the SPA, the API and the provider webhooks (PayFast ITN, Twilio, Didit).
+server {
+    listen 8443 ssl;
+    http2 on;
+    server_name app.${KADARI_DOMAIN};
+
+    include /etc/nginx/snippets/tls.conf;
+    include /etc/nginx/snippets/cloudflare-real-ip.conf;
+    include /etc/nginx/snippets/security-headers.conf;
+
+    # A 10 MB upload plus multipart framing; the API applies its own tighter per-endpoint limits (GL-18).
+    client_max_body_size 12m;
+
+    # Development-only tools never exist here, whatever the API's environment says.
+    location ^~ /api/dev/ {
+        return 404;
+    }
+
+    location /api/ {
+        include /etc/nginx/snippets/proxy-api.conf;
+    }
+
+    # Webhooks live outside /api (GL-32) — without this, PayFast's ITN would get the SPA's index.html.
+    location /webhooks/ {
+        include /etc/nginx/snippets/proxy-api.conf;
+    }
+
+    # /health and /alive are deliberately not forwarded: they stay inside the Docker network.
+    location / {
+        resolver 127.0.0.11 valid=30s ipv6=off;
+        set $kadari_client http://client:8080;
+        proxy_pass $kadari_client;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+    }
+}
+
+# Insurer + staff portal. Put Cloudflare Access (SSO + MFA) in front of this host name before it is reachable (GL-23).
+server {
+    listen 8443 ssl;
+    http2 on;
+    server_name portal.${KADARI_DOMAIN};
+
+    include /etc/nginx/snippets/tls.conf;
+    include /etc/nginx/snippets/cloudflare-real-ip.conf;
+    include /etc/nginx/snippets/security-headers.conf;
+
+    client_max_body_size 12m;
+
+    location ^~ /api/dev/ {
+        return 404;
+    }
+
+    location /api/ {
+        include /etc/nginx/snippets/proxy-api.conf;
+    }
+
+    location / {
+        resolver 127.0.0.11 valid=30s ipv6=off;
+        set $kadari_portal http://portal:8080;
+        proxy_pass $kadari_portal;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+    }
+}
+
+# Container health probe only (not published; bound to loopback inside the container).
+server {
+    listen 127.0.0.1:8081;
+    access_log off;
+
+    location = /healthz {
+        return 204;
+    }
+}
