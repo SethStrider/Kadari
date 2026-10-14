@@ -65,7 +65,7 @@ export function unexpectedResponseProblem(
 ): ApiProblem {
   return new ApiProblem(
     {
-      type: "urn:trustli:problem:unexpected-response",
+      type: "urn:kadari:problem:unexpected-response",
       title: "The server returned an unexpected response.",
       status,
       code: "unexpected-response",

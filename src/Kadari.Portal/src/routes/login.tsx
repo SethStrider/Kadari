@@ -59,7 +59,9 @@ function LoginPage() {
 
       <div className="relative w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
-          <img src="/assets/logo.png" alt="Trustli" className="h-9 w-auto" />
+          <span className="font-heading text-2xl font-semibold tracking-[0.22em] text-off-white">
+            KADARI
+          </span>
           <p className="mt-4 font-technical text-[11px] tracking-[0.32em] text-mid-grey uppercase">
             Staff Portal
           </p>
@@ -70,7 +72,7 @@ function LoginPage() {
             Sign in
           </h1>
           <p className="mt-1 font-body text-sm text-soft-grey">
-            Use your Trustli staff credentials to continue.
+            Use your KADARI portal credentials to continue.
           </p>
 
           <form
@@ -87,7 +89,7 @@ function LoginPage() {
                 <input
                   type="email"
                   autoComplete="username"
-                  placeholder="you@trustli.co.za"
+                  placeholder="you@kadari.co.za"
                   className="h-11 w-full rounded-xl border border-white/10 bg-trustli-midnight/60 pr-3 pl-10 font-body text-sm text-off-white outline-none transition-colors placeholder:text-mid-grey focus:border-[#00DCC2]/60"
                   {...register("email")}
                 />
@@ -141,7 +143,7 @@ function LoginPage() {
         </div>
 
         <p className="mt-6 text-center font-body text-xs text-mid-grey">
-          Trustli · Decision Intelligence™ · Staff Portal
+          KADARI · Insurer &amp; staff portal
         </p>
       </div>
     </div>

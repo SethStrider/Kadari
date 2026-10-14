@@ -15,7 +15,7 @@ export interface TokenPair {
   refreshToken?: string;
 }
 
-const STORAGE_KEY = "trustli.tokens";
+const STORAGE_KEY = "kadari-portal.tokens";
 
 /**
  * Token storage.

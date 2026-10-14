@@ -56,12 +56,14 @@ export function DashboardSidebar() {
             className="h-7 w-auto max-w-[9rem] object-contain"
           />
         ) : isInsurer ? (
-          // Branded insurer without a logo: show their name as a wordmark, not the Trustli mark.
+          // Branded insurer without a logo: show their name as a wordmark, not the KADARI wordmark.
           <span className="truncate font-heading text-lg font-bold text-off-white">
             {brandName}
           </span>
         ) : (
-          <img src="/assets/logo.png" alt="Trustli" className="h-7 w-auto" />
+          <span className="font-heading text-lg font-semibold tracking-[0.22em] text-off-white">
+            KADARI
+          </span>
         )}
         {open && (
           <span className="font-technical text-[10px] tracking-[0.28em] text-mid-grey uppercase">

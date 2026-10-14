@@ -15,13 +15,9 @@ export type UserSummary = components["schemas"]["UserSummaryDto"];
  */
 export const ASSIGNABLE_ROLES = [
   { name: "SystemAdministrator", label: "System admin" },
-  { name: "ProductAdministrator", label: "Product admin" },
-  { name: "Verifier", label: "Verifier" },
-  { name: "QualityAssurance", label: "QA reviewer" },
   { name: "CustomerSuccess", label: "Customer success" },
-  { name: "Finance", label: "Finance" },
+  { name: "Valuer", label: "Valuer" },
   { name: "Insurer", label: "Insurer" },
-  { name: "Connector", label: "Connector" },
 ] as const;
 
 export type AssignableRole = (typeof ASSIGNABLE_ROLES)[number]["name"];

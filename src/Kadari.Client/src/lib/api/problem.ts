@@ -62,7 +62,7 @@ export class ApiProblem extends Error {
 export function unexpectedResponseProblem(status: number, correlationId?: string): ApiProblem {
   return new ApiProblem(
     {
-      type: "urn:trustli:problem:unexpected-response",
+      type: "urn:kadari:problem:unexpected-response",
       title: "The server returned an unexpected response.",
       status,
       code: "unexpected-response",
