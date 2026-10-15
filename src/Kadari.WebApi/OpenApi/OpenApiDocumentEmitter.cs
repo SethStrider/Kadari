@@ -46,6 +46,14 @@ public static class OpenApiDocumentEmitter
             options.AddDocumentTransformer<SecuritySchemeTransformer>();
             options.AddOperationTransformer<ProblemResponsesTransformer>();
             options.AddOperationTransformer<PermissionRequirementTransformer>();
+
+            // The generator records the throwaway port it was served from; left in, every emit differs and
+            // CI's staleness check can never pass. Clients set their own base URL, so nothing reads it.
+            options.AddDocumentTransformer((document, _, _) =>
+            {
+                document.Servers?.Clear();
+                return Task.CompletedTask;
+            });
         });
 
         RegisterServiceParameterMarkers(builder.Services);

@@ -1,0 +1,110 @@
+# KADARI CI — runs on merge requests and on the default branch.
+#
+# Jobs are independent (no build artifacts passed between them): each restores from the shared NuGet or pnpm
+# cache and builds only what it checks, which is quicker than shipping bin/obj between stages and keeps a
+# failure pointing at one thing.
+
+stages:
+  - test
+  - contract
+
+default:
+  image: mcr.microsoft.com/dotnet/sdk:10.0
+  interruptible: true
+  cache:
+    key:
+      files:
+        - Directory.Packages.props
+    paths:
+      - .nuget/packages
+
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: "1"
+  NUGET_PACKAGES: "$CI_PROJECT_DIR/.nuget/packages"
+
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+# ---------------------------------------------------------------------------------------------------------
+
+# The pure suites — Domain, Application, Architecture. No container, seconds to run.
+unit tests:
+  stage: test
+  script:
+    - >-
+      dotnet test Kadari.sln --configuration Release
+      --filter "FullyQualifiedName!~Kadari.Infrastructure.Tests"
+
+# Real Postgres and MinIO through Testcontainers, so this is the one job that needs a Docker daemon.
+integration tests:
+  stage: test
+  timeout: 20m
+  services:
+    - name: docker:27-dind
+      alias: docker
+      command: ["--tls=false"]
+  variables:
+    DOCKER_HOST: "tcp://docker:2375"
+    DOCKER_TLS_CERTDIR: ""
+    # Containers start inside the dind service, so their mapped ports live on that host, not localhost.
+    TESTCONTAINERS_HOST_OVERRIDE: "docker"
+  script:
+    - >-
+      dotnet test tests/Kadari.Infrastructure.Tests/Kadari.Infrastructure.Tests.csproj
+      --configuration Release
+
+# ---------------------------------------------------------------------------------------------------------
+
+# The committed contract is what both TypeScript clients are generated from. An API change that was not
+# re-emitted leaves the clients describing endpoints that no longer exist, so a stale document fails here.
+api contract:
+  stage: contract
+  needs: []
+  script:
+    - dotnet run --project src/Kadari.WebApi --configuration Release -- --emit-openapi "$CI_PROJECT_DIR/openapi/v1.json"
+    - |
+      if ! git diff --quiet -- openapi/v1.json; then
+        echo "openapi/v1.json is stale. Regenerate it, then the client types:"
+        echo "  dotnet run --project src/Kadari.WebApi -- --emit-openapi openapi/v1.json"
+        echo "  (cd src/Kadari.Client && pnpm api:types) && (cd src/Kadari.Portal && pnpm api:types)"
+        git --no-pager diff -- openapi/v1.json
+        exit 1
+      fi
+
+# A model change with no migration only fails at deploy time; catch it at merge instead.
+migration drift:
+  stage: contract
+  needs: []
+  script:
+    - dotnet tool install --global dotnet-ef --version "10.*"
+    - export PATH="$PATH:$HOME/.dotnet/tools"
+    - >-
+      dotnet ef migrations has-pending-model-changes
+      --project src/Kadari.Infrastructure
+      --startup-project src/Kadari.WebApi
+      --configuration Release
+
+# The customer app and the staff portal: generated types match the contract, lint, type-check and build.
+front end:
+  stage: contract
+  needs: []
+  image: node:24
+  parallel:
+    matrix:
+      - APP: [Kadari.Client, Kadari.Portal]
+  cache:
+    key: "pnpm-$APP"
+    paths:
+      - src/$APP/node_modules
+  before_script:
+    - corepack enable
+  script:
+    - cd "src/$APP"
+    - pnpm install --frozen-lockfile
+    - pnpm api:check
+    - pnpm lint
+    - pnpm build

@@ -5,11 +5,6 @@
     "description": "KADARI asset-ledger API. List endpoints are paged; mutating calls take an\n`Idempotency-Key`.\n\n**Errors.** Every failure — thrown or framework-generated — is\n`application/problem+json` (RFC 9457). Branch on the `code` extension, not on the\nstatus or title: statuses are coarse (`conflict`, `domain-rule-violated` and\n`concurrency-conflict` all answer 409) and titles are prose we may reword. Each\nresponse also carries `traceId` and, when supplied, your `correlationId` — quote them\nin a support request. A 400 from validation adds `errors`, a field-keyed map.",
     "version": "v1"
   },
-  "servers": [
-    {
-      "url": "http://127.0.0.1:63324/"
-    }
-  ],
   "paths": {
     "/api/v1/kadari/estate/settle": {
       "post": {
