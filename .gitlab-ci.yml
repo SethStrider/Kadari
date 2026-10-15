@@ -27,6 +27,12 @@ variables:
 workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    # The free plan's 400 CI minutes a month are shared by every mccarthyfam project. A merge commit from a merge
+    # request carries the tree whose pipeline just passed on that request, so running it again on main spends a
+    # whole pipeline to learn nothing new. Direct pushes to main still run. Caveat: if main moved while the request
+    # was open, the merged result was not itself tested; rebase before merging when that matters.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $CI_COMMIT_MESSAGE =~ /See merge request /
+      when: never
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
 
 # ---------------------------------------------------------------------------------------------------------
