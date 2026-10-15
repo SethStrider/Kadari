@@ -82,6 +82,8 @@ migration drift:
   script:
     - dotnet tool install --global dotnet-ef --version "10.*"
     - export PATH="$PATH:$HOME/.dotnet/tools"
+    # dotnet-ef builds the startup project but does not restore it.
+    - dotnet restore src/Kadari.WebApi/Kadari.WebApi.csproj
     - >-
       dotnet ef migrations has-pending-model-changes
       --project src/Kadari.Infrastructure

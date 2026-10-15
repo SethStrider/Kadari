@@ -17,7 +17,9 @@ public sealed class MinioFixture : IAsyncLifetime
     private const string RootPassword = "minioadmin";
 
     private readonly MinioContainer _minio = new MinioBuilder()
-        .WithImage("minio/minio:RELEASE.2024-01-16T16-07-38Z")
+        // MinIO stopped publishing images (minio/minio and quay.io/minio are gone), so a fresh runner cannot pull
+        // them. pgsty/minio is the maintained community build of the same server.
+        .WithImage("pgsty/minio:RELEASE.2026-08-04T00-00-00Z")
         .WithUsername(RootUser)
         .WithPassword(RootPassword)
         .Build();
