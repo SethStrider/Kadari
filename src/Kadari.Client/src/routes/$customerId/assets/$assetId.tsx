@@ -7,7 +7,7 @@ import { KadariButton } from "@/components/kadari/kadari-button";
 import { AssetPassportCard } from "@/components/kadari/asset-passport-card";
 import { ConfidenceBadge } from "@/components/kadari/confidence-badge";
 import { ConfidenceLadder } from "@/components/kadari/confidence-ladder";
-import { formatMoney } from "@/components/kadari/confidence";
+import { categoryLabel, formatMoney } from "@/components/kadari/confidence";
 import { KadariShell } from "@/components/kadari/kadari-shell";
 import { OwnershipProofForm } from "@/components/kadari/ownership-proof-form";
 import {
@@ -102,7 +102,9 @@ function AssetPage() {
     <KadariShell
       customerId={customerId}
       title={a.displayName}
-      subtitle={[a.category, a.roomLabel].filter(Boolean).join(" · ")}
+      subtitle={[categoryLabel(a.category), a.roomLabel]
+        .filter(Boolean)
+        .join(" · ")}
       action={backLink}
     >
       <Card>

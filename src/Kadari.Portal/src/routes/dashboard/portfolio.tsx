@@ -15,6 +15,15 @@ import { DashboardNavbar } from "@/components/dashboard/dashboard-navbar";
 import { useInsurerContext } from "@/lib/theme/insurer-theme";
 import { getTenantPortfolio, listTenantAssets } from "@/lib/api/insurer";
 
+/** A human label for an API asset category (the API sends the enum name, e.g. `ArtAndCollectibles`). */
+const categoryLabels: Record<string, string> = {
+  ArtAndCollectibles: "Art & collectibles",
+};
+
+function categoryLabel(category: string): string {
+  return categoryLabels[category] ?? category;
+}
+
 export const Route = createFileRoute("/dashboard/portfolio")({
   component: InsurerPortfolio,
 });
@@ -247,7 +256,7 @@ function InsurerPortfolio() {
                           className="border-t border-white/5 font-body text-sm"
                         >
                           <td className="py-2.5 text-off-white">
-                            {c.category}
+                            {categoryLabel(c.category)}
                           </td>
                           <td className="py-2.5 text-right text-soft-grey">
                             {c.count}
@@ -310,7 +319,7 @@ function InsurerPortfolio() {
                           )}
                         </td>
                         <td className="px-6 py-3.5 text-soft-grey">
-                          {a.category}
+                          {categoryLabel(a.category)}
                         </td>
                         <td className="px-6 py-3.5">
                           <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-technical text-[10px] tracking-wide text-soft-grey uppercase">

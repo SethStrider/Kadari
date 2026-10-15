@@ -1,5 +1,5 @@
 import type { Ledger } from "@/lib/api/kadari";
-import { formatMoney } from "./confidence";
+import { categoryLabel, formatMoney } from "./confidence";
 
 /** Assurance levels that rest on independent evidence (a receipt, serial, valuation) — not just a photo. */
 const evidenced = new Set(["OwnershipSupported", "ValueSupported"]);
@@ -102,7 +102,7 @@ export function AssetPosition({ ledger }: { ledger: Ledger }) {
                     className="size-2.5 rounded-full"
                     style={{ background: s.color }}
                   />
-                  <span className="min-w-20">{s.category}</span>
+                  <span className="min-w-20">{categoryLabel(s.category)}</span>
                   <span className="kd-num text-(--color-text-muted)">
                     {Math.round(s.share * 100)}%
                   </span>
@@ -141,7 +141,9 @@ function Donut({ slices }: { slices: Slice[] }) {
       className="size-32 shrink-0 -rotate-0"
       role="img"
       aria-label={`Value by category: ${slices
-        .map((s) => `${s.category} ${Math.round(s.share * 100)}%`)
+        .map(
+          (s) => `${categoryLabel(s.category)} ${Math.round(s.share * 100)}%`,
+        )
         .join(", ")}`}
     >
       {slices.map((s) => {

@@ -4,7 +4,7 @@ import { Ban, BadgeCheck, Loader2, SearchX } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { ConfidenceBadge } from "@/components/kadari/confidence-badge";
-import { formatMoney } from "@/components/kadari/confidence";
+import { categoryLabel, formatMoney } from "@/components/kadari/confidence";
 import { KadariShell } from "@/components/kadari/kadari-shell";
 import { verifyAssetPassport } from "@/lib/api/kadari";
 
@@ -75,7 +75,7 @@ function VerifyAssetPassportPage() {
 
           <dl className="grid grid-cols-1 gap-(--space-5) rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-(--space-6) text-sm shadow-(--shadow-1) sm:grid-cols-2">
             <Field label="Asset">{data.displayName}</Field>
-            <Field label="Category">{data.category}</Field>
+            <Field label="Category">{categoryLabel(data.category)}</Field>
             <Field label="Confidence">
               <ConfidenceBadge assurance={data.assurance} />
             </Field>

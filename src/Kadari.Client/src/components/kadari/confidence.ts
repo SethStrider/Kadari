@@ -73,3 +73,12 @@ export function formatMoney(
     Number(minor) / 100,
   );
 }
+
+/** A human label for an API asset category (the API sends the enum name, e.g. `ArtAndCollectibles`). */
+const categoryLabels: Record<string, string> = {
+  ArtAndCollectibles: "Art & collectibles",
+};
+
+export function categoryLabel(category: string): string {
+  return categoryLabels[category] ?? category;
+}
