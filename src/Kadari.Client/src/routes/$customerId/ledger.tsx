@@ -1,8 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Camera, Loader2 } from "lucide-react";
 
-import { getLedger, type Ledger } from "@/lib/api/kadari";
+import {
+  demoToolsEnabled,
+  getLedger,
+  seedDemoHousehold,
+  type Ledger,
+} from "@/lib/api/kadari";
 import { ConfidenceBadge } from "@/components/kadari/confidence-badge";
 import { AssetPosition } from "@/components/kadari/asset-position";
 import { formatMoney as money } from "@/components/kadari/confidence";
@@ -18,6 +23,15 @@ function LedgerPage() {
   const { data, isPending, isError, error } = useQuery<Ledger>({
     queryKey: ["kadari", "ledger", customerId],
     queryFn: ({ signal }) => getLedger(customerId, signal),
+  });
+
+  const queryClient = useQueryClient();
+  const sample = useMutation({
+    mutationFn: () => seedDemoHousehold(customerId),
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        queryKey: ["kadari", "ledger", customerId],
+      }),
   });
 
   return (
@@ -60,9 +74,31 @@ function LedgerPage() {
           )}
 
           {data.rooms.length === 0 && (
-            <p className="text-sm text-(--color-text-muted)">
-              No assets yet — capture a room to get started.
-            </p>
+            <div className="flex flex-col items-start gap-(--space-3)">
+              <p className="text-sm text-(--color-text-muted)">
+                No assets yet — capture a room to get started.
+              </p>
+              {demoToolsEnabled && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => sample.mutate()}
+                    disabled={sample.isPending}
+                    className="kd-focus inline-flex h-(--tap-target-min) items-center gap-(--space-2) rounded-(--radius-md) border border-(--color-border) px-(--space-5) text-sm font-semibold hover:bg-(--color-surface)"
+                  >
+                    {sample.isPending && (
+                      <Loader2 className="size-4 animate-spin" aria-hidden />
+                    )}
+                    Load sample household (demo)
+                  </button>
+                  {sample.isError && (
+                    <p className="text-sm text-(--color-danger)">
+                      {sample.error.message}
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
           )}
 
           {data.rooms.map((room) => (

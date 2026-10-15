@@ -26,7 +26,10 @@ public sealed class ApiInfoTransformer : IOpenApiDocumentTransformer
                 `concurrency-conflict` all answer 409) and titles are prose we may reword. Each
                 response also carries `traceId` and, when supplied, your `correlationId` — quote them
                 in a support request. A 400 from validation adds `errors`, a field-keyed map.
-                """,
+                """
+                // The literal takes the source file's line endings (CRLF on a Windows checkout, LF on the CI
+                // runner); normalise so the emitted contract is identical everywhere.
+                .ReplaceLineEndings("\n"),
         };
 
         return Task.CompletedTask;

@@ -28,6 +28,11 @@ COPY . .
 ARG VITE_API_BASE_URL=""
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
+# Demo helpers (the "Load sample household" button). Only the local AppHost passes "true"; a production build
+# leaves it unset, so the button is not compiled in. The API endpoint it calls exists only in Development too.
+ARG VITE_DEMO_TOOLS=""
+ENV VITE_DEMO_TOOLS=$VITE_DEMO_TOOLS
+
 RUN pnpm build
 
 # ---------------------------------------------------------------------------

@@ -160,6 +160,7 @@ if (app.Environment.IsDevelopment())
 
     app.MapOpenApi();               // OpenAPI JSON at /openapi/v1.json
     app.MapScalarApiReference();    // Interactive API reference at /scalar/v1
+    app.MapDevelopmentEndpoints();  // Demo helpers (sample household); never mapped outside Development
 
 }
 

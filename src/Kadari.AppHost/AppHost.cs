@@ -34,6 +34,7 @@ var webapi = builder.AddProject<Projects.Kadari_WebApi>("webapi")
 // phone demos over the LAN work). Fixed port 8200.
 // ---------------------------------------------------------------------------
 builder.AddDockerfile("client", "../Kadari.Client")
+    .WithBuildArg("VITE_DEMO_TOOLS", "true")   // local demos only: the sample-household button
     .WithHttpEndpoint(port: 8200, targetPort: 8080, name: "http")
     .WithExternalHttpEndpoints()
     .WithReference(webapi)

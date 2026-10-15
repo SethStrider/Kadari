@@ -92,6 +92,27 @@ export async function getLedger(
   return (await response.json()) as Ledger;
 }
 
+/**
+ * Development only: fills the caller's empty ledger with a sample household. The endpoint exists only on a
+ * Development API, and the button that calls this is compiled in only when VITE_DEMO_TOOLS is "true".
+ */
+export async function seedDemoHousehold(
+  customerId: string,
+): Promise<{ assetsCreated: number }> {
+  const response = await apiClient.fetch(
+    `/api/v1/dev/customers/${customerId}/demo-household`,
+    { method: "POST", headers: { Accept: "application/json" } },
+  );
+  if (!response.ok) {
+    throw new Error(
+      `Could not load the sample household (${response.status}).`,
+    );
+  }
+  return (await response.json()) as { assetsCreated: number };
+}
+
+export const demoToolsEnabled = import.meta.env.VITE_DEMO_TOOLS === "true";
+
 /** The insurer white-label for this customer's app — nulls when they are consumer-direct. */
 export function getBranding(customerId: string, signal?: AbortSignal) {
   return apiClient.get("/api/v1/kadari/customers/{customerId}/branding", {
