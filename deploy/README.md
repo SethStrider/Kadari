@@ -34,6 +34,10 @@ backup ──► nightly encrypted dump + blob sync to an off-site bucket (anoth
 ## First deploy
 
 ```bash
+# Once per server: the MinIO image is our mirror in the private GitLab registry. Use a deploy token with only
+# read_registry (mccarthyfam > Settings > Repository > Deploy tokens); never a personal access token.
+docker login registry.gitlab.com -u <deploy-token-username>
+
 cd /srv/kadari
 export GIT_SHA=$(git rev-parse --short HEAD)
 C="docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env"
