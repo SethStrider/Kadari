@@ -1,12 +1,11 @@
 import { apiClient } from "./client";
 import { ApiProblem, type ApiProblemBody } from "./problem";
 import type { components } from "./schema";
-import { apiBaseUrl, authHeaders } from "./raw";
 import type { DetectedObject } from "../vision/types";
 
 /**
  * Kadari API calls. The snap upload is multipart, which the typed {@link ApiClient} (JSON-only) does not
- * do, so these use `fetch` directly — reusing the same base URL and bearer token. Once the Kadari
+ * do, so these go through `apiClient.fetch` — the same bearer token and refresh-on-401 as the typed calls. Once the Kadari
  * endpoints are added to `openapi/v1.json`, the ledger read can move onto the typed client; the multipart
  * upload stays here.
  */
@@ -56,15 +55,10 @@ export async function analyzeSnap(
     form.append("roomLabel", roomLabel);
   }
 
-  const response = await fetch(
-    `${apiBaseUrl()}/api/v1/kadari/customers/${customerId}/snaps`,
-    {
-      method: "POST",
-      headers: authHeaders(), // no Content-Type — the browser sets the multipart boundary
-      credentials: "include",
-      body: form,
-      signal,
-    },
+  const response = await apiClient.fetch(
+    `/api/v1/kadari/customers/${customerId}/snaps`,
+    // no Content-Type — the browser sets the multipart boundary
+    { method: "POST", body: form, signal },
   );
 
   if (!response.ok) {
@@ -87,14 +81,9 @@ export async function getLedger(
   customerId: string,
   signal?: AbortSignal,
 ): Promise<Ledger> {
-  const response = await fetch(
-    `${apiBaseUrl()}/api/v1/kadari/customers/${customerId}/ledger`,
-    {
-      method: "GET",
-      headers: { Accept: "application/json", ...authHeaders() },
-      credentials: "include",
-      signal,
-    },
+  const response = await apiClient.fetch(
+    `/api/v1/kadari/customers/${customerId}/ledger`,
+    { method: "GET", headers: { Accept: "application/json" }, signal },
   );
 
   if (!response.ok) {
@@ -203,14 +192,9 @@ export async function recordOwnershipProof(
     form.append("currency", proof.currency ?? "ZAR");
   }
 
-  const response = await fetch(
-    `${apiBaseUrl()}/api/v1/kadari/customers/${customerId}/assets/${assetId}/proof`,
-    {
-      method: "POST",
-      headers: authHeaders(),
-      credentials: "include",
-      body: form,
-    },
+  const response = await apiClient.fetch(
+    `/api/v1/kadari/customers/${customerId}/assets/${assetId}/proof`,
+    { method: "POST", body: form },
   );
 
   if (!response.ok) {

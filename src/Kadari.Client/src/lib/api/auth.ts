@@ -1,5 +1,5 @@
 import { apiClient } from "./client";
-import { apiBaseUrl, authHeaders } from "./raw";
+import { apiBaseUrl } from "./raw";
 
 /**
  * Customer auth — the OTP flow (mobile → code → JWT, which auto-registers a Customer). Raw `fetch` (the
@@ -56,10 +56,9 @@ export async function verifyOtp(
 
 /** The signed-in customer's own id + profile (resolves the token to a customer id). */
 export async function getCurrentCustomer(): Promise<CurrentCustomer> {
-  const response = await fetch(`${apiBaseUrl()}/api/v1/customers/me`, {
+  const response = await apiClient.fetch("/api/v1/customers/me", {
     method: "GET",
-    headers: { Accept: "application/json", ...authHeaders() },
-    credentials: "include",
+    headers: { Accept: "application/json" },
   });
   if (!response.ok) {
     throw new Error(`Could not resolve your account (${response.status}).`);

@@ -1,8 +1,6 @@
-import { localTokenStore } from "./tokens";
-
 /**
- * Shared helpers for the raw-`fetch` calls (multipart upload, auth) that the typed {@link ApiClient} does
- * not cover. Same base URL and bearer token as the typed client.
+ * The base URL for the anonymous raw-`fetch` auth calls (OTP request/verify). Authorized raw calls go
+ * through `apiClient.fetch`, which carries the bearer token and refreshes on 401.
  */
 
 export function apiBaseUrl(): string {
@@ -13,15 +11,4 @@ export function apiBaseUrl(): string {
     throw new Error("VITE_API_BASE_URL is not set.");
   }
   return configured.replace(/\/$/, "");
-}
-
-export function authHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {
-    "X-Correlation-ID": crypto.randomUUID(),
-  };
-  const accessToken = localTokenStore.read()?.accessToken;
-  if (accessToken) {
-    headers.Authorization = `Bearer ${accessToken}`;
-  }
-  return headers;
 }

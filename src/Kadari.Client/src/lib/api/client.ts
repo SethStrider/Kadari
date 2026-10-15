@@ -159,6 +159,36 @@ export class ApiClient {
     this.onSignedOut?.();
   }
 
+  /**
+   * An authorized raw request for what the typed calls cannot express (multipart uploads, untyped bodies).
+   * Same bearer token and the same refresh-once-on-401 as the typed calls; the caller reads the response.
+   * `path` is relative to the API base URL.
+   */
+  async fetch(path: string, init: RequestInit = {}): Promise<Response> {
+    const request = (): Promise<Response> => {
+      const headers = new Headers(init.headers);
+      headers.set(CORRELATION_HEADER, crypto.randomUUID());
+      const accessToken = this.tokens.read()?.accessToken;
+      if (accessToken) {
+        headers.set("Authorization", `Bearer ${accessToken}`);
+      }
+      return fetch(`${this.baseUrl}${path}`, {
+        ...init,
+        headers,
+        credentials: "include",
+      });
+    };
+
+    const response = await request();
+    if (response.status !== 401) return response;
+
+    if (!(await this.refreshOnce())) {
+      this.signOut();
+      return response;
+    }
+    return request();
+  }
+
   private async send<T>(
     method: string,
     template: string,
