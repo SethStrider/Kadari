@@ -36,12 +36,13 @@ public sealed record AssetEvidenceDto(
     string Kind, string Strength, string Source, DateTimeOffset AssertedAt,
     double? Confidence, long? AmountMinor, string? Currency);
 
-internal sealed class GetAssetHandler(IKadariDbContext db, ICurrentTenant tenant)
+internal sealed class GetAssetHandler(IKadariDbContext db)
     : IQueryHandler<GetAssetQuery, AssetDetailDto>
 {
     public async Task<AssetDetailDto> Handle(GetAssetQuery query, CancellationToken ct)
     {
         var customerId = new CustomerId(query.CustomerId);
+        var tenant = await db.TenantOfCustomerAsync(customerId, ct);
 
         var subjectId = await db.Owners.AsNoTracking()
             .Where(s => s.CustomerId == customerId)
@@ -55,7 +56,7 @@ internal sealed class GetAssetHandler(IKadariDbContext db, ICurrentTenant tenant
                 .Include(a => a.Evidence)
                 .Where(a => a.Id == assetId
                     && (a.OwnerId == subjectId.Value || a.CoOwners.Any(c => c.MemberId == subjectId.Value)))
-                .ForCurrentTenant(tenant)
+                .ForTenant(tenant)
                 .FirstOrDefaultAsync(ct);
 
         if (asset is null)

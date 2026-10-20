@@ -30,12 +30,13 @@ public sealed record LedgerRoomDto(string Room, long RoomTotalMinor, IReadOnlyLi
 public sealed record LedgerAssetDto(
     Guid AssetId, string DisplayName, string Category, string Assurance, long? BestValueMinor, string Status);
 
-internal sealed class GetLedgerHandler(IKadariDbContext db, ICurrentTenant tenant)
+internal sealed class GetLedgerHandler(IKadariDbContext db)
     : IQueryHandler<GetLedgerQuery, LedgerDto>
 {
     public async Task<LedgerDto> Handle(GetLedgerQuery query, CancellationToken ct)
     {
         var customerId = new CustomerId(query.CustomerId);
+        var tenant = await db.TenantOfCustomerAsync(customerId, ct);
 
         // The person subject backing this customer owns their assets. No subject yet ⇒ an empty ledger
         // (a customer who has not captured anything), not a 404 — existence is settled by the resolver.
@@ -50,12 +51,12 @@ internal sealed class GetLedgerHandler(IKadariDbContext db, ICurrentTenant tenan
         }
 
         // The ledger shows what the subject owns — as the primary owner or a household co-owner (deck §31), so
-        // a shared item appears in every member's ledger. Owner-scoping already isolates by tenant (a subject
-        // belongs to one tenant); ForCurrentTenant is defence-in-depth and the deferred insurer-console seam.
+        // a shared item appears in every member's ledger. Only rows on the customer's own tenant count (their insurer's
+        // when they are on an insurer's book): defence-in-depth against an asset stamped to some other tenant.
         var assets = await db.Assets.AsNoTracking()
             .Include(a => a.Evidence)
             .Where(a => a.OwnerId == subjectId.Value || a.CoOwners.Any(c => c.MemberId == subjectId.Value))
-            .ForCurrentTenant(tenant)
+            .ForTenant(tenant)
             .ToListAsync(ct);
 
         return LedgerProjection.From(query.CustomerId, assets);

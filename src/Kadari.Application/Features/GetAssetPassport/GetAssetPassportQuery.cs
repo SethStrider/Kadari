@@ -42,12 +42,13 @@ public sealed record AssetPassportDto(
         p.ReplacementValue?.Currency, p.EvidenceCount, p.IssuedAt, p.LastUpdatedAt);
 }
 
-internal sealed class GetAssetPassportHandler(IKadariDbContext db, ICurrentTenant tenant)
+internal sealed class GetAssetPassportHandler(IKadariDbContext db)
     : IQueryHandler<GetAssetPassportQuery, AssetPassportDto>
 {
     public async Task<AssetPassportDto> Handle(GetAssetPassportQuery query, CancellationToken ct)
     {
         var customerId = new CustomerId(query.CustomerId);
+        var tenant = await db.TenantOfCustomerAsync(customerId, ct);
 
         var subjectId = await db.Owners.AsNoTracking()
             .Where(s => s.CustomerId == customerId)
@@ -66,7 +67,7 @@ internal sealed class GetAssetPassportHandler(IKadariDbContext db, ICurrentTenan
         var passport = owns
             ? await db.AssetPassports.AsNoTracking()
                 .Where(p => p.AssetId == assetId)
-                .ForCurrentTenant(tenant)   // defence-in-depth, the insurer-console seam
+                .ForTenant(tenant)   // defence-in-depth: only rows on the customer's own tenant
                 .FirstOrDefaultAsync(ct)
             : null;
 

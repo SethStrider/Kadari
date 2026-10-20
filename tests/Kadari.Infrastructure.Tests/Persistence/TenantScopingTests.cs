@@ -6,6 +6,8 @@ using Kadari.Application.Abstractions.Messaging;
 using Kadari.Application.Abstractions.Persistence;
 using Kadari.Application.Abstractions.Storage;
 using Kadari.Application.Features.AnalyzeSnap;
+using Kadari.Application.Features.AssignTenant;
+using Kadari.Application.Features.CreateInsurerTenant;
 using Kadari.Application.Features.GetLedger;
 using Kadari.Application.Features.SeedDefaultTenant;
 using Kadari.Domain.Assets;
@@ -114,7 +116,53 @@ public sealed class TenantScopingTests(PostgresFixture fixture) : InfraTest(fixt
             ledger = await BuildSender(db).Send(new GetLedgerQuery(customer.Id.Value));
         }
 
-        // The caller is the platform tenant, so only the Default-tenant asset is visible.
+        // The customer is on the platform tenant, so only the Default-tenant asset is visible.
+        Assert.Equal(1, ledger.AssetCount);
+    }
+
+    [Fact]
+    public async Task An_insured_customer_still_sees_their_own_ledger()
+    {
+        await using (var db = NewContext())
+        {
+            await db.Database.MigrateAsync();
+        }
+
+        var customer = Customer.Register("Sipho", "Dube", "+27820000042", "ZA");
+        await using (var db = NewContext())
+        {
+            db.AddCustomerConsentingToCapture(customer);
+            await db.SaveChangesAsync();
+        }
+
+        var tempPath = Path.GetTempFileName();
+        await File.WriteAllBytesAsync(tempPath, [0xFF, 0xD8, 0xFF, 0xE0]);
+        var image = new SnapImage(tempPath, "image/jpeg", 4);
+        try
+        {
+            await using var db = NewContext();
+            await BuildSender(db).Send(new AnalyzeSnapCommand(
+                customer.Id.Value, image, [new DetectedObject("tv", 0.94, 0, 0, 1, 1)], "Lounge"));
+        }
+        finally
+        {
+            await image.DisposeAsync();
+        }
+
+        // Moving the customer onto an insurer's book re-stamps their assets to the insurer's tenant.
+        await using (var db = NewContext())
+        {
+            var sender = BuildSender(db);
+            var insurer = await sender.Send(new CreateInsurerTenantCommand("Insurer for scoping test", Branding: null));
+            await sender.Send(new AssignCustomerToTenantCommand(customer.Id.Value, insurer.TenantId));
+        }
+
+        LedgerDto ledger;
+        await using (var db = NewContext())
+        {
+            ledger = await BuildSender(db).Send(new GetLedgerQuery(customer.Id.Value));
+        }
+
         Assert.Equal(1, ledger.AssetCount);
     }
 }
