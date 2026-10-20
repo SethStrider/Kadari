@@ -118,16 +118,24 @@ public static class DependencyInjection
             builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
         }
 
-        // Sign-in codes: Twilio (SMS or a WhatsApp authentication template) when configured; otherwise the logging
-        // stub, which the production readiness guard refuses outside Development.
+        // Sign-in codes: Twilio (SMS or a WhatsApp authentication template) when configured; otherwise the local Mailpit
+        // inbox when the AppHost provides one; otherwise the logging stub. Both fallbacks are development-only stubs that
+        // the production readiness guard refuses outside Development.
         builder.Services.Configure<TwilioOptions>(builder.Configuration.GetSection(TwilioOptions.SectionName));
         var twilio = builder.Configuration.GetSection(TwilioOptions.SectionName).Get<TwilioOptions>();
+        var devMailbox = DevMailboxEndpoint.Parse(builder.Configuration.GetConnectionString("mailpit"));
         if (!string.IsNullOrWhiteSpace(twilio?.AccountSid))
         {
             builder.Services.AddHttpClient(TwilioMessageSender.HttpClientName);
             builder.Services.AddSingleton<TwilioMessageSender>();
             builder.Services.AddSingleton<INotificationChannel, TwilioNotificationChannel>();
             builder.Services.AddSingleton<IOtpDelivery, TwilioOtpDelivery>();
+        }
+        else if (devMailbox is not null)
+        {
+            builder.Services.AddSingleton(devMailbox);
+            builder.Services.AddSingleton<INotificationChannel, DevMailboxNotificationChannel>();
+            builder.Services.AddSingleton<IOtpDelivery, NotificationOtpDelivery>();
         }
         else
         {
@@ -156,6 +164,13 @@ public static class DependencyInjection
         builder.Services.AddHostedService<DefaultTenantSeeder>();
         builder.Services.Configure<AdministratorSeedOptions>(builder.Configuration.GetSection(AdministratorSeedOptions.SectionName));
         builder.Services.AddHostedService<AdministratorSeeder>();
+
+        // Development only: the demo cast (an insurer, staff and customers with households), when DemoSeed:Enabled.
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.Configure<DemoSeedOptions>(builder.Configuration.GetSection(DemoSeedOptions.SectionName));
+            builder.Services.AddHostedService<DemoDataSeeder>();
+        }
     }
 
     private static void AddBlobStorage(IHostApplicationBuilder builder)

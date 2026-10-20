@@ -20,7 +20,12 @@ var storage = builder.AddMinioContainer("storage", minioUser, minioPassword)
 // ---------------------------------------------------------------------------
 // Web API — migrates the schema on start in Development, then serves.
 // ---------------------------------------------------------------------------
+// Local mail catcher. With no Twilio or SMTP configured, every SMS, WhatsApp and email the API would send lands in
+// this inbox instead (sign-in codes included), at http://localhost:8400. Development only.
+var mail = builder.AddMailPit("mailpit", httpPort: 8400);
+
 var webapi = builder.AddProject<Projects.Kadari_WebApi>("webapi")
+    .WithReference(mail).WaitFor(mail)
     .WithReference(kadariDb).WaitFor(kadariDb)
     .WithReference(storage).WaitFor(storage)
     .WithEnvironment("S3__ServiceUrl", storage.Resource.PrimaryEndpoint)
