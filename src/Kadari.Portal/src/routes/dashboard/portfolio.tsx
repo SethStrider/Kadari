@@ -24,6 +24,12 @@ function categoryLabel(category: string): string {
   return categoryLabels[category] ?? category;
 }
 
+/** Assurance levels arrive as enum names ("OwnershipSupported"); show them as words. */
+function assuranceLabel(assurance: string): string {
+  const words = assurance.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 export const Route = createFileRoute("/dashboard/portfolio")({
   component: InsurerPortfolio,
 });
@@ -206,7 +212,7 @@ function InsurerPortfolio() {
                 icon={Wallet}
               />
               <StatTile
-                label="Evidenced"
+                label="Valued"
                 value={p ? `${p.completenessPercent}%` : "—"}
                 sub="Assets with a replacement value"
                 icon={ShieldCheck}
@@ -219,7 +225,7 @@ function InsurerPortfolio() {
                   {(p?.assuranceBreakdown ?? []).map((band) => (
                     <li key={band.assurance} className="flex flex-col gap-1.5">
                       <div className="flex items-center justify-between font-body text-xs text-soft-grey">
-                        <span>{band.assurance}</span>
+                        <span>{assuranceLabel(band.assurance)}</span>
                         <span className="font-heading font-semibold text-off-white">
                           {band.count}
                         </span>
@@ -323,7 +329,7 @@ function InsurerPortfolio() {
                         </td>
                         <td className="px-6 py-3.5">
                           <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-technical text-[10px] tracking-wide text-soft-grey uppercase">
-                            {a.assurance}
+                            {assuranceLabel(a.assurance)}
                           </span>
                         </td>
                         <td className="px-6 py-3.5 text-soft-grey">

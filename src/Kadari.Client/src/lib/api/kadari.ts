@@ -250,5 +250,5 @@ export async function verifyAssetPassport(
 
 /** The public page a passport's QR code and share link open. */
 export function assetPassportVerifyUrl(verificationId: string): string {
-  return `${window.location.origin}/kadari/verify/${encodeURIComponent(verificationId)}`;
+  return `${window.location.origin}/verify/${encodeURIComponent(verificationId)}`;
 }

@@ -11,10 +11,9 @@ export function getInsurerContext() {
 }
 
 export function getTenantPortfolio(tenantId: string) {
-  return apiClient.get(
-    "/api/v1/kadari/insurer/tenants/{tenantId}/portfolio",
-    { path: { tenantId } },
-  );
+  return apiClient.get("/api/v1/kadari/insurer/tenants/{tenantId}/portfolio", {
+    path: { tenantId },
+  });
 }
 
 export function listTenantAssets(
@@ -24,7 +23,8 @@ export function listTenantAssets(
 ) {
   return apiClient.get("/api/v1/kadari/insurer/tenants/{tenantId}/assets", {
     path: { tenantId },
-    query: { Page: page, PageSize: pageSize },
+    // PageRequest binds Descending as required (as in users.ts); without it the API answers 400.
+    query: { Page: page, PageSize: pageSize, Descending: false },
   });
 }
 
