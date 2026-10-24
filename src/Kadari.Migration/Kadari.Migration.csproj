@@ -8,6 +8,14 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" />
   </ItemGroup>
 
+  <!-- The Care registry's research files ship beside the runner, which imports them on every seeding run. -->
+  <ItemGroup>
+    <Content Include="..\..\docs\authority\CARE\REGISTRY\0*.csv" Link="registry\research\%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\care\registry\coverage-rules.csv" Link="registry\coverage-rules.csv" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\care\registry\registration-rules.csv" Link="registry\registration-rules.csv" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\docs\care\registry\routing-rules.csv" Link="registry\routing-rules.csv" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Kadari.Infrastructure\Kadari.Infrastructure.csproj" />
   </ItemGroup>

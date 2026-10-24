@@ -127,6 +127,7 @@ export type KadariConsent = components["schemas"]["KadariConsentDto"];
 export const consentScopes = {
   AssetImageProcessing: 0,
   CrossBorderAiEnrichment: 1,
+  CareReminders: 2,
 } as const;
 export type ConsentScopeName = keyof typeof consentScopes;
 

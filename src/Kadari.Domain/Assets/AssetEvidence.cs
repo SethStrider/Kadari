@@ -10,13 +10,18 @@ public readonly record struct AssetEvidenceId(Guid Value)
 
 /// <summary>What an evidence item asserts about an asset. Each kind contributes to a different rung of the
 /// assurance ladder (see <c>AssetAssurance</c>): an image is an observation, an identification names the
-/// item, ownership evidence supports that it is the subject's, value evidence supports what it is worth.</summary>
+/// item, ownership evidence supports that it is the subject's, value evidence supports what it is worth.
+/// <see cref="Purchase"/> carries the structured purchase facts KADARI Care reads (brand, model, retailer, date);
+/// it is not a rung of the ladder. <see cref="Registration"/> is a provider's confirmation that the product was
+/// registered (its reference); not a rung either.</summary>
 public enum AssetEvidenceKind
 {
     Image,
     Identification,
     Ownership,
     Value,
+    Purchase,
+    Registration,
 }
 
 /// <summary>
@@ -73,6 +78,9 @@ public sealed class AssetEvidence : Entity<AssetEvidenceId>
 
     /// <summary>The asserted value — only on <see cref="AssetEvidenceKind.Value"/> evidence; null otherwise.</summary>
     public Money? Amount { get; private set; }
+
+    /// <summary>The purchase facts — only on <see cref="AssetEvidenceKind.Purchase"/> evidence; null otherwise.</summary>
+    public PurchaseFacts? Purchase { get; private set; }
 
     /// <summary>
     /// The retention horizon for a two-tier policy (D8/POPIA). <c>null</c> = the <b>canonical</b> tier: a
@@ -190,6 +198,36 @@ public sealed class AssetEvidence : Entity<AssetEvidenceId>
         ArgumentException.ThrowIfNullOrWhiteSpace(reference);
         return new AssetEvidence(AssetEvidenceId.New(), AssetEvidenceKind.Value, EvidenceStrength.Independent,
             source.Trim(), assertedAt, confidence: null, reference: reference.Trim(), amount);
+    }
+
+    /// <summary>
+    /// The purchase facts the owner confirmed (KADARI Care): brand, model, retailer and purchase date. Independent when
+    /// a stored receipt backs them (<paramref name="receiptReference"/>), self-asserted otherwise — the coverage engine
+    /// only calls a warranty <i>active</i> on independent purchase evidence. A correction is a new item; the latest
+    /// wins, so nothing confirmed earlier is overwritten.
+    /// </summary>
+    public static AssetEvidence PurchaseRecorded(
+        string source, PurchaseFacts facts, DateTimeOffset assertedAt, string? receiptReference = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(source);
+        ArgumentNullException.ThrowIfNull(facts);
+        var strength = string.IsNullOrWhiteSpace(receiptReference) ? EvidenceStrength.SelfAsserted : EvidenceStrength.Independent;
+        return new AssetEvidence(AssetEvidenceId.New(), AssetEvidenceKind.Purchase, strength, source.Trim(), assertedAt,
+            confidence: null, reference: string.IsNullOrWhiteSpace(receiptReference) ? null : receiptReference.Trim(), amount: null)
+        {
+            Purchase = facts,
+        };
+    }
+
+    /// <summary>The provider's confirmation reference for a warranty registration (KADARI Care). Self-asserted: the owner
+    /// typed what the provider showed them.</summary>
+    public static AssetEvidence RegistrationConfirmed(string provider, string reference, DateTimeOffset assertedAt)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(provider);
+        ArgumentException.ThrowIfNullOrWhiteSpace(reference);
+        var source = provider.Trim();
+        return new AssetEvidence(AssetEvidenceId.New(), AssetEvidenceKind.Registration, EvidenceStrength.SelfAsserted,
+            source.Length > 80 ? source[..80] : source, assertedAt, confidence: null, reference: reference.Trim(), amount: null);
     }
 
     /// <summary>A professional (independent) valuation submitted by a valuer (D10) — an <see cref="ValueSupported"/>

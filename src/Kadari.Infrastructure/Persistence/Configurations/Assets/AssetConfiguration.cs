@@ -90,6 +90,15 @@ public sealed class AssetEvidenceConfiguration : IEntityTypeConfiguration<AssetE
         builder.Property(e => e.PurgedAt);
         builder.HasIndex(e => e.RetentionUntil);   // the retention sweep scans by this
 
+        // Purchase evidence carries the owner's purchase facts (KADARI Care); null for every other kind.
+        builder.OwnsOne(e => e.Purchase, p =>
+        {
+            p.Property(x => x.Brand).HasColumnName("PurchaseBrand").HasMaxLength(PurchaseFacts.MaxTextLength);
+            p.Property(x => x.Model).HasColumnName("PurchaseModel").HasMaxLength(PurchaseFacts.MaxTextLength);
+            p.Property(x => x.Retailer).HasColumnName("PurchaseRetailer").HasMaxLength(PurchaseFacts.MaxTextLength);
+            p.Property(x => x.PurchasedOn).HasColumnName("PurchasedOn");
+        });
+
         // Value evidence carries a Money amount; null for every other kind (optional owned type).
         builder.OwnsOne(e => e.Amount, m =>
         {

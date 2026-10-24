@@ -31,12 +31,15 @@ here and the surrounding code. Keep changes consistent over clever.
 
 ```
 src/
-  Kadari.AppHost          # Aspire orchestrator (Postgres + MinIO + WebApi + client + portal)
+  Kadari.AppHost          # Aspire orchestrator (Postgres + RabbitMQ + MinIO + migrations + WebApi + Worker + SPAs)
   Kadari.ServiceDefaults  # OpenTelemetry / health / resilience / service discovery
   Kadari.WebApi           # Minimal-API endpoints (thin) + composition root
   Kadari.Application      # CQRS slices (Features/…) + abstractions + pipeline behaviours
   Kadari.Domain           # Entities, value objects, domain events, invariants — NO dependencies
-  Kadari.Infrastructure   # EF Core, envelope-encrypted S3 storage, sign-in security, vision enrichment
+  Kadari.Infrastructure   # EF Core + outbox, envelope-encrypted S3 storage, sign-in security, vision enrichment
+  Kadari.Contracts        # Integration events (sealed records) — NO dependencies at all
+  Kadari.Worker           # The only bus consumer: MassTransit consumers + scheduled sweeps
+  Kadari.Migration        # One-shot: apply migrations + seeds, then exit (AppHost and deploy run it first)
   Kadari.Client           # Customer SPA (React 19 / Vite / TanStack Router), port 8200
   Kadari.Portal           # Insurer + staff portal SPA, port 8300
 tests/
@@ -50,10 +53,10 @@ centralised in `Directory.Packages.props` (CPM) — add packages **without** a `
 
 ## 3. Vertical slice anatomy
 
-One folder per use case under `KADARI.Application/Features/{Aggregate}/{UseCase}/`:
+One folder per use case under `Kadari.Application/Features/{Aggregate}/{UseCase}/`:
 
 ```
-KADARI.Application/Features/Journeys/
+Kadari.Application/Features/Journeys/
   StartJourney/
     StartJourneyCommand.cs           # the ICommand<T> + response record + the handler
     StartJourneyValidator.cs         # FluentValidation rules (runs in the pipeline)
@@ -68,15 +71,15 @@ into its own `{UseCase}Handler.cs` only when it outgrows roughly 60 lines — se
 have, and that is fine. What is not fine is a slice split for no reason: the file count should track
 the work, not a template.
 
-Endpoints live in `KADARI.WebApi/Endpoints/{Aggregate}Endpoints.cs` and do **three things only**:
+Endpoints live in `Kadari.WebApi/Endpoints/{Aggregate}Endpoints.cs` and do **three things only**:
 bind the request → `sender.Send(command)` → map the result to an HTTP response.
 
 ### Reference command slice
 
 ```csharp
 // StartJourney/StartJourneyCommand.cs — request, response and handler together
-using KADARI.Application.Abstractions.Access;
-using KADARI.Application.Abstractions.Messaging;
+using Kadari.Application.Abstractions.Access;
+using Kadari.Application.Abstractions.Messaging;
 
 // Every request declares its authorization scope (§4a). This one names a customer, so it is scoped:
 // a caller may only start a journey for themselves.
@@ -89,7 +92,7 @@ public sealed record StartJourneyCommand(Guid CustomerId, Guid ProductId)
 public sealed record StartJourneyResponse(Guid JourneyId);
 
 internal sealed class StartJourneyHandler(
-    IKADARIDbContext db,
+    IKadariDbContext db,
     TimeProvider clock)
     : ICommandHandler<StartJourneyCommand, StartJourneyResponse>
 {
@@ -124,7 +127,7 @@ internal sealed class StartJourneyValidator : AbstractValidator<StartJourneyComm
 ```
 
 ```csharp
-// KADARI.WebApi/Endpoints/JourneyEndpoints.cs
+// Kadari.WebApi/Endpoints/JourneyEndpoints.cs
 public static class JourneyEndpoints
 {
     public static IEndpointRouteBuilder MapJourneyEndpoints(this IEndpointRouteBuilder app)
@@ -175,7 +178,7 @@ authenticated customer read another customer's report by passing their id.
 | `IResourceScopedRequest` | Touches a customer-owned resource. Expose `ResourceId`. | An `IResourceOwnerResolver<TRequest>` in the same slice folder |
 | `IUnscopedRequest` | Deliberately not customer-scoped — public reads, auth, webhooks, admin. | A one-line comment saying *why* |
 
-This is **enforced by `KADARI.ArchitectureTests`**: a request that declares neither, declares both, or
+This is **enforced by `Kadari.ArchitectureTests`**: a request that declares neither, declares both, or
 declares itself scoped without a resolver **fails the build**. If that test fails on a slice you just
 added, decide which the request is and say so — do not relax the test.
 
@@ -237,43 +240,109 @@ PostgreSQL 17 + EF Core 10 (Npgsql), single `kadari` schema. Full detail: `docs/
 - **Soft-delete:** `IsDeleted`/`DeletedAt` + global query filter; `Remove()` → soft-delete.
   **No hard deletes.** Settlement/audit rows are append-only.
 
-- EF Core config per entity via `IEntityTypeConfiguration<T>` — auto-discovered by `KADARIDbContext`
+- EF Core config per entity via `IEntityTypeConfiguration<T>` — auto-discovered by `KadariDbContext`
   (`ApplyConfigurationsFromAssembly`). Schema is `kadari`. Never configure entities inline in
   `OnModelCreating`.
-- The Application layer depends on an **`IKADARIDbContext` abstraction** (expose `DbSet`s +
-  `SaveChangesAsync`), implemented by `KADARIDbContext` in Infrastructure — keeps EF out of
+- The Application layer depends on an **`IKadariDbContext` abstraction** (expose `DbSet`s +
+  `SaveChangesAsync`), implemented by `KadariDbContext` in Infrastructure — keeps EF out of
   Application's face and keeps handlers testable.
 - Base-entity conventions (UUID PK, `CreatedAt/UpdatedAt`, soft-delete, row version, audit) applied
   centrally via a base type + global query filter. **No hard deletes.**
 - Blob storage only through `IBlobStorage` — never touch `IAmazonS3` outside `Infrastructure/Storage`.
-- Bus: publish integration events from `Contracts`; MassTransit consumers live in `Infrastructure`
-  and are auto-registered (`AddConsumers`). Kebab-case endpoint names. **See §6a for the full flow.**
+- **AI only through `MeteredModel`** (`Features/Intelligence/Services`). It applies the cross-border consent gate and
+  the daily quota, makes the call at most once per request, and records tokens and cost (`ModelUsage`) through the
+  one writer, `ModelUsageRecorder`. Never inject `IModelGateway` anywhere else (an architecture test fails the build);
+  capture's enricher is the one exception and reports its usage back for the same writer. A model reply is a
+  proposal: parse it as untrusted, and save nothing it says until a person confirms it.
+- Bus: publish integration events from `Contracts` through `IIntegrationEventPublisher`; MassTransit consumers
+  live **only** in `Kadari.Worker/Consumers`, are `public`, and are auto-registered (`AddConsumers`). Kebab-case
+  endpoint names. **See §6a for the full flow.**
 - Migrations:
   ```bash
-  dotnet ef migrations add <Name> --project src/KADARI.Infrastructure --startup-project src/KADARI.WebApi
-  dotnet ef database update      --project src/KADARI.Infrastructure --startup-project src/KADARI.WebApi
+  dotnet ef migrations add <Name> --project src/Kadari.Infrastructure --startup-project src/Kadari.WebApi
+  dotnet ef database update      --project src/Kadari.Infrastructure --startup-project src/Kadari.WebApi
   ```
 
 ---
 
-## 6a. No message bus
+## 6a. Synchronous by default; the outbox for work that leaves the process
 
-KADARI has no RabbitMQ, outbox or worker. Every command runs synchronously in one transaction
-(`TransactionalDispatchBehavior` + `IUnitOfWork`), and its domain events are dispatched inside that transaction, so the
-writes and every reaction commit atomically. External I/O that must not repeat when a transaction retries (sending a
-sign-in code, the vision call) goes through `IPostCommitActions` (after commit) or a once-only guard (`SnapCaptureWork`).
-Background sweeps (evidence retention) are hosted services in the API. If a real cross-process need appears, add the
-outbox then; don't pre-build it.
+Every command runs synchronously in one transaction (`TransactionalDispatchBehavior` + `IUnitOfWork`), and its domain
+events are dispatched inside that transaction, so the writes and every reaction commit atomically. That stays the
+default.
+
+**When a command causes external work that must happen exactly once and must survive a crash** — a warranty
+registration with an OEM, a reminder delivery, a follow-up on a provider's commitment — the handler does not call out.
+It publishes an integration event (a `sealed record` in `Kadari.Contracts`) with
+`IIntegrationEventPublisher.PublishAsync(event, messageId)`:
+
+- the event is written to the MassTransit EF outbox (`OutboxMessages`) **in the command's transaction** — a rolled-back
+  command publishes nothing;
+- after commit the outbox delivery service ships it to RabbitMQ;
+- a **public** consumer in `Kadari.Worker/Consumers` receives it through the EF inbox (a redelivery with the same
+  message id is skipped), does the external call, and records the outcome by sending an `IUnscopedRequest` command;
+- `messageId` must be **deterministic** for the source (`DeterministicGuid`), so a retried command yields the same id;
+- an external action also carries an idempotency key that is **unique in the database**, so even a duplicate that
+  slipped past the inbox cannot create a second registration or case.
+
+Never call an external service inside a request transaction: Npgsql's retry strategy can re-run the whole command.
+Lighter after-commit I/O the user can simply ask for again (a sign-in code) may still use `IPostCommitActions` or a
+once-only guard (`SnapCaptureWork`). Scheduled work is a `BackgroundService` sweep in the Worker that dispatches
+commands — no Quartz or Hangfire. (The evidence-retention sweep predates the Worker and still runs in the API.)
+
+Without a `messaging` connection string the bus runs in-memory with outbox delivery switched off, so events wait in
+the table; the production readiness guard refuses to start like that outside Development.
+
+## 6b. KADARI Care — rules every Care slice follows
+
+Care is **additive** to the asset (`docs/care/00-RECONCILIATION.md`): one asset identity, one history, one evidence
+store.
+
+- **Attach, never duplicate.** Care rows reference `AssetId`; `CareProfile` is unique per asset. Asset ownership for
+  asset and Care slices is decided in one place, `Features/Assets/Services/OwnedAssets` (owner or household co-owner,
+  inside the customer's tenant, else 404).
+- **Facts are evidence.** What the owner bought, where and when is `AssetEvidenceKind.Purchase` evidence — appended,
+  never edited; the latest wins. Extraction (AI) proposes; only what the owner confirms is recorded.
+- **One history.** Material events append an `AssetHistoryEntry` in the same transaction, from a reaction
+  (`On{Event}AppendHistory`). History is append-only, never updated or soft-deleted, and holds no personal data.
+- **No guessing.** Coverage comes only from the `CoverageEvaluator` over **published** registry rules. Active, expiring
+  or expired is claimed only on independent purchase evidence and a high-confidence, current rule; otherwise
+  "likely" or "unknown". Conflicting rules → `NeedsReview`, never a pick.
+- **Rules are versioned and immutable.** A `CoverageRuleVersion` never changes after creation; a change is the next
+  version, publishing it supersedes the live one. Every `CoverageDecision` is append-only and stores its inputs and
+  the exact rule version ids. Registry rows change only through the preview-then-apply import
+  (`Features/CareRegistry`), which the migration runner runs from `docs/authority/CARE/REGISTRY` and
+  `docs/care/registry/*.csv` (coverage, registration and routing rules).
+- **Routes are decided, never guessed.** Where a problem goes comes only from `RoutingEvaluator` over published routing
+  rules, recorded as an append-only `RoutingDecision`. No match or a tie between different routes is
+  `ResearchRequired` (red) and goes to Care Ops; amber waits for the owner to confirm. A person's correction is a new
+  decision marked `HumanOverride`, never an edit.
+- **Safety first, and kept simple.** `ReportIssue` runs `SafetyGate` before anything else; when it trips, the answer
+  leads with stop-use guidance and Care Ops gets a P0 item. The guidance wording is provisional until signed off.
+- **Cases change only through `AssetCase`.** Every transition is a method on the aggregate that appends a sequenced
+  `CaseEvent`; the timeline is never edited and a case is never removed (erasure redacts what the owner wrote). Closing
+  a case writes its outcome — never the owner's words — to the asset's history.
+- **Care Ops is for exceptions.** Work is raised by reactions or sweeps (never by the customer), once per exception
+  (`OpsWorkItem.DedupeKey`, unique), and every resolution names the knowledge it produced. Operators see only what the
+  task needs, and act only within the authority the owner already gave — an operator's route still waits for the owner.
+- **External actions need authority, a key and an audit.** Anything that shares the owner's data with a provider
+  (a registration, a case handoff) starts from an `ExternalActionAuthorisation` that records exactly what is shared and
+  the wording version agreed, carries an idempotency key unique in the database, and writes an `ExternalActionAudit`
+  row per step. "Completed" needs proof from the provider (a reference), never "the form was opened".
+- **Enums by name at the edge.** JSON enums bind by ordinal here, so Care requests take a name (`"MajorAppliance"`)
+  and validate it.
+- **Privacy.** Care tables that hold personal data are covered by `KadariErasure` and `KadariDataExport` — extend
+  both when adding one.
 
 ## 7. Testing (xUnit)
 
-- **Every slice = at least one test.** Domain invariants → `KADARI.Domain.Tests`; handler behaviour
-  → `KADARI.Application.Tests`. Mirror the `Features/…` folder layout in the test project.
+- **Every slice = at least one test.** Domain invariants → `Kadari.Domain.Tests`; handler behaviour
+  → `Kadari.Application.Tests`. Mirror the `Features/…` folder layout in the test project.
 - **Naming:** `Method_Scenario_ExpectedResult` (e.g. `Start_WhenProductInactive_Throws`).
 - **Structure:** Arrange / Act / Assert with blank-line separation. One logical assertion per test.
 - **Domain tests are pure** — no mocks, no DB; construct aggregates and assert on state/events.
-- **Handler tests** use an in-memory/fake `IKADARIDbContext` (or SQLite in-memory for query shape).
-  Mock only owned abstractions (`IKADARIDbContext`, `IBlobStorage`, bus, `TimeProvider`) — never
+- **Handler tests** use an in-memory/fake `IKadariDbContext` (or SQLite in-memory for query shape).
+  Mock only owned abstractions (`IKadariDbContext`, `IBlobStorage`, bus, `TimeProvider`) — never
   mock types you don't own.
 - Determinism: inject `TimeProvider`; no `DateTime.Now`, no `Guid.NewGuid()` scattered in logic.
 - Keep an **architecture test** enforcing the dependency rules (see `DependencyRuleTests`).
@@ -313,7 +382,7 @@ public class StartJourneyTests
 - No magic strings for config — bind to `IOptions<T>` (see `S3Options`).
 - Errors: throw typed exceptions (`NotFoundException`, `ValidationException`) mapped to Problem
   Details at the API edge — endpoints don't build error bodies by hand.
-- Client (`KADARI.Client`): TanStack Query for server state, Zustand for UI state, components under
+- Client (`Kadari.Client`): TanStack Query for server state, Zustand for UI state, components under
   `src/components`, routes under `src/routes`. Run `pnpm lint` + `pnpm format` before pushing (husky
   enforces on commit).
 - **Definition of done:** builds clean · slice has tests · `dotnet test` green · migration added if the
@@ -322,7 +391,7 @@ public class StartJourneyTests
 ## 10. Common commands
 
 ```bash
-dotnet run --project src/KADARI.AppHost     # full stack via Aspire (dashboard URL printed)
-dotnet build KADARI.sln
-dotnet test  KADARI.sln
+dotnet run --project src/Kadari.AppHost     # full stack via Aspire (dashboard URL printed)
+dotnet build Kadari.sln
+dotnet test  Kadari.sln
 ```

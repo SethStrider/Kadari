@@ -8,6 +8,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Kadari.Contracts\Kadari.Contracts.csproj" />
     <ProjectReference Include="..\Kadari.Domain\Kadari.Domain.csproj" />
   </ItemGroup>
 

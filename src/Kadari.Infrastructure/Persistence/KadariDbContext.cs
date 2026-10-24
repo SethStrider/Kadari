@@ -1,7 +1,9 @@
+using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Kadari.Application.Abstractions.Persistence;
 using Kadari.Domain.Abstractions;
 using Kadari.Domain.Assets;
+using Kadari.Domain.Care;
 using Kadari.Domain.Customers;
 using Kadari.Domain.Identity;
 using Kadari.Domain.Owners;
@@ -11,7 +13,8 @@ namespace Kadari.Infrastructure.Persistence;
 /// <summary>
 /// EF Core database context for KADARI (PostgreSQL, schema <c>kadari</c>). Entity configurations are auto-discovered;
 /// every <see cref="Entity"/> gets a global soft-delete filter + xmin concurrency. Domain events are collected via
-/// <see cref="DequeueDomainEvents"/> and dispatched inside the command's transaction by a pipeline behaviour.
+/// <see cref="DequeueDomainEvents"/> and dispatched inside the command's transaction by a pipeline behaviour; integration
+/// events land in the outbox tables in that same transaction.
 /// </summary>
 public class KadariDbContext(DbContextOptions<KadariDbContext> options)
     : DbContext(options), IKadariDbContext
@@ -33,10 +36,19 @@ public class KadariDbContext(DbContextOptions<KadariDbContext> options)
     public DbSet<TenantMembership> TenantMemberships => Set<TenantMembership>();
     public DbSet<InsurerUser> InsurerUsers => Set<InsurerUser>();
 
+    public DbSet<AssetHistoryEntry> AssetHistory => Set<AssetHistoryEntry>();
+    public DbSet<CareProfile> CareProfiles => Set<CareProfile>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema(DefaultSchema);
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(KadariDbContext).Assembly);
+
+        // The MassTransit transactional outbox and inbox (CLAUDE.md §6a), in the same schema and transaction as the
+        // domain rows. Plural table names, per the naming standard.
+        modelBuilder.AddInboxStateEntity(inbox => inbox.ToTable("InboxStates"));
+        modelBuilder.AddOutboxMessageEntity(message => message.ToTable("OutboxMessages"));
+        modelBuilder.AddOutboxStateEntity(state => state.ToTable("OutboxStates"));
         base.OnModelCreating(modelBuilder);
         modelBuilder.ApplySoftDeleteQueryFilters();
         modelBuilder.ApplyXminConcurrency();

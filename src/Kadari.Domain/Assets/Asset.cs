@@ -95,6 +95,15 @@ public sealed class Asset : AggregateRoot<AssetId>, ITenantScoped
             .Select(e => e.Amount)
             .FirstOrDefault();
 
+    /// <summary>The latest purchase facts the owner recorded, with the evidence that carries them — or null. Derived from
+    /// the evidence set (the newest <see cref="AssetEvidenceKind.Purchase"/> item wins), never stored.</summary>
+    public AssetEvidence? LatestPurchase =>
+        _evidence
+            .Where(e => e.Kind == AssetEvidenceKind.Purchase && e.Purchase is not null)
+            .OrderByDescending(e => e.AssertedAt)
+            .ThenByDescending(e => e.Id.Value)
+            .FirstOrDefault();
+
     /// <summary>The primary subject who owns the asset — the registrar/capture key, and the seam for transfer.
     /// Household members who share the item are <see cref="CoOwners"/>; the full ownership set is
     /// <see cref="IsOwnedBy"/>.</summary>

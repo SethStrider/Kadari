@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Integration events: the messages that cross the outbox to the Worker. Dependency-free by rule — no Kadari
+       project, no package — so publisher and consumer share a contract without sharing a layer. -->
+
+</Project>

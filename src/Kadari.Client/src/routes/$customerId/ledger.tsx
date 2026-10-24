@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/kadari";
 import { ConfidenceBadge } from "@/components/kadari/confidence-badge";
 import { AssetPosition } from "@/components/kadari/asset-position";
+import { CareReminders } from "@/components/kadari/care-reminders";
 import { formatMoney as money } from "@/components/kadari/confidence";
 import { KadariShell } from "@/components/kadari/kadari-shell";
 
@@ -66,6 +67,8 @@ function LedgerPage() {
       {data && (
         <>
           <AssetPosition ledger={data} />
+
+          <CareReminders customerId={customerId} />
 
           {data.rooms.length > 0 && (
             <h2 className="-mb-(--space-3) text-sm font-semibold tracking-[0.12em] text-(--color-text-muted) uppercase">

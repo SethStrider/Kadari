@@ -10,6 +10,9 @@ public static class KadariApiEndpoints
         app.MapAdminUserEndpoints();
         app.MapCustomerDataEndpoints();
         app.MapKadariEndpoints();
+        app.MapCareEndpoints();
+        app.MapCareCaseEndpoints();
+        app.MapCareOpsEndpoints();
 
         return app;
     }

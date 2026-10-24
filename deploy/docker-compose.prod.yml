@@ -11,7 +11,9 @@
 #   backend  internal — no route to the internet; the data stores live only here
 #   egress   outbound for the API and backup (Twilio, the vision model, SMTP, the off-site bucket)
 #
-# KADARI has no message bus: the API does all the work, including the evidence-retention sweep.
+# The API writes integration events to the outbox in its transaction and ships them to RabbitMQ; the worker is the
+# only consumer and runs the scheduled sweeps that dispatch commands (CLAUDE.md §6a). The evidence-retention sweep
+# still runs in the API.
 
 name: kadari
 
@@ -29,7 +31,7 @@ x-hardening: &hardening
     - ALL
   logging: *logging
 
-# The API's settings. Everything secret comes from deploy/.env.
+# The settings the API and the worker share. Everything secret comes from deploy/.env.
 x-kadari-env: &kadari-env
   ASPNETCORE_ENVIRONMENT: Production
   DOTNET_ENVIRONMENT: Production
@@ -59,6 +61,11 @@ x-kadari-env: &kadari-env
   # exists.
   Features__AssetOwnershipChanges: "false"
   Features__InsurerConsole: "false"
+  # KADARI Care stays off until docs/care/registry/coverage-rules.csv holds published, researched rules; without them
+  # every asset would read "not confirmed yet".
+  Features__Care: "false"
+  # Links in Care reminders point here.
+  Care__AppBaseUrl: https://app.${KADARI_DOMAIN}
   Twilio__AccountSid: ${TWILIO_ACCOUNT_SID}
   Twilio__AuthToken: ${TWILIO_AUTH_TOKEN}
   Twilio__FromNumber: ${TWILIO_WHATSAPP_FROM}
@@ -79,6 +86,8 @@ x-kadari-env: &kadari-env
   OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
   OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
   OTEL_SERVICE_NAME: kadari
+  ConnectionStrings__kadaridb: "Host=postgres;Database=kadari;Username=kadari_app;Password=${DB_APP_PASSWORD};Maximum Pool Size=40"
+  ConnectionStrings__messaging: "amqp://kadari:${RABBITMQ_PASSWORD}@rabbitmq:5672"
 
 networks:
   edge:
@@ -92,6 +101,7 @@ networks:
 volumes:
   postgres-data: {}
   minio-data: {}
+  rabbitmq-data: {}
 
 services:
   # -----------------------------------------------------------------------------------------------------------------
@@ -166,7 +176,6 @@ services:
     image: kadari/webapi:${GIT_SHA:-latest}
     environment:
       <<: *kadari-env
-      ConnectionStrings__kadaridb: "Host=postgres;Database=kadari;Username=kadari_app;Password=${DB_APP_PASSWORD};Maximum Pool Size=40"
     read_only: true
     tmpfs:
       - /tmp:size=1g,mode=1777        # upload spill: ~80 concurrent 12 MB uploads
@@ -174,6 +183,8 @@ services:
     labels: ["autoheal=true"]
     depends_on:
       postgres:
+        condition: service_healthy
+      rabbitmq:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
@@ -184,6 +195,32 @@ services:
       retries: 4
       start_period: 30s
     mem_limit: 1g
+
+  # Integration-event consumers and scheduled sweeps. No inbound port: it only talks to the data stores, the broker
+  # and (egress) the providers its consumers call. A crash restarts it; RabbitMQ redelivers anything unacknowledged.
+  worker:
+    <<: *hardening
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.dotnet
+      args:
+        PROJECT: Kadari.Worker
+    image: kadari/worker:${GIT_SHA:-latest}
+    environment:
+      <<: *kadari-env
+      ConnectionStrings__kadaridb: "Host=postgres;Database=kadari;Username=kadari_app;Password=${DB_APP_PASSWORD};Maximum Pool Size=20"
+    read_only: true
+    tmpfs:
+      - /tmp
+    networks: [backend, egress]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    mem_limit: 512m
 
   # Compose's restart policy only reacts to a container exiting, never to 'unhealthy'. Autoheal restarts any
   # labelled container that turns unhealthy. It needs the Docker socket, so it has no network at all.
@@ -263,6 +300,23 @@ services:
       retries: 6
     mem_limit: 2g
     shm_size: 256m
+
+  rabbitmq:
+    image: rabbitmq:4.1-alpine
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      RABBITMQ_DEFAULT_USER: kadari
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks: [backend]
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 10s
+      retries: 6
+    mem_limit: 512m
 
   minio:
     image: ${MINIO_IMAGE}

@@ -14,7 +14,11 @@ public sealed record VisionEnrichmentRequest(
 /// The enricher's answer. <see cref="Enriched"/> is false when no provider is configured, so the UI can
 /// say "awaiting enrichment" rather than implying a model produced empty fields.
 /// </summary>
-public sealed record VisionEnrichmentResult(bool Enriched, IReadOnlyList<IdentifiedItem> Items);
+public sealed record VisionEnrichmentResult(bool Enriched, IReadOnlyList<IdentifiedItem> Items)
+{
+    /// <summary>What a model call used, when one was made — recorded by capture through the one usage writer.</summary>
+    public Abstractions.Intelligence.ModelCallUsage? Usage { get; init; }
+}
 
 /// <summary>
 /// Turns raw detections into identified household assets — make/model, category, condition and a
