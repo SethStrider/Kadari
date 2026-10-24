@@ -14,7 +14,7 @@ Q1–Q12 in `00-RECONCILIATION.md` §9 were approved with their defaults ("start
 
 | Commit | What |
 |---|---|
-| `739ff7f` | GitHub Actions CI with the same five jobs as `.gitlab-ci.yml`, which is unchanged. |
+| `739ff7f` | GitHub Actions CI with the same five jobs as `.gitlab-ci.yml`. Removed again afterwards at the owner's request; `.gitlab-ci.yml` is unchanged. |
 | `a4d01b5` | MassTransit EF outbox behind the existing `IIntegrationEventPublisher`; `Kadari.Contracts`; `Kadari.Worker` (the only consumer host); RabbitMQ and the migration runner in the AppHost; RabbitMQ and the worker in the production compose; architecture tests for the new projects; `CLAUDE.md` §6a rewritten. |
 | `bf8a741` | Asset history; purchase facts as evidence; `CareProfile` (C1); the registry entities, the immutable `CoverageRuleVersion` and the preview-then-apply import (C2); `CoverageEvaluator` + `CoverageDecision` (minimum C4); Care in POPIA erasure/export; `CLAUDE.md` §6b. |
 | `1a40708` | Customer screens: the Care card on the asset, and the Care page with Overview, Coverage and History tabs. |
@@ -119,9 +119,8 @@ All suites were run in this session; Docker was available.
 
 ## 5. Not verified
 
-- **GitHub Actions has never run a job.** Both runs on the PR failed within about 2 seconds, with no steps run and no
-  logs or annotations. That pattern points at the account's Actions billing or minutes for this private repo, not at
-  the workflow. Only the repo owner can check it, under Settings → Billing. The same commands pass locally.
+- **No CI runs on GitHub.** The GitHub Actions workflow was removed at the owner's request (its jobs never started on
+  this repo). `.gitlab-ci.yml` remains; every check it runs was run locally and passed.
 - **No message has been sent end to end** from the outbox through RabbitMQ to a consumer, because no consumer exists
   yet. That test arrives with the first Care consumer (C5/C6).
 - **The full `dotnet run --project src/Kadari.AppHost`** was not run (Aspire's orchestrator was not available here).
