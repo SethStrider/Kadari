@@ -5,11 +5,13 @@ import { toast } from "sonner";
 
 import { KadariButton } from "@/components/kadari/kadari-button";
 import { AssetPassportCard } from "@/components/kadari/asset-passport-card";
+import { CareCard } from "@/components/kadari/care-card";
 import { ConfidenceBadge } from "@/components/kadari/confidence-badge";
 import { ConfidenceLadder } from "@/components/kadari/confidence-ladder";
 import { categoryLabel, formatMoney } from "@/components/kadari/confidence";
 import { KadariShell } from "@/components/kadari/kadari-shell";
 import { OwnershipProofForm } from "@/components/kadari/ownership-proof-form";
+import { getCareSummary } from "@/lib/api/care";
 import {
   getAsset,
   getAssetPassport,
@@ -25,6 +27,7 @@ const evidenceLabels: Record<string, string> = {
   Identification: "Identification",
   Ownership: "Proof of ownership",
   Value: "Value",
+  Purchase: "Purchase details",
 };
 
 const dateFormat = new Intl.DateTimeFormat("en-ZA", { dateStyle: "medium" });
@@ -36,6 +39,10 @@ function AssetPage() {
   const asset = useQuery({
     queryKey: ["kadari", "asset", customerId, assetId],
     queryFn: ({ signal }) => getAsset(customerId, assetId, signal),
+  });
+  const care = useQuery({
+    queryKey: ["kadari", "care", customerId, assetId],
+    queryFn: ({ signal }) => getCareSummary(customerId, assetId, signal),
   });
   const passport = useQuery({
     queryKey: ["kadari", "passport", customerId, assetId],
@@ -120,6 +127,15 @@ function AssetPage() {
           <ConfidenceBadge assurance={a.assurance} />
         </div>
       </Card>
+
+      {care.data && (
+        <CareCard
+          customerId={customerId}
+          assetId={assetId}
+          summary={care.data}
+          onChanged={() => void refreshAfterProof()}
+        />
+      )}
 
       <Section title="Confidence">
         <Card>
