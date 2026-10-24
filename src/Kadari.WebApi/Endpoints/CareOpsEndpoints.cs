@@ -1,4 +1,5 @@
 using MediatR;
+using Kadari.Application.Features.CareOps.GetCareMetrics;
 using Kadari.Application.Features.CareOps.GetOpsQueue;
 using Kadari.Application.Features.CareOps.GetOpsWorkItem;
 using Kadari.Application.Features.CareOps.ResolveOpsWorkItem;
@@ -12,7 +13,8 @@ namespace Kadari.WebApi.Endpoints;
 
 /// <summary>
 /// Care Ops (CARE/11, CARE/14 C12): the staff queue of exceptions automation cannot safely finish — unknown routes,
-/// safety reviews, failed registrations, rule conflicts, stalled cases — and their resolution. Staff only
+/// safety reviews, failed registrations, rule conflicts, stalled cases — and their resolution; and the aggregate Care
+/// metrics (C14). Staff only
 /// (<c>CareOpsReview</c>), behind the <c>Care</c> launch switch. Enum values are names.
 /// </summary>
 public static class CareOpsEndpoints
@@ -55,6 +57,15 @@ public static class CareOpsEndpoints
             .Produces<OpsWorkItemDto>()
             .WithName("SetCaseRoute")
             .WithSummary("Give an unknown-route case the route an operator found; the owner confirms it before sending.");
+
+        app.MapGet("/api/v1/kadari/care-ops/metrics", async (ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new GetCareMetricsQuery(), ct)))
+            .WithTags("Care Ops")
+            .RequireFeature(features => features.Care)
+            .RequirePermission(Permission.CareMetricsView)
+            .Produces<CareMetricsDto>()
+            .WithName("GetCareMetrics")
+            .WithSummary("How KADARI Care is performing: coverage found, registrations, cases, outcomes and manual interventions — aggregate counts only.");
 
         return group;
     }

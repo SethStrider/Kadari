@@ -58,6 +58,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kadari/care-ops/metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * How KADARI Care is performing: coverage found, registrations, cases, outcomes and manual interventions — aggregate counts only.
+         * @description **Requires permission:** `CareMetricsView`
+         */
+        get: operations["GetCareMetrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/otp/request": {
         parameters: {
             query?: never;
@@ -1492,6 +1512,51 @@ export interface components {
             accentColor: string;
             logoReference: null | string;
         };
+        CareMetricsDto: {
+            /** Format: int32 */
+            careActiveAssets: number | string;
+            /** Format: double */
+            coverageFoundRate: number | string;
+            coverageByState: {
+                [key: string]: number | string;
+            };
+            /** Format: int32 */
+            registrationOpportunities: number | string;
+            opportunitiesByStatus: {
+                [key: string]: number | string;
+            };
+            /** Format: int32 */
+            registrationsStarted: number | string;
+            /** Format: int32 */
+            registrationsCompleted: number | string;
+            /** Format: double */
+            registrationCompletionRate: number | string;
+            /** Format: int32 */
+            casesOpened: number | string;
+            /** Format: int32 */
+            casesOpen: number | string;
+            /** Format: int32 */
+            safetyFlaggedCases: number | string;
+            casesByRoute: {
+                [key: string]: number | string;
+            };
+            outcomeMix: {
+                [key: string]: number | string;
+            };
+            /** Format: double */
+            medianResolutionDays: null | number | string;
+            /** Format: double */
+            rejectionRate: number | string;
+            /** Format: int32 */
+            opsWorkRaised: number | string;
+            /** Format: int32 */
+            opsWorkOpen: number | string;
+            /** Format: double */
+            manualInterventionsPer1000CareAssets: number | string;
+            remindersByStatus: {
+                [key: string]: number | string;
+            };
+        };
         CareReminderDto: {
             /** Format: uuid */
             reminderId: string;
@@ -2515,6 +2580,90 @@ export interface operations {
             };
             /** @description The request conflicts with the current state. (code: `conflict`) */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    GetCareMetrics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareMetricsDto"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

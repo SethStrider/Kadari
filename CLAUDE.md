@@ -312,7 +312,19 @@ store.
   version, publishing it supersedes the live one. Every `CoverageDecision` is append-only and stores its inputs and
   the exact rule version ids. Registry rows change only through the preview-then-apply import
   (`Features/CareRegistry`), which the migration runner runs from `docs/authority/CARE/REGISTRY` and
-  `docs/care/registry/coverage-rules.csv`.
+  `docs/care/registry/*.csv` (coverage, registration and routing rules).
+- **Routes are decided, never guessed.** Where a problem goes comes only from `RoutingEvaluator` over published routing
+  rules, recorded as an append-only `RoutingDecision`. No match or a tie between different routes is
+  `ResearchRequired` (red) and goes to Care Ops; amber waits for the owner to confirm. A person's correction is a new
+  decision marked `HumanOverride`, never an edit.
+- **Safety first, and kept simple.** `ReportIssue` runs `SafetyGate` before anything else; when it trips, the answer
+  leads with stop-use guidance and Care Ops gets a P0 item. The guidance wording is provisional until signed off.
+- **Cases change only through `AssetCase`.** Every transition is a method on the aggregate that appends a sequenced
+  `CaseEvent`; the timeline is never edited and a case is never removed (erasure redacts what the owner wrote). Closing
+  a case writes its outcome — never the owner's words — to the asset's history.
+- **Care Ops is for exceptions.** Work is raised by reactions or sweeps (never by the customer), once per exception
+  (`OpsWorkItem.DedupeKey`, unique), and every resolution names the knowledge it produced. Operators see only what the
+  task needs, and act only within the authority the owner already gave — an operator's route still waits for the owner.
 - **External actions need authority, a key and an audit.** Anything that shares the owner's data with a provider
   (a registration, a case handoff) starts from an `ExternalActionAuthorisation` that records exactly what is shared and
   the wording version agreed, carries an idempotency key unique in the database, and writes an `ExternalActionAudit`

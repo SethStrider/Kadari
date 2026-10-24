@@ -99,3 +99,9 @@ export function setCaseRoute(workItemId: string, route: CaseRoute) {
     },
   );
 }
+
+export type CareMetrics = components["schemas"]["CareMetricsDto"];
+
+export function getCareMetrics() {
+  return apiClient.get("/api/v1/kadari/care-ops/metrics", {});
+}

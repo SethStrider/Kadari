@@ -24,7 +24,10 @@ public static class RolePermissions
 
         // Support reads a customer's Care card to help them; it never changes it. Care Ops (CARE/11) is support's job
         // too: working the exception queues and finding routes, inside the authority the customer already gave.
-        [Role.CustomerSuccess] = [Permission.CustomerView, Permission.AssetView, Permission.CareView, Permission.CareOpsReview],
+        [Role.CustomerSuccess] =
+        [
+            Permission.CustomerView, Permission.AssetView, Permission.CareView, Permission.CareOpsReview, Permission.CareMetricsView,
+        ],
 
         // The insurer console read surface, confined to the insurer's own tenant by the InsurerUser mapping
         // (InsurerTenantGuard), not by customer ownership.
@@ -38,6 +41,8 @@ public static class RolePermissions
             // Cross-tenant oversight, assigning a customer to an insurer tenant, and settling a deceased customer's
             // estate (passing their assets to an heir).
             Permission.InsurerPortfolioView, Permission.AssetTenantAssign, Permission.AssetEstateSettle,
+            // How KADARI Care is performing, in aggregate (CARE/14 C14).
+            Permission.CareMetricsView,
         ],
     };
 

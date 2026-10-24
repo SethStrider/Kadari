@@ -10,6 +10,8 @@ using Kadari.Application.Features.Care.MarkCaseSent;
 using Kadari.Application.Features.Care.ReportIssue;
 using Kadari.Application.Features.Care.Services;
 using Kadari.Application.Features.Care.WithdrawCase;
+using Kadari.Application.Features.Care.ResolveCase;
+using Kadari.Application.Features.CareOps.GetCareMetrics;
 using Kadari.Application.Features.CareOps.GetOpsQueue;
 using Kadari.Application.Features.CareOps.GetOpsWorkItem;
 using Kadari.Application.Features.CareOps.ResolveOpsWorkItem;
@@ -171,5 +173,20 @@ public sealed class CareOpsFlowTests(PostgresFixture fixture) : InfraTest(fixtur
         await SendAsync(new DispatchDueCareRemindersCommand());
 
         Assert.Equal("P1", (await SingleOpenAsync("CaseStalled")).Severity);
+    }
+
+    [Fact]
+    public async Task Metrics_CountCareCasesOutcomesAndManualWork()
+    {
+        var (customer, asset) = await ArrangeAsync("+27820005009");
+        var opened = await SendAsync(Report(customer, asset));
+        await SendAsync(new ResolveCaseCommand(customer, asset, opened.CaseId, "Rejected", null));
+
+        var metrics = await SendAsync(new GetCareMetricsQuery());
+
+        Assert.Equal(
+            (1, 1, 0, 1.0, 1, 1000.0),
+            (metrics.CareActiveAssets, metrics.CasesOpened, metrics.CasesOpen, metrics.RejectionRate, metrics.OpsWorkRaised,
+             metrics.ManualInterventionsPer1000CareAssets));
     }
 }

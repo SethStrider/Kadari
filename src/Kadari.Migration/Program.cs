@@ -172,9 +172,10 @@ static async Task<bool> ImportCareRegistryAsync(ISender sender, RegistryFilesOpt
     var plan = await sender.Send(new PreviewRegistryImportQuery(snapshot));
 
     logger.LogInformation(
-        "Care registry plan: {Add} to add, {Update} to update, {Versions} new rule versions, {Unchanged} unchanged ({Rules} researched coverage rules in the file).",
+        "Care registry plan: {Add} to add, {Update} to update, {Versions} new rule versions, {Unchanged} unchanged (researched rules in the files: {Rules} coverage, {Registrations} registration, {Routes} routing).",
         plan.Count(RegistryAction.Add), plan.Count(RegistryAction.Update), plan.Count(RegistryAction.NewVersion),
-        plan.Count(RegistryAction.Unchanged), snapshot.CoverageRules.Count);
+        plan.Count(RegistryAction.Unchanged), snapshot.CoverageRules.Count, snapshot.RegistrationRules?.Count ?? 0,
+        snapshot.RoutingRules?.Count ?? 0);
 
     foreach (var change in plan.Changes.Where(c => c.Action != RegistryAction.Unchanged))
     {

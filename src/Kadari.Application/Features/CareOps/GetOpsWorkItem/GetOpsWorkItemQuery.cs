@@ -62,7 +62,7 @@ internal sealed class GetOpsWorkItemHandler(IKadariDbContext db, TimeProvider cl
                 c.Events.OrderBy(e => e.Sequence).Select(e => $"{e.OccurredAt:yyyy-MM-dd HH:mm} {e.Summary}").ToList());
         }
 
-        var models = await db.Set<RoutingModel>().AsNoTracking().OrderBy(m => m.Code)
+        var models = await db.Set<RoutingModel>().AsNoTracking().OrderBy(m => m.Code.Length).ThenBy(m => m.Code)
             .Select(m => new OpsRoutingModelDto(m.Code, m.Name, m.DefaultAction)).ToListAsync(ct);
 
         return new OpsWorkItemDetailDto(OpsWorkItemDto.From(item, clock.GetUtcNow()), product, caseContext, models);
