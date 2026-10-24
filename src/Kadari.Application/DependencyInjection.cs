@@ -75,6 +75,10 @@ public static class DependencyInjection
         services.AddOptions<Features.Care.Services.CareOptions>();
         services.AddScoped<Features.Care.Services.CareCoverage>();
         services.AddScoped<Features.Care.Services.CareReminders>();
+        services.AddScoped<Features.Care.Services.CareRouting>();
+        services.AddScoped<Features.Care.Services.CaseCommands>();
+        services.AddScoped<Features.Care.Services.CaseReminders>();
+        services.AddScoped<Features.Care.Services.RegistryLookup>();
         services.AddScoped<Features.Care.Services.OwnedReminders>();
         services.AddScoped<Features.CareRegistry.Services.RegistryImporter>();
 

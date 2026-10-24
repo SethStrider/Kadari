@@ -14,7 +14,7 @@ public sealed record KadariErasureResult(int AssetsErased, int AssetsHandedOver,
 /// <list type="bullet">
 /// <item>every Kadari consent is withdrawn, and the customer's subject (which carries their name) is anonymised;</item>
 /// <item>an asset they own alone is erased — its photo, receipt and certificate files deleted, its Care profile
-/// soft-deleted, the record
+/// soft-deleted and its cases redacted, the record
 /// soft-deleted and its Asset Passport revoked, so the public check stops vouching for it;</item>
 /// <item>an asset they share with a household is handed to the longest-standing co-owner, who owns it equally
 /// (files kept — they are that person's evidence too), and its passport follows;</item>
@@ -54,6 +54,10 @@ public sealed class KadariErasure(IKadariDbContext db, IBlobStorage blobs, ILogg
         var assetIds = assets.Select(a => a.Id).ToList();
         var passports = await db.AssetPassports.Where(p => assetIds.Contains(p.AssetId)).ToListAsync(ct);
         var careProfiles = await db.CareProfiles.Where(p => assetIds.Contains(p.AssetId)).ToListAsync(ct);
+        var cases = await db.Set<Domain.Care.AssetCase>()
+            .Include(c => c.References).Include(c => c.Commitments).Include(c => c.Appointments)
+            .Where(c => assetIds.Contains(c.AssetId))
+            .ToListAsync(ct);
 
         // Every authority this customer's account gave records what it shared — redact it, whoever keeps the asset.
         var accountId = await db.UserAccounts.Where(u => u.CustomerId == customerId).Select(u => (Guid?)u.Id.Value).FirstOrDefaultAsync(ct);
@@ -96,6 +100,13 @@ public sealed class KadariErasure(IKadariDbContext db, IBlobStorage blobs, ILogg
             if (careProfiles.FirstOrDefault(p => p.AssetId == asset.Id) is { } care)
             {
                 db.CareProfiles.Remove(care);   // soft-delete
+            }
+
+            // Cases hold what the owner wrote: forget it, keep that a case existed and how it ended. The case is not
+            // removed — its timeline is append-only — and it is unreachable once the asset is gone.
+            foreach (var @case in cases.Where(c => c.AssetId == asset.Id))
+            {
+                @case.Redact();
             }
 
             db.Assets.Remove(asset);   // soft-delete (with its evidence and household rows)

@@ -571,6 +571,128 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                     b.ToTable("AuditEvents", "kadari");
                 });
 
+            modelBuilder.Entity("Kadari.Domain.Care.AssetCase", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("AssetId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CaseType")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<string>("ChannelType")
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<string>("ChannelValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset?>("ClosedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CoverageAtOpen")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Instructions")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("IssueClass")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<string>("IssueSummary")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateOnly?>("NextActionOn")
+                        .HasColumnType("date");
+
+                    b.Property<DateTimeOffset>("OpenedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Outcome")
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<string>("OutcomeNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("RequiredEvidence")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<bool>("RouteAccepted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("RouteConfidence")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)");
+
+                    b.Property<string>("RouteType")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<Guid?>("RoutingDecisionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("SafetyFlagged")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
+                    b.Property<string>("TargetName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetId", "Status");
+
+                    b.HasIndex("RouteType", "Status");
+
+                    b.ToTable("AssetCases", "kadari");
+                });
+
             modelBuilder.Entity("Kadari.Domain.Care.CareProfile", b =>
                 {
                     b.Property<Guid>("Id")
@@ -713,6 +835,163 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                     b.HasIndex("Status", "DueOn");
 
                     b.ToTable("CareReminders", "kadari");
+                });
+
+            modelBuilder.Entity("Kadari.Domain.Care.CaseAppointment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AssetCaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("EndsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Instructions")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTimeOffset?>("SettledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("StartsAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetCaseId");
+
+                    b.ToTable("CaseAppointments", "kadari");
+                });
+
+            modelBuilder.Entity("Kadari.Domain.Care.CaseCommitment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AssetCaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(280)
+                        .HasColumnType("character varying(280)");
+
+                    b.Property<DateOnly>("DueOn")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Party")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTimeOffset?>("SettledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetCaseId");
+
+                    b.HasIndex("Status", "DueOn");
+
+                    b.ToTable("CaseCommitments", "kadari");
+                });
+
+            modelBuilder.Entity("Kadari.Domain.Care.CaseReference", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("AddedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("AssetCaseId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Party")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<uint>("xmin")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("xid")
+                        .HasColumnName("xmin");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssetCaseId");
+
+                    b.ToTable("CaseReferences", "kadari");
                 });
 
             modelBuilder.Entity("Kadari.Domain.Care.CoverageDecision", b =>
@@ -2555,6 +2834,118 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                     b.Navigation("Branding");
                 });
 
+            modelBuilder.Entity("Kadari.Domain.Care.AssetCase", b =>
+                {
+                    b.OwnsMany("Kadari.Domain.Care.CaseEvent", "Events", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Actor")
+                                .IsRequired()
+                                .HasMaxLength(16)
+                                .HasColumnType("character varying(16)");
+
+                            b1.Property<Guid>("AssetCaseId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<DateTimeOffset>("OccurredAt")
+                                .HasColumnType("timestamp with time zone");
+
+                            b1.Property<int>("Sequence")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("Summary")
+                                .IsRequired()
+                                .HasMaxLength(280)
+                                .HasColumnType("character varying(280)");
+
+                            b1.Property<string>("Type")
+                                .IsRequired()
+                                .HasMaxLength(32)
+                                .HasColumnType("character varying(32)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("AssetCaseId");
+
+                            b1.ToTable("CaseEvents", "kadari");
+
+                            b1.WithOwner()
+                                .HasForeignKey("AssetCaseId");
+                        });
+
+                    b.OwnsMany("Kadari.Domain.Care.CaseMessage", "Messages", b1 =>
+                        {
+                            b1.Property<Guid>("Id")
+                                .HasColumnType("uuid");
+
+                            b1.Property<DateTimeOffset>("At")
+                                .HasColumnType("timestamp with time zone");
+
+                            b1.Property<string>("Body")
+                                .IsRequired()
+                                .HasMaxLength(2000)
+                                .HasColumnType("character varying(2000)");
+
+                            b1.Property<Guid>("CaseId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<string>("Channel")
+                                .IsRequired()
+                                .HasMaxLength(32)
+                                .HasColumnType("character varying(32)");
+
+                            b1.Property<string>("Direction")
+                                .IsRequired()
+                                .HasMaxLength(16)
+                                .HasColumnType("character varying(16)");
+
+                            b1.Property<string>("IdempotencyKey")
+                                .HasMaxLength(100)
+                                .HasColumnType("character varying(100)");
+
+                            b1.HasKey("Id");
+
+                            b1.HasIndex("CaseId", "IdempotencyKey")
+                                .IsUnique()
+                                .HasFilter("\"IdempotencyKey\" IS NOT NULL");
+
+                            b1.ToTable("CaseMessages", "kadari");
+
+                            b1.WithOwner()
+                                .HasForeignKey("CaseId");
+                        });
+
+                    b.Navigation("Events");
+
+                    b.Navigation("Messages");
+                });
+
+            modelBuilder.Entity("Kadari.Domain.Care.CaseAppointment", b =>
+                {
+                    b.HasOne("Kadari.Domain.Care.AssetCase", null)
+                        .WithMany("Appointments")
+                        .HasForeignKey("AssetCaseId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Kadari.Domain.Care.CaseCommitment", b =>
+                {
+                    b.HasOne("Kadari.Domain.Care.AssetCase", null)
+                        .WithMany("Commitments")
+                        .HasForeignKey("AssetCaseId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("Kadari.Domain.Care.CaseReference", b =>
+                {
+                    b.HasOne("Kadari.Domain.Care.AssetCase", null)
+                        .WithMany("References")
+                        .HasForeignKey("AssetCaseId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
             modelBuilder.Entity("Kadari.Domain.Care.CoverageRecord", b =>
                 {
                     b.HasOne("Kadari.Domain.Care.CareProfile", null)
@@ -2589,6 +2980,15 @@ namespace Kadari.Infrastructure.Persistence.Migrations
                     b.Navigation("CoOwners");
 
                     b.Navigation("Evidence");
+                });
+
+            modelBuilder.Entity("Kadari.Domain.Care.AssetCase", b =>
+                {
+                    b.Navigation("Appointments");
+
+                    b.Navigation("Commitments");
+
+                    b.Navigation("References");
                 });
 
             modelBuilder.Entity("Kadari.Domain.Care.CareProfile", b =>

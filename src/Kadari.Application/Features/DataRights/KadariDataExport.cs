@@ -21,6 +21,10 @@ public sealed record KadariCareExport(
 public sealed record KadariRegistrationExport(
     Guid AssetId, string Status, string Destination, DateTimeOffset StartedAt, string? ExternalReference, DateOnly? RegisteredOn);
 
+public sealed record KadariCaseExport(
+    Guid AssetId, string Title, string IssueSummary, string Status, string? Outcome, string? OutcomeNotes,
+    DateTimeOffset OpenedAt, DateTimeOffset? ClosedAt, IReadOnlyList<string> References, IReadOnlyList<string> Messages);
+
 public sealed record KadariHistoryExport(Guid AssetId, string Kind, string Summary, DateTimeOffset OccurredAt);
 
 public sealed record KadariConsentExport(string Scope, string Status, DateTimeOffset GrantedAt, DateTimeOffset? WithdrawnAt);
@@ -32,12 +36,13 @@ public sealed record KadariDataExportDto(
     IReadOnlyList<KadariConsentExport> Consents,
     IReadOnlyList<KadariCareExport> Care,
     IReadOnlyList<KadariHistoryExport> History,
-    IReadOnlyList<KadariRegistrationExport> Registrations);
+    IReadOnlyList<KadariRegistrationExport> Registrations,
+    IReadOnlyList<KadariCaseExport> Cases);
 
 /// <summary>
 /// The Kadari part of a customer's POPIA subject-access export (AS-03): the insurer they are with, every asset
 /// they own or share with its evidence trail (purchase details included), their Asset Passports, their Kadari
-/// consents, KADARI Care on their assets (registrations included) and each asset's history. Evidence files
+/// consents, KADARI Care on their assets (registrations and cases included) and each asset's history. Evidence files
 /// (photos, receipts) are listed, not embedded — <c>HasFile</c> says one is held, and staff retrieve it on request.
 /// </summary>
 public sealed class KadariDataExport(IKadariDbContext db)
@@ -57,7 +62,7 @@ public sealed class KadariDataExport(IKadariDbContext db)
         var subject = await db.Owners.AsNoTracking().FirstOrDefaultAsync(s => s.CustomerId == customerId, ct);
         if (subject is null)
         {
-            return new KadariDataExportDto(insurer, [], [], consents, [], [], []);
+            return new KadariDataExportDto(insurer, [], [], consents, [], [], [], []);
         }
 
         var subjectId = subject.Id;
@@ -91,6 +96,17 @@ public sealed class KadariDataExport(IKadariDbContext db)
                 r.AssetId.Value, r.Status.ToString(), r.Destination, r.StartedAt, r.ExternalReference, r.RegisteredOn))
             .ToListAsync(ct);
 
+        var cases = (await db.Set<Domain.Care.AssetCase>().AsNoTracking()
+                .Include(c => c.References)
+                .Where(c => assetIds.Contains(c.AssetId))
+                .OrderBy(c => c.OpenedAt)
+                .ToListAsync(ct))
+            .Select(c => new KadariCaseExport(
+                c.AssetId.Value, c.Title, c.IssueSummary, c.Status.ToString(), c.Outcome?.ToString(), c.OutcomeNotes, c.OpenedAt,
+                c.ClosedAt, c.References.Select(r => $"{r.Party}: {r.Reference}").ToList(),
+                c.Messages.OrderBy(m => m.At).Select(m => $"{m.Direction} via {m.Channel}: {m.Body}").ToList()))
+            .ToList();
+
         var assetExports = assets
             .Select(a => new KadariAssetExport(
                 a.Id.Value, a.DisplayName, a.Category.ToString(), a.RoomLabel, a.Status.ToString(),
@@ -104,6 +120,6 @@ public sealed class KadariDataExport(IKadariDbContext db)
                     .ToList()))
             .ToList();
 
-        return new KadariDataExportDto(insurer, assetExports, passports, consents, care, history, registrations);
+        return new KadariDataExportDto(insurer, assetExports, passports, consents, care, history, registrations, cases);
     }
 }

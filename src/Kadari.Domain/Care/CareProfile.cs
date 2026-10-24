@@ -42,7 +42,7 @@ public sealed class CareProfile : AggregateRoot<CareProfileId>
     /// <summary>The next date worth the owner's attention (90 and 30 days before expiry, then expiry), or null.</summary>
     public DateOnly? NextAttentionOn { get; private set; }
 
-    /// <summary>Open Asset Cases on this asset. Always 0 until the Case engine (CARE/14 C9) lands.</summary>
+    /// <summary>Open Asset Cases on this asset, recounted whenever a case opens or closes.</summary>
     public int OpenCaseCount { get; private set; }
 
     public DateTimeOffset? LastEvaluatedAt { get; private set; }
@@ -57,6 +57,9 @@ public sealed class CareProfile : AggregateRoot<CareProfileId>
         profile.RaiseDomainEvent(new CareEnabledDomainEvent(profile.Id, assetId, category, at));
         return profile;
     }
+
+    /// <summary>The number of open cases, as counted from the cases themselves (so it cannot drift).</summary>
+    public void CountOpenCases(int count) => OpenCaseCount = count >= 0 ? count : throw new DomainException("A count is never negative.");
 
     /// <summary>The owner corrected what kind of product this is. Coverage must be re-evaluated afterwards.</summary>
     public void Recategorise(CareCategory category) => Category = category;

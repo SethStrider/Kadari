@@ -18,7 +18,7 @@ namespace Kadari.Application.Features.Care.Services;
 /// coverage decision is made — shared by enabling Care, the explicit re-evaluation and the evidence reaction.
 /// </summary>
 internal sealed class CareCoverage(
-    IKadariDbContext db, ICurrentUser user, CareReminders reminders, IOptions<CareOptions> options, TimeProvider clock)
+    IKadariDbContext db, ICurrentUser user, CareReminders reminders, RegistryLookup registry, IOptions<CareOptions> options, TimeProvider clock)
 {
     private static readonly JsonSerializerOptions SnapshotJson = new(JsonSerializerDefaults.Web);
 
@@ -28,16 +28,8 @@ internal sealed class CareCoverage(
         var purchase = asset.LatestPurchase;
         var facts = purchase?.Purchase;
 
-        var brandSlug = SlugOf(facts?.Brand);
-        var brand = brandSlug is null
-            ? null
-            : await db.Set<Brand>().AsNoTracking().FirstOrDefaultAsync(b => b.Slug == brandSlug, ct);
-
-        var retailerSlug = SlugOf(facts?.Retailer);
-        var retailer = retailerSlug is null
-            ? null
-            : await db.Set<Retailer>().AsNoTracking()
-                .FirstOrDefaultAsync(r => r.Slug == retailerSlug && r.CountryCode == country, ct);
+        var brand = await registry.BrandAsync(facts?.Brand, ct);
+        var retailer = await registry.RetailerAsync(facts?.Retailer, country, ct);
 
         var registeredOn = await db.Set<CoverageRegistration>().AsNoTracking()
             .Where(r => r.AssetId == asset.Id && r.Status == RegistrationStatus.Completed)
@@ -136,9 +128,6 @@ internal sealed class CareCoverage(
             ? PurchaseEvidence.Independent
             : PurchaseEvidence.SelfAsserted;
     }
-
-    private static string? SlugOf(string? name) =>
-        string.IsNullOrWhiteSpace(name) || !name.Any(char.IsAsciiLetterOrDigit) ? null : RegistrySlug.For(name);
 
     private static string Snapshot(
         CoverageInputs inputs, PurchaseFacts? facts, Brand? brand, Retailer? retailer, CoverageEvaluation evaluation) =>

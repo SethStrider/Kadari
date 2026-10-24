@@ -16556,6 +16556,4243 @@
           }
         ]
       }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases": {
+      "post": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "Something's wrong: open a case. The safety gate runs first; the route comes from the registry, or a person finds it.",
+        "description": "**Requires permission:** `CareManage`",
+        "operationId": "ReportIssue",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportIssueRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state. (code: `conflict`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "The asset's cases, open first.",
+        "description": "**Requires permission:** `CareView`",
+        "operationId": "GetCases",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CaseSummaryDto"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases/{caseId}": {
+      "get": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "One case: timeline, route, references, promises, appointments, messages and the case pack to send.",
+        "description": "**Requires permission:** `CareView`",
+        "operationId": "GetCase",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases/{caseId}/route/accept": {
+      "post": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "Confirm a likely (amber) route before sending.",
+        "description": "**Requires permission:** `CareManage`",
+        "operationId": "AcceptCaseRoute",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state. (code: `conflict`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases/{caseId}/sent": {
+      "post": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "Record that the owner sent the case pack through the provider's channel. Needs agreement to the current wording and an Idempotency-Key; a replay records nothing new.",
+        "description": "**Requires permission:** `CareManage`",
+        "operationId": "MarkCaseSent",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MarkCaseSentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state. (code: `conflict`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases/{caseId}/references": {
+      "post": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "Add a reference number the provider gave.",
+        "description": "**Requires permission:** `CareManage`",
+        "operationId": "AddCaseReference",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseReferenceRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state. (code: `conflict`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases/{caseId}/updates": {
+      "post": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "Capture the provider's reply or new status (e.g. \"WaitingPart\").",
+        "description": "**Requires permission:** `CareManage`",
+        "operationId": "RecordProviderUpdate",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProviderUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state. (code: `conflict`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases/{caseId}/commitments": {
+      "post": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "Record a promise with a date. A provider promise still open the day after is chased.",
+        "description": "**Requires permission:** `CareManage`",
+        "operationId": "AddCaseCommitment",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseCommitmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state. (code: `conflict`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases/{caseId}/commitments/{commitmentId}/kept": {
+      "post": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "Mark a promise kept.",
+        "description": "**Requires permission:** `CareManage`",
+        "operationId": "KeepCaseCommitment",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "commitmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state. (code: `conflict`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases/{caseId}/appointments": {
+      "post": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "Record a booked visit, collection or drop-off.",
+        "description": "**Requires permission:** `CareManage`",
+        "operationId": "BookCaseAppointment",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CaseAppointmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state. (code: `conflict`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases/{caseId}/appointments/{appointmentId}/settle": {
+      "post": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "An appointment happened (done) or was cancelled.",
+        "description": "**Requires permission:** `CareManage`",
+        "operationId": "SettleCaseAppointment",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "appointmentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SettleAppointmentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state. (code: `conflict`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases/{caseId}/resolve": {
+      "post": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "Close the case with its outcome; the outcome is written to the asset's history.",
+        "description": "**Requires permission:** `CareManage`",
+        "operationId": "ResolveCase",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveCaseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state. (code: `conflict`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
+    },
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/cases/{caseId}/withdraw": {
+      "post": {
+        "tags": [
+          "Care cases"
+        ],
+        "summary": "Close a case the owner no longer needs.",
+        "description": "**Requires permission:** `CareManage`",
+        "operationId": "WithdrawCase",
+        "parameters": [
+          {
+            "name": "customerId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "assetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CaseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request could not be read. (code: `malformed-request`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication is required. (code: `unauthenticated`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "You do not have permission to perform this action. (code: `forbidden`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error occurred. (code: `internal-error`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found. (code: `not-found`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The request conflicts with the current state. (code: `conflict`)",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "title": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "status": {
+                      "pattern": "^-?(?:0|[1-9]\\d*)$",
+                      "type": [
+                        "null",
+                        "integer",
+                        "string"
+                      ],
+                      "format": "int32"
+                    },
+                    "detail": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "instance": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": [ ]
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -17078,6 +21315,553 @@
               "string"
             ],
             "format": "date-time"
+          }
+        }
+      },
+      "CaseAppointmentDto": {
+        "required": [
+          "appointmentId",
+          "startsAt",
+          "endsAt",
+          "location",
+          "instructions",
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "appointmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endsAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "location": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instructions": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "CaseAppointmentRequest": {
+        "required": [
+          "startsAt",
+          "endsAt",
+          "location",
+          "instructions"
+        ],
+        "type": "object",
+        "properties": {
+          "startsAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endsAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "location": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instructions": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CaseCommitmentDto": {
+        "required": [
+          "commitmentId",
+          "party",
+          "description",
+          "dueOn",
+          "status",
+          "overdue"
+        ],
+        "type": "object",
+        "properties": {
+          "commitmentId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "party": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          },
+          "status": {
+            "type": "string"
+          },
+          "overdue": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CaseCommitmentRequest": {
+        "required": [
+          "party",
+          "description",
+          "dueOn"
+        ],
+        "type": "object",
+        "properties": {
+          "party": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "dueOn": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "CaseDto": {
+        "required": [
+          "caseId",
+          "assetId",
+          "title",
+          "issueSummary",
+          "issueClass",
+          "caseType",
+          "status",
+          "statusLabel",
+          "safetyFlagged",
+          "safetyGuidance",
+          "coverageAtOpen",
+          "route",
+          "openedAt",
+          "nextActionOn",
+          "closedAt",
+          "outcome",
+          "outcomeNotes",
+          "timeline",
+          "references",
+          "commitments",
+          "appointments",
+          "messages",
+          "pack"
+        ],
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "issueSummary": {
+            "type": "string"
+          },
+          "issueClass": {
+            "type": "string"
+          },
+          "caseType": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "safetyFlagged": {
+            "type": "boolean"
+          },
+          "safetyGuidance": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "coverageAtOpen": {
+            "type": "string"
+          },
+          "route": {
+            "$ref": "#/components/schemas/CaseRouteDto"
+          },
+          "openedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nextActionOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "outcome": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "outcomeNotes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "timeline": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseEventDto"
+            }
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseReferenceDto"
+            }
+          },
+          "commitments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseCommitmentDto"
+            }
+          },
+          "appointments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseAppointmentDto"
+            }
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CaseMessageDto"
+            }
+          },
+          "pack": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CasePackDto"
+              }
+            ]
+          }
+        }
+      },
+      "CaseEventDto": {
+        "required": [
+          "type",
+          "actor",
+          "summary",
+          "occurredAt"
+        ],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "actor": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CaseHandoffDto": {
+        "required": [
+          "channelType",
+          "target",
+          "link"
+        ],
+        "type": "object",
+        "properties": {
+          "channelType": {
+            "type": "string"
+          },
+          "target": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "link": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        }
+      },
+      "CaseMessageDto": {
+        "required": [
+          "direction",
+          "channel",
+          "body",
+          "at"
+        ],
+        "type": "object",
+        "properties": {
+          "direction": {
+            "type": "string"
+          },
+          "channel": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CasePackDto": {
+        "required": [
+          "shared",
+          "message",
+          "handoff",
+          "termsVersion",
+          "terms"
+        ],
+        "type": "object",
+        "properties": {
+          "shared": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SharedFieldDto"
+            }
+          },
+          "message": {
+            "type": "string"
+          },
+          "handoff": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/CaseHandoffDto"
+              }
+            ]
+          },
+          "termsVersion": {
+            "type": "string"
+          },
+          "terms": {
+            "type": "string"
+          }
+        }
+      },
+      "CaseReferenceDto": {
+        "required": [
+          "referenceId",
+          "party",
+          "reference",
+          "addedAt"
+        ],
+        "type": "object",
+        "properties": {
+          "referenceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "party": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          },
+          "addedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CaseReferenceRequest": {
+        "required": [
+          "party",
+          "reference"
+        ],
+        "type": "object",
+        "properties": {
+          "party": {
+            "type": "string"
+          },
+          "reference": {
+            "type": "string"
+          }
+        }
+      },
+      "CaseRouteDto": {
+        "required": [
+          "routeType",
+          "label",
+          "confidence",
+          "accepted",
+          "needsRoute",
+          "targetName",
+          "channelType",
+          "channelValue",
+          "instructions",
+          "requiredEvidence"
+        ],
+        "type": "object",
+        "properties": {
+          "routeType": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "string"
+          },
+          "accepted": {
+            "type": "boolean"
+          },
+          "needsRoute": {
+            "type": "boolean"
+          },
+          "targetName": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "channelType": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "channelValue": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "instructions": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "requiredEvidence": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CaseSummaryDto": {
+        "required": [
+          "caseId",
+          "title",
+          "status",
+          "statusLabel",
+          "routeType",
+          "routeConfidence",
+          "needsRoute",
+          "safetyFlagged",
+          "openedAt",
+          "nextActionOn",
+          "hasOverduePromise",
+          "outcome"
+        ],
+        "type": "object",
+        "properties": {
+          "caseId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "statusLabel": {
+            "type": "string"
+          },
+          "routeType": {
+            "type": "string"
+          },
+          "routeConfidence": {
+            "type": "string"
+          },
+          "needsRoute": {
+            "type": "boolean"
+          },
+          "safetyFlagged": {
+            "type": "boolean"
+          },
+          "openedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nextActionOn": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date"
+          },
+          "hasOverduePromise": {
+            "type": "boolean"
+          },
+          "outcome": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -17673,6 +22457,71 @@
           }
         }
       },
+      "KadariCaseExport": {
+        "required": [
+          "assetId",
+          "title",
+          "issueSummary",
+          "status",
+          "outcome",
+          "outcomeNotes",
+          "openedAt",
+          "closedAt",
+          "references",
+          "messages"
+        ],
+        "type": "object",
+        "properties": {
+          "assetId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "issueSummary": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "outcome": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "outcomeNotes": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "openedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "closedAt": {
+            "type": [
+              "null",
+              "string"
+            ],
+            "format": "date-time"
+          },
+          "references": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "KadariConsentDto": {
         "required": [
           "scope",
@@ -17743,7 +22592,8 @@
           "consents",
           "care",
           "history",
-          "registrations"
+          "registrations",
+          "cases"
         ],
         "type": "object",
         "properties": {
@@ -17787,6 +22637,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/KadariRegistrationExport"
+            }
+          },
+          "cases": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/KadariCaseExport"
             }
           }
         }
@@ -17952,6 +22808,21 @@
               "string"
             ],
             "format": "date"
+          }
+        }
+      },
+      "MarkCaseSentRequest": {
+        "required": [
+          "acceptedTermsVersion",
+          "explicitConsent"
+        ],
+        "type": "object",
+        "properties": {
+          "acceptedTermsVersion": {
+            "type": "string"
+          },
+          "explicitConsent": {
+            "type": "boolean"
           }
         }
       },
@@ -18230,6 +23101,24 @@
               "string"
             ],
             "format": "double"
+          }
+        }
+      },
+      "ProviderUpdateRequest": {
+        "required": [
+          "status",
+          "note"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string"
+          },
+          "note": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -18591,6 +23480,28 @@
           }
         }
       },
+      "ReportIssueRequest": {
+        "required": [
+          "issueClass",
+          "description",
+          "ownerSaysUnsafe"
+        ],
+        "type": "object",
+        "properties": {
+          "issueClass": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "ownerSaysUnsafe": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          }
+        }
+      },
       "RequestOtpCommand": {
         "required": [
           "mobileNumber"
@@ -18599,6 +23510,24 @@
         "properties": {
           "mobileNumber": {
             "type": "string"
+          }
+        }
+      },
+      "ResolveCaseRequest": {
+        "required": [
+          "outcome",
+          "notes"
+        ],
+        "type": "object",
+        "properties": {
+          "outcome": {
+            "type": "string"
+          },
+          "notes": {
+            "type": [
+              "null",
+              "string"
+            ]
           }
         }
       },
@@ -18624,6 +23553,17 @@
               "null",
               "string"
             ]
+          }
+        }
+      },
+      "SettleAppointmentRequest": {
+        "required": [
+          "done"
+        ],
+        "type": "object",
+        "properties": {
+          "done": {
+            "type": "boolean"
           }
         }
       },
@@ -18980,6 +23920,9 @@
     },
     {
       "name": "Care"
+    },
+    {
+      "name": "Care cases"
     }
   ]
 }

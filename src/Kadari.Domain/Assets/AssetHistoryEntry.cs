@@ -18,6 +18,7 @@ public enum AssetHistoryKind
     CoverageFound,
     CoverageChanged,
     RegistrationCompleted,
+    CaseResolved,
 }
 
 /// <summary>
