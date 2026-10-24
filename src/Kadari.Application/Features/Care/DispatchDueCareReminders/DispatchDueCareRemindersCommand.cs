@@ -3,6 +3,7 @@ using Kadari.Application.Abstractions.Access;
 using Kadari.Application.Abstractions.Messaging;
 using Kadari.Application.Abstractions.Persistence;
 using Kadari.Application.Common;
+using Kadari.Application.Features.CareOps.Services;
 using Kadari.Contracts.Care;
 using Kadari.Domain.Care;
 
@@ -12,14 +13,16 @@ namespace Kadari.Application.Features.Care.DispatchDueCareReminders;
 /// The reminder sweep (CARE/14 C6), run by the Worker on a schedule: every reminder whose day has come is queued and
 /// handed to delivery through the outbox — in this transaction, with a message id derived from the reminder, so a
 /// sweep that runs twice cannot send twice. Reminders about an offer that is no longer open are cancelled instead.
-/// Registration offers and registrations whose deadline has passed expire.
+/// Registration offers and registrations whose deadline has passed expire. A provider promise that is now overdue is
+/// also put in front of Care Ops (CASE_STALLED).
 /// </summary>
 /// <remarks>Unscoped: a system sweep across all customers, run by the Worker, never by a customer.</remarks>
 public sealed record DispatchDueCareRemindersCommand(int MaxReminders = 500) : ICommand<DispatchDueCareRemindersResponse>, IUnscopedRequest;
 
 public sealed record DispatchDueCareRemindersResponse(int Queued, int Cancelled, int OffersExpired, int RegistrationsExpired);
 
-internal sealed class DispatchDueCareRemindersHandler(IKadariDbContext db, IIntegrationEventPublisher publisher, TimeProvider clock)
+internal sealed class DispatchDueCareRemindersHandler(
+    IKadariDbContext db, IIntegrationEventPublisher publisher, OpsQueue ops, TimeProvider clock)
     : ICommandHandler<DispatchDueCareRemindersCommand, DispatchDueCareRemindersResponse>
 {
     public async Task<DispatchDueCareRemindersResponse> Handle(DispatchDueCareRemindersCommand cmd, CancellationToken ct)
@@ -78,10 +81,29 @@ internal sealed class DispatchDueCareRemindersHandler(IKadariDbContext db, IInte
                     new CareReminderDue(reminder.Id.Value),
                     DeterministicGuid.From($"care-reminder:{reminder.Id.Value:N}:{fireDate:yyyyMMdd}"), ct);
                 queued++;
+
+                if (reminder.Type == CareReminderType.CommitmentOverdue)
+                {
+                    await RaiseStalledAsync(reminder, ct);
+                }
             }
         }
 
         await db.SaveChangesAsync(ct);
         return new DispatchDueCareRemindersResponse(queued, cancelled, offersExpired, lapsedRegistrations.Count);
+    }
+
+    private async Task RaiseStalledAsync(CareReminder reminder, CancellationToken ct)
+    {
+        var commitmentId = new CaseCommitmentId(reminder.SourceId);
+        var caseId = await db.Set<AssetCase>().AsNoTracking()
+            .Where(c => c.Commitments.Any(x => x.Id == commitmentId && x.Status == CommitmentStatus.Open))
+            .Select(c => (AssetCaseId?)c.Id)
+            .FirstOrDefaultAsync(ct);
+        if (caseId is not null)
+        {
+            await ops.RaiseAsync(OpsWorkType.CaseStalled, OpsSeverity.P1, reminder.AssetId, caseId, reminder.SourceId,
+                "provider-promise-overdue", "A provider missed the date they promised — prepare a follow-up for the owner.", ct);
+        }
     }
 }

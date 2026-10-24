@@ -12,6 +12,7 @@ public static class KadariApiEndpoints
         app.MapKadariEndpoints();
         app.MapCareEndpoints();
         app.MapCareCaseEndpoints();
+        app.MapCareOpsEndpoints();
 
         return app;
     }

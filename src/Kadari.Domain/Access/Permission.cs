@@ -19,6 +19,9 @@ public enum Permission
     CareView,
     CareManage,
 
+    // Care Ops: work the exception queues — unknown routes, safety reviews, failed registrations — and resolve them.
+    CareOpsReview,
+
     // Insurers
     InsurerPortfolioView,
 

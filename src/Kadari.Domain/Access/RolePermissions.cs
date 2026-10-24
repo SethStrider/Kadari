@@ -22,8 +22,9 @@ public static class RolePermissions
         // baseline can never reach.
         [Role.Valuer] = [Permission.AssetView, Permission.AssetValuate],
 
-        // Support reads a customer's Care card to help them; it never changes it.
-        [Role.CustomerSuccess] = [Permission.CustomerView, Permission.AssetView, Permission.CareView],
+        // Support reads a customer's Care card to help them; it never changes it. Care Ops (CARE/11) is support's job
+        // too: working the exception queues and finding routes, inside the authority the customer already gave.
+        [Role.CustomerSuccess] = [Permission.CustomerView, Permission.AssetView, Permission.CareView, Permission.CareOpsReview],
 
         // The insurer console read surface, confined to the insurer's own tenant by the InsurerUser mapping
         // (InsurerTenantGuard), not by customer ownership.

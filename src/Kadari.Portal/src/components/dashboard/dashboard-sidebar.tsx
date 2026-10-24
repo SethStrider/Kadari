@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Users, ShieldCheck, type LucideIcon } from "lucide-react";
+import { LifeBuoy, Users, ShieldCheck, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useAppStore } from "@/stores/app-store";
@@ -18,6 +18,7 @@ interface NavItem {
  */
 const items: NavItem[] = [
   { label: "Users", icon: Users, to: "/dashboard/users" },
+  { label: "Care Ops", icon: LifeBuoy, to: "/dashboard/care-ops" },
 ];
 
 /** A logo reference is only rendered as an <img> when it is a resolvable URL; otherwise the name stands in. */

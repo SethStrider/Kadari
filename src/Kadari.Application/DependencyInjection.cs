@@ -79,6 +79,7 @@ public static class DependencyInjection
         services.AddScoped<Features.Care.Services.CaseCommands>();
         services.AddScoped<Features.Care.Services.CaseReminders>();
         services.AddScoped<Features.Care.Services.RegistryLookup>();
+        services.AddScoped<Features.CareOps.Services.OpsQueue>();
         services.AddScoped<Features.Care.Services.OwnedReminders>();
         services.AddScoped<Features.CareRegistry.Services.RegistryImporter>();
 
