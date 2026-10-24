@@ -1,9 +1,20 @@
 import { useState, type FormEvent } from "react";
-import { Loader2, Save } from "lucide-react";
+import { useRef } from "react";
+import { Camera, Loader2, ReceiptText, Save } from "lucide-react";
 import { toast } from "sonner";
 
 import { KadariButton } from "@/components/kadari/kadari-button";
-import { recordPurchaseDetails, type PurchaseDetails } from "@/lib/api/care";
+import {
+  readProductLabel,
+  readReceipt,
+  recordPurchaseDetails,
+  unavailableReasons,
+  type PurchaseDetails,
+  type PurchaseProposal,
+} from "@/lib/api/care";
+
+/** Below this, a read value is shown as "check this". */
+const sureEnough = 0.75;
 
 const inputClass =
   "kd-focus h-(--tap-target-min) w-full rounded-(--radius-md) border border-(--color-border) bg-(--color-surface) px-(--space-5) text-sm text-(--color-text) placeholder:text-(--color-text-muted)";
@@ -28,6 +39,63 @@ export function PurchaseDetailsForm({
   const [retailer, setRetailer] = useState(initial?.retailer ?? "");
   const [purchasedOn, setPurchasedOn] = useState(initial?.purchasedOn ?? "");
   const [busy, setBusy] = useState(false);
+  const [reading, setReading] = useState<"receipt" | "label" | null>(null);
+  const [unsure, setUnsure] = useState<Set<string>>(new Set());
+  const [readSerial, setReadSerial] = useState<string | null>(null);
+  const labelInput = useRef<HTMLInputElement>(null);
+
+  /** Put what KADARI read into the form for the owner to check — nothing is saved until they press Save. */
+  function apply(proposal: PurchaseProposal) {
+    if (!proposal.read) {
+      toast.info(
+        unavailableReasons[proposal.unavailable ?? ""] ??
+          "KADARI couldn't read this.",
+      );
+      return;
+    }
+
+    const doubtful = new Set<string>();
+    const take = (
+      field: string,
+      value: { value: string; confidence: number | string } | null,
+      set: (v: string) => void,
+    ) => {
+      if (!value) return;
+      set(value.value);
+      if (Number(value.confidence) < sureEnough) doubtful.add(field);
+    };
+    take("brand", proposal.brand, setBrand);
+    take("model", proposal.model, setModel);
+    take("retailer", proposal.retailer, setRetailer);
+    take("purchasedOn", proposal.purchasedOn, setPurchasedOn);
+    setReadSerial(proposal.serialNumber?.value ?? null);
+    setUnsure(doubtful);
+    toast.success("Check what KADARI read, then save.");
+  }
+
+  async function read(kind: "receipt" | "label", photo?: File) {
+    setReading(kind);
+    try {
+      apply(
+        kind === "receipt"
+          ? await readReceipt(customerId, assetId)
+          : await readProductLabel(customerId, assetId, photo!),
+      );
+    } catch (cause) {
+      toast.error(
+        cause instanceof Error ? cause.message : "Could not read the document.",
+      );
+    } finally {
+      setReading(null);
+    }
+  }
+
+  const hint = (field: string) =>
+    unsure.has(field) ? (
+      <span className="text-xs font-normal text-(--color-warning)">
+        Check this
+      </span>
+    ) : null;
 
   const today = new Date().toISOString().slice(0, 10);
   const empty = [brand, model, retailer, purchasedOn].every(
@@ -61,9 +129,58 @@ export function PurchaseDetailsForm({
 
   return (
     <form onSubmit={submit} className="flex flex-col gap-(--space-5)">
+      <div className="flex flex-wrap gap-(--space-3)">
+        <KadariButton
+          type="button"
+          variant="secondary"
+          onClick={() => void read("receipt")}
+          disabled={reading !== null}
+        >
+          {reading === "receipt" ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <ReceiptText className="size-4" />
+          )}
+          Read my receipt
+        </KadariButton>
+        <KadariButton
+          type="button"
+          variant="secondary"
+          onClick={() => labelInput.current?.click()}
+          disabled={reading !== null}
+        >
+          {reading === "label" ? (
+            <Loader2 className="size-4 animate-spin" />
+          ) : (
+            <Camera className="size-4" />
+          )}
+          Scan the label
+        </KadariButton>
+        <input
+          ref={labelInput}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          capture="environment"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            if (file) void read("label", file);
+          }}
+        />
+      </div>
+      {readSerial && (
+        <p className="rounded-(--radius-md) bg-(--color-info-subtle) px-(--space-5) py-(--space-4) text-sm">
+          Serial number on the label:{" "}
+          <span className="kd-num">{readSerial}</span>. Add it under proof of
+          purchase to keep it with the asset.
+        </p>
+      )}
       <div className="grid gap-(--space-5) sm:grid-cols-2">
         <label className="flex flex-col gap-(--space-2) text-sm font-medium">
-          Brand
+          <span className="flex items-baseline justify-between gap-(--space-3)">
+            Brand {hint("brand")}
+          </span>
           <input
             className={inputClass}
             value={brand}
@@ -73,7 +190,9 @@ export function PurchaseDetailsForm({
           />
         </label>
         <label className="flex flex-col gap-(--space-2) text-sm font-medium">
-          Model
+          <span className="flex items-baseline justify-between gap-(--space-3)">
+            Model {hint("model")}
+          </span>
           <input
             className={inputClass}
             value={model}
@@ -83,7 +202,9 @@ export function PurchaseDetailsForm({
           />
         </label>
         <label className="flex flex-col gap-(--space-2) text-sm font-medium">
-          Bought from
+          <span className="flex items-baseline justify-between gap-(--space-3)">
+            Bought from {hint("retailer")}
+          </span>
           <input
             className={inputClass}
             value={retailer}
@@ -93,7 +214,9 @@ export function PurchaseDetailsForm({
           />
         </label>
         <label className="flex flex-col gap-(--space-2) text-sm font-medium">
-          Purchase date
+          <span className="flex items-baseline justify-between gap-(--space-3)">
+            Purchase date {hint("purchasedOn")}
+          </span>
           <input
             className={inputClass}
             type="date"

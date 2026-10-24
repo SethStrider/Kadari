@@ -790,6 +790,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/purchase/read-receipt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read the asset's stored receipt with AI and propose the purchase details for the owner to confirm. Saves nothing but the model usage.
+         * @description **Requires permission:** `CareManage`
+         */
+        post: operations["ReadReceipt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/purchase/read-label": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Read a photo of the rating plate or serial label with AI and propose brand, model and serial. The photo is not stored.
+         * @description **Requires permission:** `CareManage`
+         */
+        post: operations["ReadProductLabel"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/kadari/customers/{customerId}/assets/{assetId}/history": {
         parameters: {
             query?: never;
@@ -1165,6 +1205,18 @@ export interface components {
             /** Format: int64 */
             exposureMinor: number | string;
         };
+        ProposedAmountDto: {
+            /** Format: int64 */
+            amountMinor: number | string;
+            currency: string;
+            /** Format: double */
+            confidence: number | string;
+        };
+        ProposedValueDto: {
+            value: string;
+            /** Format: double */
+            confidence: number | string;
+        };
         PurchaseDetailsDto: {
             brand: null | string;
             model: null | string;
@@ -1181,6 +1233,16 @@ export interface components {
             retailer: null | string;
             /** Format: date */
             purchasedOn: null | string;
+        };
+        PurchaseProposalDto: {
+            read: boolean;
+            unavailable: null | string;
+            brand: null | components["schemas"]["ProposedValueDto"];
+            model: null | components["schemas"]["ProposedValueDto"];
+            retailer: null | components["schemas"]["ProposedValueDto"];
+            purchasedOn: null | components["schemas"]["ProposedValueDto"];
+            serialNumber: null | components["schemas"]["ProposedValueDto"];
+            price: null | components["schemas"]["ProposedAmountDto"];
         };
         RecordOwnershipProofResponse: {
             /** Format: uuid */
@@ -5991,6 +6053,250 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RecordPurchaseDetailsResponse"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description The request conflicts with the current state. (code: `conflict`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    ReadReceipt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseProposalDto"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description The request conflicts with the current state. (code: `conflict`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    ReadProductLabel: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    photo: components["schemas"]["IFormFile"];
+                };
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PurchaseProposalDto"];
                 };
             };
             /** @description The request could not be read. (code: `malformed-request`) */

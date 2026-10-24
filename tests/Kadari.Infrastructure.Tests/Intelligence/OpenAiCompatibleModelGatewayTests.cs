@@ -4,23 +4,47 @@ using Microsoft.Extensions.Options;
 using Kadari.Application.Features.AnalyzeSnap;
 using Kadari.Domain.Assets;
 using Kadari.Infrastructure.Enrichment;
+using Kadari.Infrastructure.Intelligence;
+using Kadari.Infrastructure.Tests.Enrichment;
 
-namespace Kadari.Infrastructure.Tests.Enrichment;
+namespace Kadari.Infrastructure.Tests.Intelligence;
 
 /// <summary>
 /// The OpenAI-compatible adapter (Groq / OpenAI / Mistral / OpenRouter / Ollama) proven offline via a stub
 /// handler: chat-completions envelope parsed through the shared mapper, and graceful fallback on failure.
 /// </summary>
-public class OpenAiCompatibleVisionEnricherTests
+public class OpenAiCompatibleModelGatewayTests
 {
     private static readonly DetectedObject Tv = new("tv", 0.94, 0.1, 0.2, 0.3, 0.4);
 
-    private static OpenAiCompatibleVisionEnricher Enricher(HttpStatusCode status, string body)
+    private static OpenAiCompatibleModelGateway Gateway(HttpStatusCode status, string body)
     {
         var factory = new SingleClientFactory(new HttpClient(new StubHandler(status, body)));
         var vision = Options.Create(new VisionEnricherOptions());
         var provider = Options.Create(new OpenAiVisionOptions { ApiKey = "test-key", BaseUrl = "https://api.groq.com/openai/v1", Model = "llama-vision" });
-        return new OpenAiCompatibleVisionEnricher(factory, vision, provider, new VisionConcurrencyGate(vision), NullLogger<OpenAiCompatibleVisionEnricher>.Instance);
+        return new OpenAiCompatibleModelGateway(factory, provider, new VisionConcurrencyGate(vision), vision, NullLogger<OpenAiCompatibleModelGateway>.Instance);
+    }
+
+    private static ModelVisionEnricher Enricher(HttpStatusCode status, string body) =>
+        new(Gateway(status, body), Options.Create(new VisionEnricherOptions()), NullLogger<ModelVisionEnricher>.Instance);
+
+    [Fact]
+    public async Task A_pdf_attachment_is_refused_without_calling_the_provider()
+    {
+        var reply = await Gateway(HttpStatusCode.OK, "{}").CompleteAsync(
+            new Kadari.Application.Abstractions.Intelligence.ModelCall(
+                "test", "system", "user", new Kadari.Application.Abstractions.Intelligence.ModelAttachment("application/pdf", [1])),
+            CancellationToken.None);
+
+        Assert.Equal((false, (Kadari.Application.Abstractions.Intelligence.ModelCallUsage?)null), (reply.Answered, reply.Usage));
+    }
+
+    [Fact]
+    public void ExtractUsage_reads_prompt_and_completion_tokens()
+    {
+        var usage = OpenAiCompatibleModelGateway.ExtractUsage("""{"usage":{"prompt_tokens":900,"completion_tokens":45}}""", "llama-vision");
+
+        Assert.Equal((900, 45), (usage.InputTokens, usage.OutputTokens));
     }
 
     private static VisionEnrichmentRequest ARequest() => new(FakeImage(), [Tv], "Living room");
@@ -56,9 +80,9 @@ public class OpenAiCompatibleVisionEnricherTests
     {
         const string envelope = """{"choices":[{"message":{"role":"assistant","content":"hello"}}]}""";
 
-        Assert.Equal("hello", OpenAiCompatibleVisionEnricher.ExtractContent(envelope));
-        Assert.Null(OpenAiCompatibleVisionEnricher.ExtractContent("{}"));
-        Assert.Null(OpenAiCompatibleVisionEnricher.ExtractContent(null));
+        Assert.Equal("hello", OpenAiCompatibleModelGateway.ExtractContent(envelope));
+        Assert.Null(OpenAiCompatibleModelGateway.ExtractContent("{}"));
+        Assert.Null(OpenAiCompatibleModelGateway.ExtractContent(null));
     }
 
     private static SnapImage FakeImage()

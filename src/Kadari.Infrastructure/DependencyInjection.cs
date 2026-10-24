@@ -87,8 +87,9 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// Vision enrichment for capture. Provider-agnostic: Gemini or any OpenAI-compatible endpoint when configured,
-    /// otherwise the pass-through (the capture keeps the on-device detections), so capture runs without any key.
+    /// The AI provider (<c>VisionEnricher:Provider</c>): Gemini or any OpenAI-compatible endpoint when configured,
+    /// otherwise none — capture keeps the on-device detections and extraction says it is unavailable, so the app
+    /// runs without any key.
     /// </summary>
     private static void AddVisionEnrichment(IHostApplicationBuilder builder)
     {
@@ -101,19 +102,27 @@ public static class DependencyInjection
         var options = new Enrichment.VisionEnricherOptions();
         config.GetSection(Enrichment.VisionEnricherOptions.SectionName).Bind(options);
 
+        // One gateway to the configured provider: capture and every other model call go through it, and the
+        // Application's MeteredModel / ModelUsageRecorder record what each call used and cost.
+        builder.Services.Configure<Application.Features.Intelligence.Services.ModelPricingOptions>(
+            config.GetSection(Application.Features.Intelligence.Services.ModelPricingOptions.SectionName));
+
         switch (options.Provider)
         {
             case Enrichment.VisionProvider.Gemini:
-                builder.Services.AddHttpClientWithBudget(Enrichment.GeminiVisionEnricher.HttpClientName, TimeSpan.FromSeconds(options.TimeoutSeconds));
-                builder.Services.AddScoped<Application.Features.AnalyzeSnap.IVisionEnricher, Enrichment.GeminiVisionEnricher>();
+                builder.Services.AddHttpClientWithBudget(Intelligence.GeminiModelGateway.HttpClientName, TimeSpan.FromSeconds(options.TimeoutSeconds));
+                builder.Services.AddScoped<Application.Abstractions.Intelligence.IModelGateway, Intelligence.GeminiModelGateway>();
+                builder.Services.AddScoped<Application.Features.AnalyzeSnap.IVisionEnricher, Enrichment.ModelVisionEnricher>();
                 break;
 
             case Enrichment.VisionProvider.OpenAiCompatible:
-                builder.Services.AddHttpClientWithBudget(Enrichment.OpenAiCompatibleVisionEnricher.HttpClientName, TimeSpan.FromSeconds(options.TimeoutSeconds));
-                builder.Services.AddScoped<Application.Features.AnalyzeSnap.IVisionEnricher, Enrichment.OpenAiCompatibleVisionEnricher>();
+                builder.Services.AddHttpClientWithBudget(Intelligence.OpenAiCompatibleModelGateway.HttpClientName, TimeSpan.FromSeconds(options.TimeoutSeconds));
+                builder.Services.AddScoped<Application.Abstractions.Intelligence.IModelGateway, Intelligence.OpenAiCompatibleModelGateway>();
+                builder.Services.AddScoped<Application.Features.AnalyzeSnap.IVisionEnricher, Enrichment.ModelVisionEnricher>();
                 break;
 
             default:
+                builder.Services.AddSingleton<Application.Abstractions.Intelligence.IModelGateway, Intelligence.UnconfiguredModelGateway>();
                 builder.Services.AddScoped<Application.Features.AnalyzeSnap.IVisionEnricher, Enrichment.PassThroughVisionEnricher>();
                 break;
         }

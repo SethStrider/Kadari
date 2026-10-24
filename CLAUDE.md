@@ -249,6 +249,11 @@ PostgreSQL 17 + EF Core 10 (Npgsql), single `kadari` schema. Full detail: `docs/
 - Base-entity conventions (UUID PK, `CreatedAt/UpdatedAt`, soft-delete, row version, audit) applied
   centrally via a base type + global query filter. **No hard deletes.**
 - Blob storage only through `IBlobStorage` — never touch `IAmazonS3` outside `Infrastructure/Storage`.
+- **AI only through `MeteredModel`** (`Features/Intelligence/Services`). It applies the cross-border consent gate and
+  the daily quota, makes the call at most once per request, and records tokens and cost (`ModelUsage`) through the
+  one writer, `ModelUsageRecorder`. Never inject `IModelGateway` anywhere else (an architecture test fails the build);
+  capture's enricher is the one exception and reports its usage back for the same writer. A model reply is a
+  proposal: parse it as untrusted, and save nothing it says until a person confirms it.
 - Bus: publish integration events from `Contracts` through `IIntegrationEventPublisher`; MassTransit consumers
   live **only** in `Kadari.Worker/Consumers`, are `public`, and are auto-registered (`AddConsumers`). Kebab-case
   endpoint names. **See §6a for the full flow.**

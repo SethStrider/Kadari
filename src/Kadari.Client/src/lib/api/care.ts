@@ -105,3 +105,51 @@ export function getAssetHistory(
     { path: { customerId, assetId }, signal },
   );
 }
+
+export type PurchaseProposal = components["schemas"]["PurchaseProposalDto"];
+
+/** Read the asset's stored receipt with AI. A proposal only — nothing is saved until the owner confirms it. */
+export function readReceipt(customerId: string, assetId: string) {
+  return apiClient.post(
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/purchase/read-receipt",
+    { path: { customerId, assetId } },
+  );
+}
+
+/** Read a photo of the rating plate or serial label with AI. The photo is not stored. */
+export async function readProductLabel(
+  customerId: string,
+  assetId: string,
+  photo: File,
+): Promise<PurchaseProposal> {
+  const form = new FormData();
+  form.append("photo", photo);
+  const response = await apiClient.fetch(
+    `/api/v1/kadari/customers/${customerId}/assets/${assetId}/purchase/read-label`,
+    { method: "POST", body: form },
+  );
+  if (!response.ok) {
+    const problem = (await response.json().catch(() => null)) as {
+      detail?: string;
+    } | null;
+    throw new Error(
+      problem?.detail ?? `Could not read the label (${response.status}).`,
+    );
+  }
+  return (await response.json()) as PurchaseProposal;
+}
+
+/** Plain words for why KADARI could not read a document. */
+export const unavailableReasons: Record<string, string> = {
+  NotConfigured:
+    "Reading documents isn't switched on yet. Type the details instead.",
+  NoCrossBorderConsent:
+    "Reading documents uses an AI service outside South Africa. Allow it in your settings, or type the details.",
+  QuotaReached:
+    "You've used today's document reading. Type the details, or try again tomorrow.",
+  NoReceipt: "Add a receipt below first, then KADARI can read it.",
+  UnsupportedDocument:
+    "KADARI can't read this kind of file. Type the details instead.",
+  NothingRead:
+    "KADARI couldn't read anything useful. Type the details instead.",
+};

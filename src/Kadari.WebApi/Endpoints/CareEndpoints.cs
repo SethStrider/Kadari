@@ -1,5 +1,10 @@
 using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Kadari.Application.Features.AnalyzeSnap;
 using Kadari.Application.Features.Assets.GetAssetHistory;
+using Kadari.Application.Features.Assets.ReadProductLabel;
+using Kadari.Application.Features.Assets.ReadReceipt;
+using Kadari.Application.Features.Assets.Services;
 using Kadari.Application.Features.Assets.RecordPurchaseDetails;
 using Kadari.Application.Features.Care.EnableCare;
 using Kadari.Application.Features.Care.EvaluateCare;
@@ -7,6 +12,8 @@ using Kadari.Application.Features.Care.GetCareSummary;
 using Kadari.Application.Features.Care.GetCoverage;
 using Kadari.Domain.Access;
 using Kadari.WebApi.Access;
+using Kadari.WebApi.Http;
+using Kadari.WebApi.RateLimiting;
 
 namespace Kadari.WebApi.Endpoints;
 
@@ -60,6 +67,42 @@ public static class CareEndpoints
             .Produces<RecordPurchaseDetailsResponse>()
             .WithName("RecordPurchaseDetails")
             .WithSummary("Record what was bought, where and when. Appended as evidence (a correction never overwrites); Care re-evaluates.");
+
+        group.MapPost("/purchase/read-receipt", async (Guid customerId, Guid assetId, ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new ReadReceiptCommand(customerId, assetId), ct)))
+            .RequirePermission(Permission.CareManage)
+            .RequireRateLimiting(RateLimitingExtensions.SnapCapturePolicy)   // each read is a billed model call
+            .Produces<PurchaseProposalDto>()
+            .WithName("ReadReceipt")
+            .WithSummary("Read the asset's stored receipt with AI and propose the purchase details for the owner to confirm. Saves nothing but the model usage.");
+
+        group.MapPost("/purchase/read-label", async (
+                Guid customerId, Guid assetId, IFormFile photo, ISender sender, CancellationToken ct) =>
+            {
+                // Spill the upload to a temp file for the disk-backed SnapImage; dispose deletes it.
+                var tempPath = Path.GetTempFileName();
+                await using (var file = File.Create(tempPath))
+                {
+                    await photo.CopyToAsync(file, ct);
+                }
+
+                var image = new SnapImage(tempPath, photo.ContentType, photo.Length);
+                try
+                {
+                    return Results.Ok(await sender.Send(new ReadProductLabelCommand(customerId, assetId, image), ct));
+                }
+                finally
+                {
+                    await image.DisposeAsync();
+                }
+            })
+            .RequirePermission(Permission.CareManage)
+            .RequireRateLimiting(RateLimitingExtensions.SnapCapturePolicy)   // each read is a billed model call
+            .DisableAntiforgery()   // minimal-API multipart upload
+            .AllowUploads()
+            .Produces<PurchaseProposalDto>()
+            .WithName("ReadProductLabel")
+            .WithSummary("Read a photo of the rating plate or serial label with AI and propose brand, model and serial. The photo is not stored.");
 
         group.MapGet("/history", async (Guid customerId, Guid assetId, ISender sender, CancellationToken ct) =>
                 Results.Ok(await sender.Send(new GetAssetHistoryQuery(customerId, assetId), ct)))

@@ -38,6 +38,7 @@ internal sealed class AnalyzeSnapHandler(
     OwnerRegistrar subjects,
     SnapCaptureWork captureWork,
     VisionQuota quota,
+    Intelligence.Services.ModelUsageRecorder usage,
     TimeProvider clock) : ICommandHandler<AnalyzeSnapCommand, AnalyzeSnapResponse>
 {
     private const string EnricherSource = "gemini";
@@ -63,6 +64,12 @@ internal sealed class AnalyzeSnapHandler(
         if (captured.MeteredCall)
         {
             await quota.RecordCallAsync(customerId, ct);
+        }
+
+        // The model's tokens and cost, through the one usage writer (Ripple §8), with the rest of the capture's writes.
+        if (captured.Enrichment.Usage is { } used)
+        {
+            usage.Record("capture", used, customerId, captured.Enrichment.Enriched);
         }
 
         var ownerId = await subjects.GetOrCreateForCustomerAsync(customerId, ct);
