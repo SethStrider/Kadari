@@ -92,6 +92,7 @@ public sealed class AssetCaseConfiguration : IEntityTypeConfiguration<AssetCase>
         builder.HasMany(c => c.Appointments).WithOne().HasForeignKey("AssetCaseId").OnDelete(DeleteBehavior.Cascade);
         builder.Navigation(c => c.Appointments).UsePropertyAccessMode(PropertyAccessMode.Field);
 
+        builder.Ignore(c => c.Reference);
         builder.Ignore(c => c.IsClosed);
         builder.Ignore(c => c.NeedsRoute);
         builder.Ignore(c => c.DomainEvents);

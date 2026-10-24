@@ -1593,6 +1593,7 @@ export interface components {
             openCaseCount: number | string;
             evidenceGaps: string[];
             purchase: null | components["schemas"]["PurchaseDetailsDto"];
+            serialNumber: null | string;
             /** Format: date-time */
             lastEvaluatedAt: null | string;
         };
@@ -1634,6 +1635,7 @@ export interface components {
         CaseDto: {
             /** Format: uuid */
             caseId: string;
+            reference: string;
             /** Format: uuid */
             assetId: string;
             title: string;
@@ -1714,6 +1716,7 @@ export interface components {
         CaseSummaryDto: {
             /** Format: uuid */
             caseId: string;
+            reference: string;
             title: string;
             status: string;
             statusLabel: string;

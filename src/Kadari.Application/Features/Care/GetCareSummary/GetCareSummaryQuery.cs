@@ -32,6 +32,7 @@ public sealed record CareSummaryDto(
     int OpenCaseCount,
     IReadOnlyList<string> EvidenceGaps,
     PurchaseDetailsDto? Purchase,
+    string? SerialNumber,
     DateTimeOffset? LastEvaluatedAt);
 
 public sealed record PurchaseDetailsDto(
@@ -79,6 +80,7 @@ internal sealed class GetCareSummaryHandler(IKadariDbContext db, OwnedAssets ass
                 ? new PurchaseDetailsDto(facts.Brand, facts.Model, facts.Retailer, facts.PurchasedOn,
                     purchase.Strength == Domain.Assets.EvidenceStrength.Independent, purchase.AssertedAt)
                 : null,
+            AssetFacts.SerialOf(asset),
             profile?.LastEvaluatedAt);
     }
 }

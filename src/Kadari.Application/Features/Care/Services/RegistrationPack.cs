@@ -37,12 +37,8 @@ public static class RegistrationPack
     public static IReadOnlyList<SharedFieldDto> For(RegistrationRuleVersion rule, Customer customer, Asset asset)
     {
         var facts = asset.LatestPurchase?.Purchase;
-        var serial = asset.Evidence
-            .Where(e => e.Kind == AssetEvidenceKind.Ownership && e.Source == "serial" && e.Reference != null)
-            .OrderByDescending(e => e.AssertedAt)
-            .Select(e => e.Reference)
-            .FirstOrDefault();
-        var receiptHeld = asset.Evidence.Any(e => e.Kind == AssetEvidenceKind.Ownership && e.Source == "receipt" && e.Reference != null);
+        var serial = AssetFacts.SerialOf(asset);
+        var receiptHeld = AssetFacts.ReceiptHeld(asset);
 
         return rule.RequiredFields.Select(field => new SharedFieldDto(field.ToString(), Labels[field], field switch
         {

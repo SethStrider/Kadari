@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { ChevronRight, Loader2, ShieldPlus, Wrench } from "lucide-react";
 
 import { CareCard } from "@/components/kadari/care-card";
 import { CareCases } from "@/components/kadari/care-cases";
+import { CareProductHeader } from "@/components/kadari/care-product";
 import { CareReminders } from "@/components/kadari/care-reminders";
 import { ExtraCover } from "@/components/kadari/extra-cover";
 import { formatCareDate } from "@/components/kadari/care-format";
@@ -60,6 +61,8 @@ function CarePage() {
   const { customerId, assetId } = Route.useParams();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState<Tab>("Overview");
+  // Bumped by "Something's wrong" so the Problems tab opens fresh on the report screen.
+  const [reportKey, setReportKey] = useState(0);
 
   const asset = useQuery({
     queryKey: ["kadari", "asset", customerId, assetId],
@@ -105,14 +108,23 @@ function CarePage() {
   }
 
   const summary = care.data;
+  const product = {
+    name: asset.data?.displayName ?? "This item",
+    brand: summary.purchase?.brand,
+    model: summary.purchase?.model,
+    room: asset.data?.roomLabel,
+    careCategory: summary.category,
+  };
+
+  function reportProblem() {
+    setTab("Problems");
+    setReportKey((k) => k + 1);
+  }
 
   return (
-    <KadariShell
-      customerId={customerId}
-      title={title}
-      subtitle="KADARI Care"
-      action={backLink}
-    >
+    <KadariShell customerId={customerId} title="KADARI Care" action={backLink}>
+      <CareProductHeader product={product} />
+
       <CareCard
         customerId={customerId}
         assetId={assetId}
@@ -120,6 +132,29 @@ function CarePage() {
         onChanged={() => void refresh()}
         showAction={false}
       />
+
+      {summary.enabled && (
+        <div className="flex flex-col gap-(--space-3)">
+          {summary.primaryAction === "ActivateExtraCover" && (
+            <ActionRow
+              primary
+              icon={ShieldPlus}
+              label="Activate cover"
+              onClick={() => {
+                setTab("Overview");
+                document
+                  .getElementById("extra-cover")
+                  ?.scrollIntoView({ behavior: "smooth" });
+              }}
+            />
+          )}
+          <ActionRow
+            icon={Wrench}
+            label="Something's wrong"
+            onClick={reportProblem}
+          />
+        </div>
+      )}
 
       <div
         role="tablist"
@@ -147,6 +182,20 @@ function CarePage() {
 
       {tab === "Overview" && (
         <div className="flex flex-col gap-(--space-6)">
+          <ProductDetails
+            serialNumber={summary.serialNumber}
+            purchasedOn={summary.purchase?.purchasedOn}
+            retailer={summary.purchase?.retailer}
+            coverage={
+              summary.coverageState
+                ? `${stateNames[summary.coverageState] ?? summary.coverageState}${
+                    summary.coverageExpiresOn
+                      ? ` until ${formatCareDate(summary.coverageExpiresOn)}`
+                      : ""
+                  }`
+                : "Not worked out yet"
+            }
+          />
           {summary.enabled && (
             <CareReminders
               customerId={customerId}
@@ -155,11 +204,13 @@ function CarePage() {
             />
           )}
           {summary.enabled && (
-            <ExtraCover
-              customerId={customerId}
-              assetId={assetId}
-              onChanged={() => void refresh()}
-            />
+            <div id="extra-cover" className="scroll-mt-(--space-6)">
+              <ExtraCover
+                customerId={customerId}
+                assetId={assetId}
+                onChanged={() => void refresh()}
+              />
+            </div>
           )}
           {summary.evidenceGaps.length > 0 && (
             <p className="rounded-(--radius-md) bg-(--color-info-subtle) px-(--space-5) py-(--space-4) text-sm">
@@ -192,7 +243,12 @@ function CarePage() {
 
       {tab === "Problems" &&
         (summary.enabled ? (
-          <CareCases customerId={customerId} assetId={assetId} />
+          <CareCases
+            key={reportKey}
+            customerId={customerId}
+            assetId={assetId}
+            startReporting={reportKey > 0}
+          />
         ) : (
           <p className="text-sm text-(--color-text-muted)">
             Switch KADARI Care on above to report a problem.
@@ -358,6 +414,69 @@ function HistoryTab({
         </li>
       ))}
     </ol>
+  );
+}
+
+/** A full-width action row with an icon and a chevron (design board 2: "Activate cover", "Something's wrong"). */
+function ActionRow({
+  icon: Icon,
+  label,
+  onClick,
+  primary = false,
+}: {
+  icon: typeof Wrench;
+  label: string;
+  onClick: () => void;
+  primary?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "kd-focus flex h-(--tap-target-min) w-full items-center gap-(--space-4) rounded-(--radius-md) px-(--space-5) text-left text-sm font-semibold shadow-(--shadow-1)",
+        primary
+          ? "bg-(--color-primary) text-(--color-on-primary) hover:bg-(--color-primary-hover)"
+          : "border border-(--color-border) bg-(--color-surface) hover:bg-(--color-surface-sunken)",
+      )}
+    >
+      <Icon className="size-5 shrink-0" aria-hidden />
+      <span className="flex-1">{label}</span>
+      <ChevronRight className="size-4 shrink-0" aria-hidden />
+    </button>
+  );
+}
+
+/** The product's key facts as a list (design board 2's Overview tab). */
+function ProductDetails({
+  serialNumber,
+  purchasedOn,
+  retailer,
+  coverage,
+}: {
+  serialNumber?: string | null;
+  purchasedOn?: string | null;
+  retailer?: string | null;
+  coverage: string;
+}) {
+  const rows: [string, string][] = [
+    ["Serial number", serialNumber ?? "Not recorded yet"],
+    ["Purchase date", formatCareDate(purchasedOn) ?? "Not recorded yet"],
+    ["Purchased from", retailer ?? "Not recorded yet"],
+    ["Coverage", coverage],
+  ];
+  return (
+    <dl className="divide-y divide-(--color-border) rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) px-(--space-5) shadow-(--shadow-1)">
+      {rows.map(([label, value]) => (
+        <div
+          key={label}
+          className="grid grid-cols-[9rem_1fr] gap-(--space-4) py-(--space-4) text-sm"
+        >
+          <dt className="text-(--color-text-muted)">{label}</dt>
+          <dd className="font-medium">{value}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 

@@ -117,6 +117,13 @@ public sealed class AssetCase : AggregateRoot<AssetCaseId>
     public IReadOnlyList<CaseAppointment> Appointments => _appointments.AsReadOnly();
     public IReadOnlyList<CaseMessage> Messages => _messages.AsReadOnly();
 
+    /// <summary>A short number the owner can quote ("KD-04821"). For display and conversation only — the case id is
+    /// what identifies it.</summary>
+    public string Reference => ReferenceOf(Id);
+
+    public static string ReferenceOf(AssetCaseId id) =>
+        $"KD-{BitConverter.ToUInt32(id.Value.ToByteArray(), 12) % 100000:D5}";
+
     public bool IsClosed => Status is CaseStatus.Resolved or CaseStatus.Rejected or CaseStatus.ClosedWithdrawn;
 
     /// <summary>A person has to find the route before anything can be sent.</summary>

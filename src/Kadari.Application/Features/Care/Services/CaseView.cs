@@ -8,6 +8,7 @@ namespace Kadari.Application.Features.Care.Services;
 
 public sealed record CaseSummaryDto(
     Guid CaseId,
+    string Reference,
     string Title,
     string Status,
     string StatusLabel,
@@ -45,6 +46,7 @@ public sealed record CaseRouteDto(
 
 public sealed record CaseDto(
     Guid CaseId,
+    string Reference,
     Guid AssetId,
     string Title,
     string IssueSummary,
@@ -83,11 +85,11 @@ internal static class CaseView
     }
 
     public static CaseSummaryDto Summary(AssetCase c, DateOnly today) => new(
-        c.Id.Value, c.Title, c.Status.ToString(), AssetCase.Describe(c.Status), c.RouteType.ToString(), c.RouteConfidence.ToString(),
+        c.Id.Value, c.Reference, c.Title, c.Status.ToString(), AssetCase.Describe(c.Status), c.RouteType.ToString(), c.RouteConfidence.ToString(),
         c.NeedsRoute, c.SafetyFlagged, c.OpenedAt, c.NextActionOn, c.Commitments.Any(x => x.IsOverdueOn(today)), c.Outcome?.ToString());
 
     public static CaseDto Detail(AssetCase c, Asset asset, DateOnly today) => new(
-        c.Id.Value, c.AssetId.Value, c.Title, c.IssueSummary, c.IssueClass.ToString(), c.CaseType.ToString(), c.Status.ToString(),
+        c.Id.Value, c.Reference, c.AssetId.Value, c.Title, c.IssueSummary, c.IssueClass.ToString(), c.CaseType.ToString(), c.Status.ToString(),
         AssetCase.Describe(c.Status), c.SafetyFlagged, c.SafetyFlagged && !c.IsClosed ? SafetyGate.Guidance : null,
         c.CoverageAtOpen.ToString(),
         new CaseRouteDto(c.RouteType.ToString(), AssetCase.Describe(c.RouteType), c.RouteConfidence.ToString(), c.RouteAccepted,

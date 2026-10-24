@@ -23070,6 +23070,7 @@
           "openCaseCount",
           "evidenceGaps",
           "purchase",
+          "serialNumber",
           "lastEvaluatedAt"
         ],
         "type": "object",
@@ -23141,6 +23142,12 @@
               {
                 "$ref": "#/components/schemas/PurchaseDetailsDto"
               }
+            ]
+          },
+          "serialNumber": {
+            "type": [
+              "null",
+              "string"
             ]
           },
           "lastEvaluatedAt": {
@@ -23285,6 +23292,7 @@
       "CaseDto": {
         "required": [
           "caseId",
+          "reference",
           "assetId",
           "title",
           "issueSummary",
@@ -23313,6 +23321,9 @@
           "caseId": {
             "type": "string",
             "format": "uuid"
+          },
+          "reference": {
+            "type": "string"
           },
           "assetId": {
             "type": "string",
@@ -23638,6 +23649,7 @@
       "CaseSummaryDto": {
         "required": [
           "caseId",
+          "reference",
           "title",
           "status",
           "statusLabel",
@@ -23655,6 +23667,9 @@
           "caseId": {
             "type": "string",
             "format": "uuid"
+          },
+          "reference": {
+            "type": "string"
           },
           "title": {
             "type": "string"

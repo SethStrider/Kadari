@@ -279,4 +279,13 @@ public class AssetCaseTests
     {
         Assert.Throws<DomainException>(() => AssetCase.Open(Asset, IssueClass.Any, "Broken", false, CoverageState.Active, Now));
     }
+
+    [Fact]
+    public void Reference_IsAShortStableNumberTheOwnerCanQuote()
+    {
+        var @case = Open();
+
+        Assert.Matches(@"^KD-\d{5}$", @case.Reference);
+        Assert.Equal(@case.Reference, AssetCase.ReferenceOf(@case.Id));
+    }
 }

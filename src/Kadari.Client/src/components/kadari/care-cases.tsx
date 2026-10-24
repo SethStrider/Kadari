@@ -2,17 +2,25 @@ import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
+  Barcode,
   Building2,
+  CalendarDays,
+  Check,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   CircleDashed,
   Copy,
   ExternalLink,
+  FileText,
+  Hash,
   Home,
   Loader2,
+  MessageSquareText,
   Search,
   ShieldCheck,
   Store,
+  Tag,
   Truck,
   Wrench,
   type LucideIcon,
@@ -28,7 +36,6 @@ import {
   bookCaseAppointment,
   getCase,
   getCases,
-  issueClasses,
   keepCaseCommitment,
   markCaseSent,
   outcomes,
@@ -69,6 +76,61 @@ const routeIcons: Record<string, LucideIcon> = {
   Collection: Truck,
   ProtectionProvider: ShieldCheck,
   ResearchRequired: Search,
+};
+
+/** The problem choices on the report screen (design board 1, step 5), each mapped to the kind of problem routing reads. */
+const problemChoices: {
+  id: string;
+  label: string;
+  issueClass: IssueClassName;
+}[] = [
+  { id: "wont-turn-on", label: "It won't turn on", issueClass: "Fault" },
+  {
+    id: "not-working",
+    label: "It's not working properly",
+    issueClass: "Fault",
+  },
+  {
+    id: "doa",
+    label: "It was faulty from the start",
+    issueClass: "DeadOnArrival",
+  },
+  {
+    id: "damage",
+    label: "It's damaged — dropped, cracked or spilled on",
+    issueClass: "AccidentalDamage",
+  },
+];
+
+/** Timeline headings per event (design board 4: a bold title over KADARI's sentence). */
+const eventTitles: Record<string, string> = {
+  Opened: "Case opened",
+  SafetyStop: "Safety check",
+  RouteFound: "Route found",
+  RouteNeedsResearch: "Being researched",
+  RouteAccepted: "Route confirmed",
+  Sent: "Details sent",
+  ReferenceAdded: "Reference received",
+  ProviderUpdate: "Provider update",
+  CommitmentAdded: "Promise made",
+  CommitmentKept: "Promise kept",
+  AppointmentBooked: "Appointment booked",
+  AppointmentDone: "Appointment done",
+  AppointmentCancelled: "Appointment cancelled",
+  Resolved: "Resolved",
+  Withdrawn: "Case closed",
+};
+
+/** An icon per shared fact on the proof pack checklist (design board 4). */
+const factIcons: Record<string, LucideIcon> = {
+  Brand: Tag,
+  Model: Tag,
+  Issue: MessageSquareText,
+  PurchaseDate: CalendarDays,
+  Retailer: Store,
+  SerialNumber: Barcode,
+  ProofOfPurchase: FileText,
+  Reference: Hash,
 };
 
 /** Case status as a pill (like the coverage state pill): colour plus words, never colour alone. */
@@ -118,12 +180,15 @@ function errorText(cause: unknown, fallback: string) {
 export function CareCases({
   customerId,
   assetId,
+  startReporting = false,
 }: {
   customerId: string;
   assetId: string;
+  /** Open straight on the report screen ("Something's wrong" on the Care page). */
+  startReporting?: boolean;
 }) {
   const queryClient = useQueryClient();
-  const [reporting, setReporting] = useState(false);
+  const [reporting, setReporting] = useState(startReporting);
   const [selected, setSelected] = useState<string | null>(null);
 
   const cases = useQuery({
@@ -188,6 +253,9 @@ export function CareCases({
               className="kd-focus flex w-full items-center gap-(--space-4) rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-(--space-5) text-left shadow-(--shadow-1) hover:bg-(--color-surface-sunken)"
             >
               <span className="flex min-w-0 flex-1 flex-col gap-(--space-1)">
+                <span className="text-xs text-(--color-text-muted)">
+                  Case #{c.reference}
+                </span>
                 <span className="flex flex-wrap items-center gap-(--space-3)">
                   <span className="font-medium">{c.title}</span>
                   <StatusPill
@@ -235,20 +303,21 @@ function ReportIssueForm({
   onCancel: () => void;
   onOpened: (caseId: string) => void;
 }) {
-  const [issueClass, setIssueClass] = useState<IssueClassName>("Fault");
+  const [choice, setChoice] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [unsafe, setUnsafe] = useState(false);
   const [busy, setBusy] = useState(false);
+  const picked = problemChoices.find((p) => p.id === choice);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
-    if (!description.trim()) return;
+    if (!picked || !description.trim()) return;
     setBusy(true);
     try {
       const opened = await reportIssue(
         customerId,
         assetId,
-        issueClass,
+        picked.issueClass,
         description.trim(),
         unsafe,
       );
@@ -265,30 +334,40 @@ function ReportIssueForm({
       onSubmit={submit}
       className="flex flex-col gap-(--space-5) rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-(--space-6) shadow-(--shadow-1)"
     >
-      <h2 className="text-[length:var(--text-h3-size)] leading-(--text-h3-line) font-semibold">
-        What's wrong?
-      </h2>
+      <div className="flex flex-col items-center gap-(--space-3) text-center">
+        <span className="flex size-14 items-center justify-center rounded-full bg-(--color-danger-subtle) text-2xl font-bold text-(--color-danger)">
+          !
+        </span>
+        <h2 className="text-[length:var(--text-h3-size)] leading-(--text-h3-line) font-semibold">
+          Something's wrong with your product?
+        </h2>
+        <p className="text-sm text-(--color-text-muted)">
+          Tell KADARI what happened. You don't need to know how the warranty
+          works.
+        </p>
+      </div>
+
       <fieldset className="flex flex-col gap-(--space-3)">
-        <legend className="sr-only">What kind of problem is it?</legend>
-        {(Object.keys(issueClasses) as IssueClassName[]).map((k) => (
+        <legend className="sr-only">What's happening?</legend>
+        {problemChoices.map((p) => (
           <label
-            key={k}
+            key={p.id}
             className={cn(
               "flex cursor-pointer items-center gap-(--space-4) rounded-(--radius-md) border p-(--space-4) text-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-(--color-focus-ring)",
-              issueClass === k
+              choice === p.id
                 ? "border-(--color-primary) bg-(--color-primary-subtle) font-medium"
                 : "border-(--color-border) bg-(--color-surface) hover:bg-(--color-surface-sunken)",
             )}
           >
             <input
               type="radio"
-              name="issue"
+              name="problem"
               className="sr-only"
-              checked={issueClass === k}
-              onChange={() => setIssueClass(k)}
+              checked={choice === p.id}
+              onChange={() => setChoice(p.id)}
             />
-            <span className="flex-1">{issueClasses[k]}</span>
-            {issueClass === k ? (
+            <span className="flex-1">{p.label}</span>
+            {choice === p.id ? (
               <CheckCircle2
                 className="size-5 text-(--color-primary)"
                 aria-hidden
@@ -302,36 +381,52 @@ function ReportIssueForm({
           </label>
         ))}
       </fieldset>
-      <label className="flex flex-col gap-(--space-2) text-sm font-medium">
-        Describe it in your own words
-        <textarea
-          className={cn(inputClass, "h-28 py-(--space-3)")}
-          maxLength={2000}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="e.g. The drum doesn't spin and it shows E18"
-          required
-        />
-      </label>
-      <label className="flex items-start gap-(--space-3) text-sm">
-        <input
-          type="checkbox"
-          className="kd-focus mt-1 size-4"
-          checked={unsafe}
-          onChange={(e) => setUnsafe(e.target.checked)}
-        />
-        There's smoke, a burning or gas smell, sparks, a shock, overheating or a
-        swollen battery
-      </label>
-      <div className="flex flex-wrap gap-(--space-3)">
-        <KadariButton type="submit" disabled={busy || !description.trim()}>
-          {busy && <Loader2 className="size-4 animate-spin" />}
-          Continue
-        </KadariButton>
-        <KadariButton type="button" variant="secondary" onClick={onCancel}>
-          Cancel
-        </KadariButton>
-      </div>
+
+      {picked && (
+        <>
+          <label className="flex flex-col gap-(--space-2) text-sm font-medium">
+            Describe it in your own words
+            <textarea
+              className={cn(inputClass, "h-28 py-(--space-3)")}
+              maxLength={2000}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="e.g. It's not spinning and making a noise"
+              required
+            />
+          </label>
+          <label className="flex items-start gap-(--space-3) text-sm">
+            <input
+              type="checkbox"
+              className="kd-focus mt-1 size-4"
+              checked={unsafe}
+              onChange={(e) => setUnsafe(e.target.checked)}
+            />
+            There's smoke, a burning or gas smell, sparks, a shock, overheating
+            or a swollen battery
+          </label>
+        </>
+      )}
+
+      <KadariButton
+        type="submit"
+        className="w-full"
+        disabled={busy || !picked || !description.trim()}
+      >
+        {busy ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <Wrench className="size-4" aria-hidden />
+        )}
+        Report an issue
+      </KadariButton>
+      <button
+        type="button"
+        onClick={onCancel}
+        className="kd-focus self-center text-sm font-medium text-(--color-text-link) hover:underline"
+      >
+        Cancel
+      </button>
     </form>
   );
 }
@@ -389,11 +484,18 @@ function CaseDetail({
 
   return (
     <div className="flex flex-col gap-(--space-6)">
-      {back}
-      <div className="flex flex-wrap items-start justify-between gap-(--space-3)">
-        <h2 className="text-[length:var(--text-h3-size)] leading-(--text-h3-line) font-semibold">
-          {c.title}
-        </h2>
+      <div className="flex items-center justify-between gap-(--space-3)">
+        <button
+          type="button"
+          onClick={onBack}
+          className="kd-focus flex items-center gap-(--space-2) text-[length:var(--text-h3-size)] leading-(--text-h3-line) font-semibold"
+        >
+          <ChevronLeft className="size-5" aria-hidden />
+          <span>
+            Case #{c.reference}
+            <span className="sr-only"> — back to all problems</span>
+          </span>
+        </button>
         <StatusPill
           status={c.status}
           label={c.statusLabel}
@@ -401,30 +503,12 @@ function CaseDetail({
         />
       </div>
 
-      {c.outcome && (
-        <div
-          className={cn(
-            "flex items-start gap-(--space-4) rounded-(--radius-lg) border p-(--space-5) shadow-(--shadow-1)",
-            c.status === "Resolved"
-              ? "border-(--color-success) bg-(--color-success-subtle)"
-              : "border-(--color-border-strong) bg-(--color-surface-sunken)",
-          )}
-        >
-          <CheckCircle2
-            className="mt-(--space-1) size-6 shrink-0"
-            aria-hidden
-          />
-          <div>
-            <p className="font-semibold">
-              {c.status === "Resolved" ? "Resolved — " : "Closed — "}
-              {outcomes[c.outcome as keyof typeof outcomes] ?? c.outcome}
-            </p>
-            <p className="text-sm">
-              {c.outcomeNotes ?? "Saved to this item's history."}
-            </p>
-          </div>
-        </div>
-      )}
+      <div>
+        <p className="text-xs font-medium text-(--color-text-muted)">
+          You reported
+        </p>
+        <p className="font-medium">{c.title}</p>
+      </div>
 
       {c.safetyGuidance && (
         <div
@@ -441,13 +525,23 @@ function CaseDetail({
         </div>
       )}
 
-      <Block title="Where this goes">
-        <RouteHeading routeType={c.route.routeType}>
-          {c.route.needsRoute
-            ? "Being researched"
-            : c.route.label.charAt(0).toUpperCase() + c.route.label.slice(1)}
-          {c.route.targetName && ` — ${c.route.targetName}`}
-        </RouteHeading>
+      <Block
+        title={
+          c.route.needsRoute
+            ? "KADARI is finding the right place"
+            : "KADARI chooses the best route"
+        }
+      >
+        <RouteRow
+          routeType={c.route.routeType}
+          label={
+            c.route.needsRoute
+              ? "Being researched"
+              : c.route.label.charAt(0).toUpperCase() + c.route.label.slice(1)
+          }
+          target={c.route.targetName}
+          highlighted={!c.route.needsRoute}
+        />
         <p className="text-sm text-(--color-text-muted)">
           {confidenceNote[c.route.confidence]}
         </p>
@@ -604,24 +698,83 @@ function CaseDetail({
         </Block>
       )}
 
-      <Block title="Timeline">
-        <ol className="flex flex-col gap-(--space-4)">
-          {c.timeline.map((e, i) => (
-            <li key={i} className="flex gap-(--space-3)">
-              <CheckCircle2
-                className="mt-(--space-1) size-4 shrink-0 text-(--color-success)"
-                aria-hidden
-              />
-              <span className="flex flex-col gap-(--space-1)">
-                <span className="text-xs text-(--color-text-muted)">
-                  {dateTime.format(new Date(e.occurredAt))}
+      <Block title="Case timeline">
+        <ol className="flex flex-col">
+          {c.timeline.map((e, i) => {
+            const last = i === c.timeline.length - 1;
+            const safety = e.type === "SafetyStop";
+            return (
+              <li key={i} className="flex gap-(--space-4)">
+                <span className="flex flex-col items-center">
+                  <span
+                    className={cn(
+                      "flex size-7 shrink-0 items-center justify-center rounded-full text-white",
+                      safety ? "bg-(--color-danger)" : "bg-(--color-success)",
+                    )}
+                  >
+                    {safety ? (
+                      <AlertTriangle className="size-4" aria-hidden />
+                    ) : (
+                      <Check className="size-4" aria-hidden />
+                    )}
+                  </span>
+                  {!last && (
+                    <span className="w-0.5 flex-1 bg-(--color-success-subtle)" />
+                  )}
                 </span>
-                <span className="text-sm font-medium">{e.summary}</span>
-              </span>
-            </li>
-          ))}
+                <span
+                  className={cn(
+                    "flex flex-col gap-(--space-1)",
+                    !last && "pb-(--space-5)",
+                  )}
+                >
+                  <span className="text-xs text-(--color-text-muted)">
+                    {dateTime.format(new Date(e.occurredAt))}
+                  </span>
+                  <span className="text-sm font-semibold">
+                    {eventTitles[e.type] ?? e.type}
+                  </span>
+                  <span className="text-sm text-(--color-text-muted)">
+                    {e.summary}
+                  </span>
+                </span>
+              </li>
+            );
+          })}
         </ol>
       </Block>
+
+      {c.outcome && (
+        <div
+          className={cn(
+            "flex items-center gap-(--space-4) rounded-(--radius-lg) border p-(--space-5) shadow-(--shadow-1)",
+            c.status === "Resolved"
+              ? "border-(--color-success) bg-(--color-success-subtle)"
+              : "border-(--color-border-strong) bg-(--color-surface-sunken)",
+          )}
+        >
+          <span
+            className={cn(
+              "flex size-11 shrink-0 items-center justify-center rounded-full text-white",
+              c.status === "Resolved"
+                ? "bg-(--color-success)"
+                : "bg-(--color-text-muted)",
+            )}
+          >
+            <Check className="size-6" aria-hidden />
+          </span>
+          <div>
+            <p className="text-[length:var(--text-h3-size)] leading-(--text-h3-line) font-semibold">
+              {c.status === "Resolved" ? "Resolved" : "Closed"}
+            </p>
+            <p className="text-sm">
+              {outcomes[c.outcome as keyof typeof outcomes] ?? c.outcome}
+              {c.outcomeNotes ? ` — ${c.outcomeNotes}` : ""}. Saved to this
+              item's history.
+            </p>
+          </div>
+        </div>
+      )}
 
       {open && (
         <KadariButton
@@ -688,35 +841,44 @@ function SendPack({
 
   const handoff = pack.handoff;
   return (
-    <Block title="Send it">
-      <p className="text-sm font-medium">
-        {detail.route.targetName ?? "The provider"} will receive only:
+    <Block title="KADARI builds the proof pack">
+      <p className="text-sm text-(--color-text-muted)">
+        {detail.route.targetName ?? "The provider"} will receive only this:
       </p>
-      <ul className="flex flex-col gap-(--space-2) text-sm">
-        {pack.shared.map((f, i) => (
-          <li
-            key={`${f.field}-${i}`}
-            className="flex items-start gap-(--space-3)"
-          >
-            {f.value ? (
-              <CheckCircle2
-                className="mt-0.5 size-4 shrink-0 text-(--color-success)"
+      <ul className="flex flex-col divide-y divide-(--color-border) rounded-(--radius-md) border border-(--color-border) text-sm">
+        {pack.shared.map((f, i) => {
+          const Icon = factIcons[f.field] ?? Tag;
+          return (
+            <li
+              key={`${f.field}-${i}`}
+              className="flex items-center gap-(--space-4) px-(--space-4) py-(--space-3)"
+            >
+              <Icon
+                className="size-4 shrink-0 text-(--color-text-muted)"
                 aria-hidden
               />
-            ) : (
-              <CircleDashed
-                className="mt-0.5 size-4 shrink-0 text-(--color-text-muted)"
-                aria-hidden
-              />
-            )}
-            <span>
-              {f.label}:{" "}
-              {f.field === "Issue"
-                ? "your description"
-                : (f.value ?? <em>not recorded yet</em>)}
-            </span>
-          </li>
-        ))}
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="font-medium">{f.label}</span>
+                <span className="text-xs text-(--color-text-muted)">
+                  {f.field === "Issue"
+                    ? "Your description"
+                    : (f.value ?? "Not recorded yet")}
+                </span>
+              </span>
+              {f.value ? (
+                <CheckCircle2
+                  className="size-5 shrink-0 text-(--color-success)"
+                  aria-label="Included"
+                />
+              ) : (
+                <CircleDashed
+                  className="size-5 shrink-0 text-(--color-text-muted)"
+                  aria-label="Missing"
+                />
+              )}
+            </li>
+          );
+        })}
       </ul>
       <pre className="max-h-48 overflow-auto rounded-(--radius-md) bg-(--color-surface-sunken) p-(--space-4) text-xs whitespace-pre-wrap">
         {pack.message}
@@ -1023,21 +1185,39 @@ function MiniForm({
   );
 }
 
-function RouteHeading({
+function RouteRow({
   routeType,
-  children,
+  label,
+  target,
+  highlighted,
 }: {
   routeType: string;
-  children: ReactNode;
+  label: string;
+  target?: string | null;
+  highlighted: boolean;
 }) {
   const Icon = routeIcons[routeType] ?? Search;
   return (
-    <p className="flex items-center gap-(--space-3) font-medium">
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-(--radius-md) bg-(--color-primary-subtle) text-(--color-on-primary-subtle)">
-        <Icon className="size-5" aria-hidden />
+    <div
+      className={cn(
+        "flex items-center gap-(--space-4) rounded-(--radius-md) border p-(--space-4)",
+        highlighted
+          ? "border-(--color-primary) bg-(--color-primary-subtle)"
+          : "border-(--color-border)",
+      )}
+    >
+      <Icon className="size-6 shrink-0" aria-hidden />
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="font-medium">{label}</span>
+        {target && (
+          <span className="text-sm text-(--color-text-muted)">{target}</span>
+        )}
       </span>
-      <span>{children}</span>
-    </p>
+      <ChevronRight
+        className="size-4 shrink-0 text-(--color-text-muted)"
+        aria-hidden
+      />
+    </div>
   );
 }
 

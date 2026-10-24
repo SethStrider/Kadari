@@ -27,12 +27,8 @@ public static class CasePack
     public static CasePackDto For(Asset asset, AssetCase @case)
     {
         var facts = asset.LatestPurchase?.Purchase;
-        var serial = asset.Evidence
-            .Where(e => e.Kind == AssetEvidenceKind.Ownership && e.Source == "serial" && e.Reference != null)
-            .OrderByDescending(e => e.AssertedAt)
-            .Select(e => e.Reference)
-            .FirstOrDefault();
-        var receiptHeld = asset.Evidence.Any(e => e.Kind == AssetEvidenceKind.Ownership && e.Source == "receipt" && e.Reference != null);
+        var serial = AssetFacts.SerialOf(asset);
+        var receiptHeld = AssetFacts.ReceiptHeld(asset);
 
         var shared = new List<SharedFieldDto>
         {
