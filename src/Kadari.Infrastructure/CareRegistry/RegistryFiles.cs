@@ -17,6 +17,9 @@ public sealed class RegistryFilesOptions
     /// <summary>KADARI's own researched registration rules (<c>docs/care/registry/registration-rules.csv</c>).</summary>
     public string RegistrationRulesFile { get; set; } = Path.Combine(AppContext.BaseDirectory, "registry", "registration-rules.csv");
 
+    /// <summary>KADARI's own researched routing rules (<c>docs/care/registry/routing-rules.csv</c>).</summary>
+    public string RoutingRulesFile { get; set; } = Path.Combine(AppContext.BaseDirectory, "registry", "routing-rules.csv");
+
     /// <summary>When the workbook research was done (CARE/16 is dated 2026-10-06). The workbook gives no per-row
     /// retrieval date, so this is what the sources record.</summary>
     public DateTimeOffset ResearchedAt { get; set; } = new(2026, 10, 6, 0, 0, 0, TimeSpan.Zero);
@@ -46,6 +49,7 @@ public static class RegistryFiles
         var routing = await ReadAsync(Path.Combine(options.ResearchDirectory, RoutingModels), required: true, ct);
         var rules = await ReadAsync(options.CoverageRulesFile, required: false, ct);
         var registrations = await ReadAsync(options.RegistrationRulesFile, required: false, ct);
+        var routes = await ReadAsync(options.RoutingRulesFile, required: false, ct);
 
         return new RegistrySnapshot(
             options.ResearchedAt,
@@ -68,7 +72,12 @@ public static class RegistryFiles
             registrations.Select(r => new RegistrationRuleRow(
                 r.Line, r["RuleKey"] ?? "", r["Country"], r["Brand"], r["Category"], r["Model"], r["Mode"], r["DestinationType"],
                 r["Destination"], r["RequiredFields"], r["DeadlineDays"], r["ExtensionMonths"], r["Benefit"], r["Instructions"],
-                r["Confidence"], r["SourceTitle"], r["SourceUrl"], r["LastVerified"], r["Status"])).ToList());
+                r["Confidence"], r["SourceTitle"], r["SourceUrl"], r["LastVerified"], r["Status"])).ToList(),
+            routes.Select(r => new RoutingRuleRow(
+                r.Line, r["RuleKey"] ?? "", r["Country"], r["Brand"], r["Category"], r["Model"], r["Retailer"], r["Coverage"],
+                r["IssueClass"], r["RouteType"], r["RoutingModel"], r["Target"], r["ChannelType"], r["Channel"],
+                r["RequiredEvidence"], r["Instructions"], r["Priority"], r["Confidence"], r["SourceTitle"], r["SourceUrl"],
+                r["LastVerified"], r["Status"])).ToList());
     }
 
     private static async Task<IReadOnlyList<CsvTable.Row>> ReadAsync(string path, bool required, CancellationToken ct)

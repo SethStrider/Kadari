@@ -14,7 +14,8 @@ public sealed record RegistrySnapshot(
     IReadOnlyList<RetailerRow> Retailers,
     IReadOnlyList<RoutingModelRow> RoutingModels,
     IReadOnlyList<CoverageRuleRow> CoverageRules,
-    IReadOnlyList<RegistrationRuleRow>? RegistrationRules = null);
+    IReadOnlyList<RegistrationRuleRow>? RegistrationRules = null,
+    IReadOnlyList<RoutingRuleRow>? RoutingRules = null);
 
 public sealed record BrandRow(
     int Line,
@@ -89,6 +90,32 @@ public sealed record RegistrationRuleRow(
     string? ExtensionMonths,
     string? Benefit,
     string? Instructions,
+    string? Confidence,
+    string? SourceTitle,
+    string? SourceUrl,
+    string? LastVerified,
+    string? Status);
+
+/// <summary>One researched routing rule — where a kind of problem goes. <see cref="RuleKey"/> is the stable logical
+/// name ("hisense-small-appliance-fault"); a changed row becomes a new version of the same rule.</summary>
+public sealed record RoutingRuleRow(
+    int Line,
+    string RuleKey,
+    string? Country,
+    string? Brand,
+    string? Category,
+    string? Model,
+    string? Retailer,
+    string? Coverage,
+    string? IssueClass,
+    string? RouteType,
+    string? RoutingModel,
+    string? Target,
+    string? ChannelType,
+    string? Channel,
+    string? RequiredEvidence,
+    string? Instructions,
+    string? Priority,
     string? Confidence,
     string? SourceTitle,
     string? SourceUrl,

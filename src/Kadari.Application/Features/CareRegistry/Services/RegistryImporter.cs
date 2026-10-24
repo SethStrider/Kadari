@@ -41,12 +41,14 @@ internal sealed class RegistryImporter(IKadariDbContext db, TimeProvider clock)
         var routing = await Load<RoutingModel>().ToDictionaryAsync(r => r.Code, ct);
         var rules = (await Load<CoverageRuleVersion>().ToListAsync(ct)).ToLookup(r => r.LogicalRuleId);
         var registrationRules = (await Load<RegistrationRuleVersion>().ToListAsync(ct)).ToLookup(r => r.LogicalRuleId);
+        var routingRules = (await Load<RoutingRuleVersion>().ToListAsync(ct)).ToLookup(r => r.LogicalRuleId);
 
         ImportBrands(run, snapshot, brands, sources);
         ImportRetailers(run, snapshot, retailers, sources);
         ImportRoutingModels(run, snapshot, routing);
         ImportCoverageRules(run, snapshot, brands, retailers, sources, rules);
         ImportRegistrationRules(run, snapshot, brands, sources, registrationRules);
+        ImportRoutingRules(run, snapshot, brands, retailers, routing, sources, routingRules);
 
         return new RegistryImportPlan(run.Changes, run.Errors);
     }
@@ -367,6 +369,143 @@ internal sealed class RegistryImporter(IKadariDbContext db, TimeProvider clock)
             }
 
             db.Set<RegistrationRuleVersion>().Add(candidate);
+            if (status == RuleStatus.Published)
+            {
+                foreach (var live in versions.Where(v => v.Status is RuleStatus.Published or RuleStatus.Stale))
+                {
+                    live.Supersede(run.Now);
+                }
+
+                candidate.Publish(run.Now);
+            }
+        }
+    }
+
+    private void ImportRoutingRules(
+        Run run, RegistrySnapshot snapshot, Dictionary<string, Brand> brands, Dictionary<string, Retailer> retailers,
+        Dictionary<string, RoutingModel> routingModels, Dictionary<SourceEvidenceId, SourceEvidence> sources,
+        ILookup<Guid, RoutingRuleVersion> existing)
+    {
+        var seen = new HashSet<string>();
+        foreach (var row in snapshot.RoutingRules ?? [])
+        {
+            var key = row.RuleKey?.Trim().ToLowerInvariant() ?? "";
+            if (key.Length == 0 || !seen.Add(key))
+            {
+                run.Error(row.Line, "routing rules", $"Rule key '{row.RuleKey}' is blank or listed twice.");
+                continue;
+            }
+
+            Brand? brand = null;
+            if (!string.IsNullOrWhiteSpace(row.Brand) && (!TrySlug(row.Brand, out var brandSlug) || !brands.TryGetValue(brandSlug, out brand)))
+            {
+                run.Error(row.Line, "routing rules", $"Brand '{row.Brand}' is not in the registry.");
+                continue;
+            }
+
+            Retailer? retailer = null;
+            if (!string.IsNullOrWhiteSpace(row.Retailer) && (!TrySlug(row.Retailer, out var retailerSlug) || !retailers.TryGetValue(retailerSlug, out retailer)))
+            {
+                run.Error(row.Line, "routing rules", $"Retailer '{row.Retailer}' is not in the registry.");
+                continue;
+            }
+
+            var routingCode = string.IsNullOrWhiteSpace(row.RoutingModel) ? null : row.RoutingModel.Trim().ToUpperInvariant();
+            if (routingCode is not null && !routingModels.ContainsKey(routingCode))
+            {
+                run.Error(row.Line, "routing rules", $"Routing model '{row.RoutingModel}' is not in the registry.");
+                continue;
+            }
+
+            var category = ParseEnum<CareCategory>(row.Category);
+            var coverage = string.IsNullOrWhiteSpace(row.Coverage) ? RouteCoverage.Any : ParseEnum<RouteCoverage>(row.Coverage);
+            var issue = string.IsNullOrWhiteSpace(row.IssueClass) ? IssueClass.Any : ParseEnum<IssueClass>(row.IssueClass);
+            var routeType = ParseEnum<RouteType>(row.RouteType);
+            var channelType = ParseEnum<ContactChannelType>(row.ChannelType);
+            var confidence = ParseEnum<RegistryConfidence>(row.Confidence);
+            var status = string.IsNullOrWhiteSpace(row.Status) ? RuleStatus.Draft : ParseEnum<RuleStatus>(row.Status);
+            var evidence = (row.RequiredEvidence ?? "").Split([';', '|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(ParseEnum<RouteEvidence>).ToList();
+
+            if ((!string.IsNullOrWhiteSpace(row.Category) && category is null) || coverage is null || issue is null
+                || routeType is null || channelType is null || confidence is null || evidence.Any(e => e is null)
+                || status is not (RuleStatus.Draft or RuleStatus.Published or RuleStatus.Retired)
+                || !TryInt(row.Priority, out var priority) || !TryDate(row.LastVerified, out var verified) || verified is null
+                || string.IsNullOrWhiteSpace(row.SourceTitle))
+            {
+                run.Error(row.Line, "routing rules",
+                    "Category, coverage, issue class, route type, channel type, evidence, confidence, status, Priority, LastVerified or SourceTitle is not valid.");
+                continue;
+            }
+
+            var source = Source(run, sources, row.SourceUrl, row.SourceTitle,
+                string.IsNullOrWhiteSpace(row.SourceUrl) ? SourceType.Document : SourceType.WebPage, row.Line, row.SourceTitle);
+            if (source is null)
+            {
+                continue;
+            }
+
+            var logical = DeterministicGuid.From($"{IdPrefix}routing-rule:{key}");
+            var versions = existing[logical].OrderBy(v => v.Version).ToList();
+            var latest = versions.LastOrDefault();
+            var next = (latest?.Version ?? 0) + 1;
+
+            RoutingRuleVersion candidate;
+            try
+            {
+                candidate = RoutingRuleVersion.Draft(
+                    new RoutingRuleVersionId(DeterministicGuid.From($"{IdPrefix}routing-rule:{key}:v{next}")), logical, next,
+                    string.IsNullOrWhiteSpace(row.Country) ? snapshot.CountryCode : row.Country,
+                    brand?.Id, category, row.Model, retailer?.Id, coverage.Value, issue.Value, routeType.Value, routingCode,
+                    row.Target ?? "", channelType.Value, row.Channel, evidence.Select(e => e!.Value), row.Instructions ?? "",
+                    priority ?? 100, confidence.Value, source.Value,
+                    new DateTimeOffset(verified.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero));
+            }
+            catch (Exception ex) when (ex is DomainException or ArgumentException)
+            {
+                run.Error(row.Line, "routing rules", ex.Message);
+                continue;
+            }
+
+            var latestIsLive = latest?.Status is RuleStatus.Published or RuleStatus.Stale;
+            var unchanged = latest is not null && candidate.HasSameContentAs(latest) && status switch
+            {
+                RuleStatus.Published => latestIsLive,
+                RuleStatus.Retired => latest.Status == RuleStatus.Retired,
+                _ => latest.Status == RuleStatus.Draft,
+            };
+
+            var detail = $"v{(unchanged ? latest!.Version : next)}|{status}|{candidate.RouteType}|{candidate.Coverage}|{candidate.IssueClass}";
+            if (unchanged)
+            {
+                run.Change(RegistryEntity.RoutingRule, key, RegistryAction.Unchanged, detail);
+                continue;
+            }
+
+            if (status == RuleStatus.Retired)
+            {
+                if (latest is null)
+                {
+                    run.Error(row.Line, "routing rules", "There is no rule to retire.");
+                    continue;
+                }
+
+                run.Change(RegistryEntity.RoutingRule, key, RegistryAction.Update, $"v{latest.Version}|Retired");
+                if (run.Apply)
+                {
+                    latest.Retire(run.Now);
+                }
+
+                continue;
+            }
+
+            run.Change(RegistryEntity.RoutingRule, key, latest is null ? RegistryAction.Add : RegistryAction.NewVersion, detail);
+            if (!run.Apply)
+            {
+                continue;
+            }
+
+            db.Set<RoutingRuleVersion>().Add(candidate);
             if (status == RuleStatus.Published)
             {
                 foreach (var live in versions.Where(v => v.Status is RuleStatus.Published or RuleStatus.Stale))

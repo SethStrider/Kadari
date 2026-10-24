@@ -11,6 +11,7 @@ public enum RegistryEntity
     RoutingModel,
     CoverageRule,
     RegistrationRule,
+    RoutingRule,
 }
 
 public enum RegistryAction

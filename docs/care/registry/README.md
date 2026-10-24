@@ -54,3 +54,32 @@ the workbook's `04_WARRANTY_AUTOMATION.csv` lists leads ("research exact model r
 | `Benefit` | yes | The sentence the owner reads, e.g. "Register within 28 days to add 2 years to your motor warranty." |
 | `Instructions` | no | Steps on the official site. |
 | `Confidence`, `SourceTitle`, `SourceUrl`, `LastVerified`, `Status` | as for coverage rules | |
+
+---
+
+# Routing rules
+
+`routing-rules.csv` says where a problem goes ("Something's wrong", CARE/14 C8). It ships **empty** for the same
+reason as the coverage rules: the workbook's `03_ROUTING_MODELS.csv` describes the ten kinds of route, not which brand
+or retailer uses which. Until it holds researched rows every report reads "a person will find the right place" and
+goes to Care Ops — the engine never guesses.
+
+The most specific matching rules win (model → brand + category → brand → retailer + category), then the lowest
+`Priority`. If the winners still name different routes, the answer is "research required", never a pick.
+
+| Column | Required | Values |
+|---|---|---|
+| `RuleKey` | yes | A stable name, e.g. `hisense-small-appliance-fault`. |
+| `Country` | no | Default `ZA`. |
+| `Brand`, `Category`, `Model`, `Retailer` | as for coverage rules | A rule without a brand needs a retailer and a category. |
+| `Coverage` | no | `Any` (default), `InCover`, `OutOfCover`. A cover-dependent rule never applies while the cover is unknown. |
+| `IssueClass` | no | `Any` (default), `Fault`, `AccidentalDamage`, `DeadOnArrival`. |
+| `RouteType` | yes | `RetailerReturn`, `RetailerCredit`, `OemDirect`, `WarrantyAdmin`, `AuthorisedService`, `Onsite`, `CarryIn`, `Collection`, `ProtectionProvider`. |
+| `RoutingModel` | no | A code from `03_ROUTING_MODELS.csv` (`R1`…). |
+| `Target` | yes | Who the owner deals with, e.g. "Bosch Home Service". |
+| `ChannelType` | yes | `WebPage` (must be https), `Email`, `Phone`, `WhatsApp`, `InStore`. |
+| `Channel` | unless `InStore` | The page, address or number. |
+| `RequiredEvidence` | no | `;`-separated: `ProofOfPurchase;SerialNumber;FaultPhoto;FaultVideo;ErrorCode;InstallationCertificate`. |
+| `Instructions` | yes | What the owner does, in a sentence or two. |
+| `Priority` | no | 0–1000, lower wins; default 100. |
+| `Confidence`, `SourceTitle`, `SourceUrl`, `LastVerified`, `Status` | as for coverage rules | Only `High`/`Verified`, current rules give a green (go-ahead) route. |

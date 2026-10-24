@@ -119,4 +119,29 @@ public sealed class RegistryImportTests(PostgresFixture fixture) : InfraTest(fix
              new { Version = 2, Status = RuleStatus.Published, DurationMonths = (int?)36 }],
             versions);
     }
+
+    [Fact]
+    public async Task ARoutingRule_ImportsPublishedAndAnEditBecomesTheNextVersion()
+    {
+        await ImportAsync(ConnectionString, Snapshot() with { RoutingRules = [HisenseRoute()] });
+
+        await ImportAsync(ConnectionString, Snapshot() with { RoutingRules = [HisenseRoute(route: "RetailerReturn")] });
+
+        await using var db = NewContext(ConnectionString);
+        var versions = await db.Set<RoutingRuleVersion>().OrderBy(v => v.Version)
+            .Select(v => new { v.Version, v.Status, v.RouteType }).ToListAsync();
+        Assert.Equal(
+            [new { Version = 1, Status = RuleStatus.Superseded, RouteType = RouteType.RetailerCredit },
+             new { Version = 2, Status = RuleStatus.Published, RouteType = RouteType.RetailerReturn }],
+            versions);
+    }
+
+    [Fact]
+    public async Task ARoutingRuleForAnUnknownRetailer_IsAnError()
+    {
+        await using var db = NewContext(ConnectionString);
+        var plan = await Sender(db).Send(new PreviewRegistryImportQuery(Snapshot() with { RoutingRules = [HisenseRoute(retailer: "Nowhere")] }));
+
+        Assert.Contains(plan.Errors, e => e.Contains("Nowhere"));
+    }
 }

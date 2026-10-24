@@ -76,6 +76,11 @@ internal static class CareTestHost
             "Register within 28 days to add a year to your warranty.", "Sign in to MyBosch and add the appliance.", "High",
             "MyBosch registration terms", "https://www.bosch-home.com/za/mybosch/terms", "2026-10-01", status);
 
+    public static RoutingRuleRow HisenseRoute(string route = "RetailerCredit", string status = "Published", string retailer = "Makro") =>
+        new(2, "hisense-small-appliance-fault", null, "Hisense", "SmallAppliance", null, retailer, "InCover", "Fault", route, "R1",
+            "The store you bought it from", "InStore", null, "ProofOfPurchase", "Take it back to the store with the receipt.", "10",
+            "High", "Hisense SA warranty page", "https://hisense.co.za/support", "2026-10-01", status);
+
     public static RegistrySnapshot SnapshotWith(IReadOnlyList<CoverageRuleRow> rules, IReadOnlyList<RegistrationRuleRow> registrations) =>
         Snapshot([.. rules]) with { RegistrationRules = registrations };
 
