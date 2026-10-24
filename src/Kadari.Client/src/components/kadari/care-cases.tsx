@@ -1,6 +1,22 @@
 import { useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, Copy, ExternalLink, Loader2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Building2,
+  CheckCircle2,
+  ChevronRight,
+  CircleDashed,
+  Copy,
+  ExternalLink,
+  Home,
+  Loader2,
+  Search,
+  ShieldCheck,
+  Store,
+  Truck,
+  Wrench,
+  type LucideIcon,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { formatCareDate } from "@/components/kadari/care-format";
@@ -40,6 +56,56 @@ const confidenceNote: Record<string, string> = {
   Amber: "Likely route — check it suits you before going ahead.",
   Red: "A KADARI Care specialist will find the right place for this.",
 };
+
+/** An icon per route, as on the design boards — the label always says it in words too. */
+const routeIcons: Record<string, LucideIcon> = {
+  RetailerReturn: Store,
+  RetailerCredit: Store,
+  OemDirect: Building2,
+  WarrantyAdmin: ShieldCheck,
+  AuthorisedService: Wrench,
+  CarryIn: Wrench,
+  Onsite: Home,
+  Collection: Truck,
+  ProtectionProvider: ShieldCheck,
+  ResearchRequired: Search,
+};
+
+/** Case status as a pill (like the coverage state pill): colour plus words, never colour alone. */
+function statusTone(status: string, outcome?: string | null) {
+  if (status === "Resolved")
+    return "border-(--color-success) bg-(--color-success-subtle)";
+  if (
+    status === "Rejected" ||
+    status === "ClosedWithdrawn" ||
+    outcome === "Rejected"
+  )
+    return "border-(--color-border-strong) bg-(--color-surface-sunken)";
+  if (status === "WaitingCustomer")
+    return "border-(--color-warning) bg-(--color-warning-subtle)";
+  return "border-(--color-info) bg-(--color-info-subtle)";
+}
+
+function StatusPill({
+  status,
+  label,
+  outcome,
+}: {
+  status: string;
+  label: string;
+  outcome?: string | null;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex shrink-0 items-center rounded-(--radius-pill) border px-(--space-3) py-(--space-1) text-xs font-medium",
+        statusTone(status, outcome),
+      )}
+    >
+      {label.charAt(0).toUpperCase() + label.slice(1)}
+    </span>
+  );
+}
 
 function errorText(cause: unknown, fallback: string) {
   return cause instanceof Error ? cause.message : fallback;
@@ -99,6 +165,7 @@ export function CareCases({
           className="self-start"
           onClick={() => setReporting(true)}
         >
+          <Wrench className="size-4" aria-hidden />
           Something's wrong
         </KadariButton>
       )}
@@ -118,24 +185,37 @@ export function CareCases({
             <button
               type="button"
               onClick={() => setSelected(c.caseId)}
-              className="kd-focus flex w-full flex-col gap-(--space-1) rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-(--space-5) text-left hover:bg-(--color-surface-sunken)"
+              className="kd-focus flex w-full items-center gap-(--space-4) rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-(--space-5) text-left shadow-(--shadow-1) hover:bg-(--color-surface-sunken)"
             >
-              <span className="font-medium">{c.title}</span>
-              <span className="text-sm text-(--color-text-muted)">
-                {c.statusLabel.charAt(0).toUpperCase() + c.statusLabel.slice(1)}{" "}
-                · opened {dateTime.format(new Date(c.openedAt))}
-                {c.nextActionOn && ` · next: ${formatCareDate(c.nextActionOn)}`}
-              </span>
-              {c.hasOverduePromise && (
-                <span className="text-sm font-medium text-(--color-danger)">
-                  A promised reply is overdue
+              <span className="flex min-w-0 flex-1 flex-col gap-(--space-1)">
+                <span className="flex flex-wrap items-center gap-(--space-3)">
+                  <span className="font-medium">{c.title}</span>
+                  <StatusPill
+                    status={c.status}
+                    label={c.statusLabel}
+                    outcome={c.outcome}
+                  />
                 </span>
-              )}
-              {c.needsRoute && !c.outcome && (
                 <span className="text-sm text-(--color-text-muted)">
-                  A KADARI Care specialist is finding the right place.
+                  Opened {dateTime.format(new Date(c.openedAt))}
+                  {c.nextActionOn &&
+                    ` · next: ${formatCareDate(c.nextActionOn)}`}
                 </span>
-              )}
+                {c.hasOverduePromise && (
+                  <span className="text-sm font-medium text-(--color-danger)">
+                    A promised reply is overdue
+                  </span>
+                )}
+                {c.needsRoute && !c.outcome && (
+                  <span className="text-sm text-(--color-text-muted)">
+                    A KADARI Care specialist is finding the right place.
+                  </span>
+                )}
+              </span>
+              <ChevronRight
+                className="size-4 shrink-0 text-(--color-text-muted)"
+                aria-hidden
+              />
             </button>
           </li>
         ))}
@@ -183,20 +263,42 @@ function ReportIssueForm({
   return (
     <form
       onSubmit={submit}
-      className="flex flex-col gap-(--space-5) rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-(--space-6)"
+      className="flex flex-col gap-(--space-5) rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-(--space-6) shadow-(--shadow-1)"
     >
-      <h3 className="font-semibold">What's wrong?</h3>
+      <h2 className="text-[length:var(--text-h3-size)] leading-(--text-h3-line) font-semibold">
+        What's wrong?
+      </h2>
       <fieldset className="flex flex-col gap-(--space-3)">
+        <legend className="sr-only">What kind of problem is it?</legend>
         {(Object.keys(issueClasses) as IssueClassName[]).map((k) => (
-          <label key={k} className="flex items-start gap-(--space-3) text-sm">
+          <label
+            key={k}
+            className={cn(
+              "flex cursor-pointer items-center gap-(--space-4) rounded-(--radius-md) border p-(--space-4) text-sm has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-(--color-focus-ring)",
+              issueClass === k
+                ? "border-(--color-primary) bg-(--color-primary-subtle) font-medium"
+                : "border-(--color-border) bg-(--color-surface) hover:bg-(--color-surface-sunken)",
+            )}
+          >
             <input
               type="radio"
               name="issue"
-              className="kd-focus mt-1"
+              className="sr-only"
               checked={issueClass === k}
               onChange={() => setIssueClass(k)}
             />
-            {issueClasses[k]}
+            <span className="flex-1">{issueClasses[k]}</span>
+            {issueClass === k ? (
+              <CheckCircle2
+                className="size-5 text-(--color-primary)"
+                aria-hidden
+              />
+            ) : (
+              <ChevronRight
+                className="size-4 text-(--color-text-muted)"
+                aria-hidden
+              />
+            )}
           </label>
         ))}
       </fieldset>
@@ -288,16 +390,41 @@ function CaseDetail({
   return (
     <div className="flex flex-col gap-(--space-6)">
       {back}
-      <div>
-        <h3 className="text-[length:var(--text-h3-size)] leading-(--text-h3-line) font-semibold">
+      <div className="flex flex-wrap items-start justify-between gap-(--space-3)">
+        <h2 className="text-[length:var(--text-h3-size)] leading-(--text-h3-line) font-semibold">
           {c.title}
-        </h3>
-        <p className="text-sm text-(--color-text-muted)">
-          {c.statusLabel.charAt(0).toUpperCase() + c.statusLabel.slice(1)}
-          {c.outcome &&
-            ` — ${outcomes[c.outcome as keyof typeof outcomes] ?? c.outcome}`}
-        </p>
+        </h2>
+        <StatusPill
+          status={c.status}
+          label={c.statusLabel}
+          outcome={c.outcome}
+        />
       </div>
+
+      {c.outcome && (
+        <div
+          className={cn(
+            "flex items-start gap-(--space-4) rounded-(--radius-lg) border p-(--space-5) shadow-(--shadow-1)",
+            c.status === "Resolved"
+              ? "border-(--color-success) bg-(--color-success-subtle)"
+              : "border-(--color-border-strong) bg-(--color-surface-sunken)",
+          )}
+        >
+          <CheckCircle2
+            className="mt-(--space-1) size-6 shrink-0"
+            aria-hidden
+          />
+          <div>
+            <p className="font-semibold">
+              {c.status === "Resolved" ? "Resolved — " : "Closed — "}
+              {outcomes[c.outcome as keyof typeof outcomes] ?? c.outcome}
+            </p>
+            <p className="text-sm">
+              {c.outcomeNotes ?? "Saved to this item's history."}
+            </p>
+          </div>
+        </div>
+      )}
 
       {c.safetyGuidance && (
         <div
@@ -315,12 +442,12 @@ function CaseDetail({
       )}
 
       <Block title="Where this goes">
-        <p className="font-medium">
+        <RouteHeading routeType={c.route.routeType}>
           {c.route.needsRoute
             ? "Being researched"
             : c.route.label.charAt(0).toUpperCase() + c.route.label.slice(1)}
           {c.route.targetName && ` — ${c.route.targetName}`}
-        </p>
+        </RouteHeading>
         <p className="text-sm text-(--color-text-muted)">
           {confidenceNote[c.route.confidence]}
         </p>
@@ -478,13 +605,19 @@ function CaseDetail({
       )}
 
       <Block title="Timeline">
-        <ol className="flex flex-col gap-(--space-2) text-sm">
+        <ol className="flex flex-col gap-(--space-4)">
           {c.timeline.map((e, i) => (
-            <li key={i}>
-              <span className="text-(--color-text-muted)">
-                {dateTime.format(new Date(e.occurredAt))}
-              </span>{" "}
-              — {e.summary}
+            <li key={i} className="flex gap-(--space-3)">
+              <CheckCircle2
+                className="mt-(--space-1) size-4 shrink-0 text-(--color-success)"
+                aria-hidden
+              />
+              <span className="flex flex-col gap-(--space-1)">
+                <span className="text-xs text-(--color-text-muted)">
+                  {dateTime.format(new Date(e.occurredAt))}
+                </span>
+                <span className="text-sm font-medium">{e.summary}</span>
+              </span>
             </li>
           ))}
         </ol>
@@ -559,13 +692,29 @@ function SendPack({
       <p className="text-sm font-medium">
         {detail.route.targetName ?? "The provider"} will receive only:
       </p>
-      <ul className="list-disc pl-(--space-6) text-sm">
+      <ul className="flex flex-col gap-(--space-2) text-sm">
         {pack.shared.map((f, i) => (
-          <li key={`${f.field}-${i}`}>
-            {f.label}:{" "}
-            {f.field === "Issue"
-              ? "your description"
-              : (f.value ?? <em>not recorded yet</em>)}
+          <li
+            key={`${f.field}-${i}`}
+            className="flex items-start gap-(--space-3)"
+          >
+            {f.value ? (
+              <CheckCircle2
+                className="mt-0.5 size-4 shrink-0 text-(--color-success)"
+                aria-hidden
+              />
+            ) : (
+              <CircleDashed
+                className="mt-0.5 size-4 shrink-0 text-(--color-text-muted)"
+                aria-hidden
+              />
+            )}
+            <span>
+              {f.label}:{" "}
+              {f.field === "Issue"
+                ? "your description"
+                : (f.value ?? <em>not recorded yet</em>)}
+            </span>
           </li>
         ))}
       </ul>
@@ -659,20 +808,24 @@ function FollowUp({
           ).then(() => setReference(""))
         }
       >
-        <input
-          className={inputClass}
-          placeholder="From (e.g. Makro)"
-          value={party}
-          onChange={(e) => setParty(e.target.value)}
-          maxLength={120}
-        />
-        <input
-          className={inputClass}
-          placeholder="Reference"
-          value={reference}
-          onChange={(e) => setReference(e.target.value)}
-          maxLength={120}
-        />
+        <Field label="Who gave it">
+          <input
+            className={inputClass}
+            placeholder="From (e.g. Makro)"
+            value={party}
+            onChange={(e) => setParty(e.target.value)}
+            maxLength={120}
+          />
+        </Field>
+        <Field label="Reference number">
+          <input
+            className={inputClass}
+            placeholder="e.g. RMA-55120"
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+            maxLength={120}
+          />
+        </Field>
       </MiniForm>
 
       <MiniForm
@@ -692,25 +845,29 @@ function FollowUp({
           ).then(() => setNote(""))
         }
       >
-        <select
-          className={inputClass}
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="">Where is it now?</option>
-          {Object.entries(providerStatuses).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v}
-            </option>
-          ))}
-        </select>
-        <input
-          className={inputClass}
-          placeholder="What they said (optional)"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          maxLength={2000}
-        />
+        <Field label="Where is it now?">
+          <select
+            className={inputClass}
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="">Choose…</option>
+            {Object.entries(providerStatuses).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="What they said (optional)">
+          <input
+            className={inputClass}
+
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            maxLength={2000}
+          />
+        </Field>
       </MiniForm>
 
       <MiniForm
@@ -731,20 +888,23 @@ function FollowUp({
           ).then(() => setPromise(""))
         }
       >
-        <input
-          className={inputClass}
-          placeholder="e.g. Call back with a decision"
-          value={promise}
-          onChange={(e) => setPromise(e.target.value)}
-          maxLength={280}
-        />
-        <input
-          className={inputClass}
-          type="date"
-          value={due}
-          onChange={(e) => setDue(e.target.value)}
-          aria-label="By when"
-        />
+        <Field label="What they promised">
+          <input
+            className={inputClass}
+            placeholder="e.g. Call back with a decision"
+            value={promise}
+            onChange={(e) => setPromise(e.target.value)}
+            maxLength={280}
+          />
+        </Field>
+        <Field label="By when">
+          <input
+            className={inputClass}
+            type="date"
+            value={due}
+            onChange={(e) => setDue(e.target.value)}
+          />
+        </Field>
       </MiniForm>
 
       <MiniForm
@@ -764,20 +924,23 @@ function FollowUp({
           )
         }
       >
-        <input
-          className={inputClass}
-          type="datetime-local"
-          value={when}
-          onChange={(e) => setWhen(e.target.value)}
-          aria-label="When"
-        />
-        <input
-          className={inputClass}
-          placeholder="Where (optional)"
-          value={where}
-          onChange={(e) => setWhere(e.target.value)}
-          maxLength={500}
-        />
+        <Field label="When">
+          <input
+            className={inputClass}
+            type="datetime-local"
+            value={when}
+            onChange={(e) => setWhen(e.target.value)}
+          />
+        </Field>
+        <Field label="Where (optional)">
+          <input
+            className={inputClass}
+
+            value={where}
+            onChange={(e) => setWhere(e.target.value)}
+            maxLength={500}
+          />
+        </Field>
       </MiniForm>
 
       <MiniForm
@@ -790,27 +953,40 @@ function FollowUp({
           )
         }
       >
-        <select
-          className={inputClass}
-          value={outcome}
-          onChange={(e) => setOutcome(e.target.value)}
-        >
-          <option value="">How did it end?</option>
-          {Object.entries(outcomes).map(([k, v]) => (
-            <option key={k} value={k}>
-              {v}
-            </option>
-          ))}
-        </select>
-        <input
-          className={inputClass}
-          placeholder="Notes (optional)"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          maxLength={1000}
-        />
+        <Field label="How did it end?">
+          <select
+            className={inputClass}
+            value={outcome}
+            onChange={(e) => setOutcome(e.target.value)}
+          >
+            <option value="">Choose…</option>
+            {Object.entries(outcomes).map(([k, v]) => (
+              <option key={k} value={k}>
+                {v}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Notes (optional)">
+          <input
+            className={inputClass}
+
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            maxLength={1000}
+          />
+        </Field>
       </MiniForm>
     </Block>
+  );
+}
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <label className="flex flex-col gap-(--space-2) text-sm font-medium">
+      {label}
+      {children}
+    </label>
   );
 }
 
@@ -847,10 +1023,28 @@ function MiniForm({
   );
 }
 
+function RouteHeading({
+  routeType,
+  children,
+}: {
+  routeType: string;
+  children: ReactNode;
+}) {
+  const Icon = routeIcons[routeType] ?? Search;
+  return (
+    <p className="flex items-center gap-(--space-3) font-medium">
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-(--radius-md) bg-(--color-primary-subtle) text-(--color-on-primary-subtle)">
+        <Icon className="size-5" aria-hidden />
+      </span>
+      <span>{children}</span>
+    </p>
+  );
+}
+
 function Block({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-(--space-3) rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-(--space-6)">
-      <h4 className="font-semibold">{title}</h4>
+    <section className="flex flex-col gap-(--space-3) rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-(--space-6) shadow-(--shadow-1)">
+      <h3 className="font-semibold">{title}</h3>
       {children}
     </section>
   );

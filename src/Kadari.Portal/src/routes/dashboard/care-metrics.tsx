@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { DashboardNavbar } from "@/components/dashboard/dashboard-navbar";
 import { ApiProblem } from "@/lib/api";
-import { getCareMetrics } from "@/lib/api/care-ops";
+import { ROUTE_TYPES, WORK_TYPES, getCareMetrics } from "@/lib/api/care-ops";
 import { isForbidden, retryOnlyTransient } from "@/lib/api/query";
 
 export const Route = createFileRoute("/dashboard/care-metrics")({
@@ -15,6 +15,23 @@ function num(v: string | number | null | undefined): number {
   if (v === null || v === undefined) return 0;
   const n = typeof v === "string" ? Number(v) : v;
   return Number.isFinite(n) ? n : 0;
+}
+
+/** Readable labels for the enum names the API counts by; anything unmapped is split into words. */
+const LABELS: Record<string, string> = {
+  ...ROUTE_TYPES,
+  ...WORK_TYPES,
+  ResearchRequired: "Being researched (Care Ops)",
+  LikelyActive: "Likely covered",
+  NeedsReview: "Being checked",
+  VoidOrIneligible: "Not covered",
+  NoFaultFound: "No fault found",
+  ResolvedOther: "Sorted another way",
+  NotSent: "Due, not opted in",
+};
+
+function label(key: string): string {
+  return LABELS[key] ?? key.replace(/([a-z])([A-Z])/g, "$1 $2");
 }
 
 const percent = (v: string | number) => `${Math.round(num(v) * 100)}%`;
@@ -30,18 +47,27 @@ function CareMetricsPage() {
   return (
     <>
       <DashboardNavbar title="Care metrics" />
-      <main className="flex flex-1 flex-col gap-6 p-6 lg:p-8">
+      <main className="flex flex-1 flex-col gap-6 overflow-y-auto p-6 lg:p-8">
+        <div>
+          <h2 className="font-heading text-2xl font-bold text-off-white">
+            Care metrics
+          </h2>
+          <p className="mt-1 max-w-2xl font-body text-sm text-soft-grey">
+            How KADARI Care is performing, counted from the live records.
+            Aggregate counts only — no customer, asset or message content.
+          </p>
+        </div>
         {metrics.isPending && (
           <p className="font-body text-sm text-soft-grey">Loading…</p>
         )}
         {metrics.isError && (
-          <p className="font-body text-sm text-soft-grey">
+          <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-5 font-body text-sm text-off-white">
             {isForbidden(metrics.error)
               ? "Care metrics need the System admin or Customer success role."
               : metrics.error instanceof ApiProblem
                 ? metrics.error.message
                 : "Something went wrong."}
-          </p>
+          </div>
         )}
         {metrics.data && (
           <>
@@ -124,7 +150,7 @@ function Tile({
   sub?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md">
       <span className="font-technical text-[11px] tracking-wide text-mid-grey uppercase">
         {label}
       </span>
@@ -143,7 +169,7 @@ function Breakdown({
 }) {
   const rows = Object.entries(counts).sort((a, b) => num(b[1]) - num(a[1]));
   return (
-    <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5">
+    <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur-md">
       <h3 className="font-heading text-sm font-semibold text-off-white">
         {title}
       </h3>
@@ -153,9 +179,7 @@ function Breakdown({
         <dl className="mt-3 grid grid-cols-[1fr_auto] gap-x-4 gap-y-1 font-body text-sm">
           {rows.map(([k, v]) => (
             <div key={k} className="contents">
-              <dt className="text-soft-grey">
-                {k.replace(/([a-z])([A-Z])/g, "$1 $2")}
-              </dt>
+              <dt className="text-soft-grey">{label(k)}</dt>
               <dd className="text-right text-off-white tabular-nums">
                 {num(v)}
               </dd>

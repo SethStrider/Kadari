@@ -17,8 +17,19 @@ internal sealed class OnCaseNeedsRouteRaiseOpsWork(IKadariDbContext db, OpsQueue
         var e = notification.DomainEvent;
         var category = await db.CareProfiles.AsNoTracking().Where(p => p.AssetId == e.AssetId).Select(p => p.Category).FirstOrDefaultAsync(ct);
         await queue.RaiseAsync(OpsWorkType.RouteUnknown, OpsSeverity.P2, e.AssetId, e.CaseId, e.CaseId.Value, "no-verified-route",
-            $"No verified route for this {category} problem — find where it goes and confirm it with the owner.", ct);
+            $"No verified route for this {CategoryText.Of(category)} problem — find where it goes and confirm it with the owner.", ct);
     }
+}
+
+/// <summary>A category as the operator reads it: "MajorAppliance" → "major appliance".</summary>
+file static class CategoryText
+{
+    public static string Of(Kadari.Domain.CareRegistry.CareCategory category) => category switch
+    {
+        Kadari.Domain.CareRegistry.CareCategory.TvAndAudio => "TV or audio",
+        Kadari.Domain.CareRegistry.CareCategory.Other => "product",
+        _ => string.Concat(category.ToString().Select((c, i) => i > 0 && char.IsUpper(c) ? $" {char.ToLowerInvariant(c)}" : $"{char.ToLowerInvariant(c)}")),
+    };
 }
 
 /// <summary>The safety gate tripped: a person reviews it at once (CARE/11 §5 P0).</summary>

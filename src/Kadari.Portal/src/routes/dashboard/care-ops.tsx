@@ -26,8 +26,9 @@ export const Route = createFileRoute("/dashboard/care-ops")({
   component: CareOpsPage,
 });
 
+// The portal's field style (users search, login); options get the navy surface so they stay legible.
 const fieldClass =
-  "h-10 w-full rounded-xl border border-white/10 bg-white/[0.04] px-3 font-body text-sm text-off-white placeholder:text-mid-grey focus:border-trustli-cyan focus:outline-none";
+  "h-11 w-full rounded-xl border border-white/10 bg-white/[0.03] px-3 font-body text-sm text-off-white placeholder:text-mid-grey focus:border-accent/40 focus:outline-none [&>option]:bg-trustli-navy";
 
 const dateTime = new Intl.DateTimeFormat("en-ZA", {
   dateStyle: "medium",
@@ -40,10 +41,11 @@ function errorMessage(error: unknown): string {
     : "Something went wrong. Please try again.";
 }
 
+// Trustli status colours: error for immediate, attention for urgent, info for standard.
 const severityStyle: Record<string, string> = {
-  P0: "bg-red-500/20 text-red-300",
-  P1: "bg-amber-500/20 text-amber-300",
-  P2: "bg-sky-500/20 text-sky-300",
+  P0: "bg-error/15 text-error",
+  P1: "bg-attention/15 text-attention",
+  P2: "bg-info/15 text-info",
   P3: "bg-white/10 text-soft-grey",
 };
 
@@ -65,7 +67,17 @@ function CareOpsPage() {
   return (
     <>
       <DashboardNavbar title="Care Ops" />
-      <main className="flex flex-1 flex-col gap-6 p-6 lg:p-8">
+      <main className="flex flex-1 flex-col gap-6 overflow-y-auto p-6 lg:p-8">
+        <div>
+          <h2 className="font-heading text-2xl font-bold text-off-white">
+            Care Ops
+          </h2>
+          <p className="mt-1 max-w-2xl font-body text-sm text-soft-grey">
+            Exceptions KADARI Care can't safely finish on its own, most urgent
+            first. Act only within the authority the owner has given — a route
+            you set still waits for the owner to confirm it.
+          </p>
+        </div>
         <div className="flex flex-wrap items-center gap-3">
           <select
             className={cn(fieldClass, "w-auto")}
@@ -103,11 +115,11 @@ function CareOpsPage() {
               </p>
             )}
             {queue.isError && (
-              <p className="font-body text-sm text-soft-grey">
+              <div className="rounded-2xl border border-destructive/30 bg-destructive/10 p-5 font-body text-sm text-off-white">
                 {isForbidden(queue.error)
                   ? "Care Ops needs the Customer success role."
                   : errorMessage(queue.error)}
-              </p>
+              </div>
             )}
             {queue.data?.length === 0 && (
               <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-soft-grey">
@@ -246,7 +258,7 @@ function WorkItemPanel({
     caseContext?.status === "Preparing";
 
   return (
-    <section className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+    <section className="flex flex-col gap-5 rounded-2xl border border-white/10 bg-white/[0.03] p-6 backdrop-blur-md">
       <div>
         <h3 className="font-heading text-base font-semibold text-off-white">
           {WORK_TYPES[item.workType] ?? item.workType}
