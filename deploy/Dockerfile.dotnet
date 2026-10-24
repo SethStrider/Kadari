@@ -2,8 +2,8 @@
 #
 # One image recipe for every KADARI .NET host (GL-07). Build with the project to publish:
 #
-#   docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=Kadari.WebApi   -t kadari/webapi:$GIT_SHA .
-
+#   docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=Kadari.WebApi    -t kadari/webapi:$GIT_SHA .
+#   docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=Kadari.Worker    -t kadari/worker:$GIT_SHA .
 #   docker build -f deploy/Dockerfile.dotnet --build-arg PROJECT=Kadari.Migration -t kadari/migration:$GIT_SHA .
 #
 # The context is the repository root (Directory.Packages.props, global.json and the project graph live there).

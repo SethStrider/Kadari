@@ -1,7 +1,8 @@
 # KADARI production deployment
 
 One VPS, Docker Compose, the edge nginx in this folder, and Cloudflare in front. Adapted from the Trustli runbook when
-KADARI was extracted (October 2026); KADARI has no message bus, so there is no RabbitMQ and no worker.
+KADARI was extracted (October 2026). Since KADARI Care (October 2026) the API publishes integration events through a
+transactional outbox to RabbitMQ, and a worker consumes them and runs the scheduled sweeps.
 
 ```
 Cloudflare (DNS, TLS, WAF, rate rules, Access on portal.)
@@ -10,8 +11,9 @@ Cloudflare (DNS, TLS, WAF, rate rules, Access on portal.)
 edge nginx ──► client (app.)      ──► portal (portal.)
    │ /api
    ▼
-webapi ──► postgres · minio   (backend network: internal, nothing published)
+webapi ──► postgres · minio · rabbitmq   (backend network: internal, nothing published)
        ──► Twilio, the vision model, SMTP (egress network)
+worker ◄── rabbitmq; ──► postgres · minio; ──► providers (egress)
 backup ──► nightly encrypted dump + blob sync to an off-site bucket (another provider)
 ```
 
@@ -43,7 +45,7 @@ export GIT_SHA=$(git rev-parse --short HEAD)
 C="docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env"
 
 $C --profile tools build
-$C up -d postgres minio                   # roles and the private bucket are created on first start
+$C up -d postgres minio rabbitmq          # roles and the private bucket are created on first start
 $C run --rm migrations                    # schema + seeds as kadari_migrator; non-zero exit = stop
 $C up -d
 $C ps                                     # every service healthy (backup has no health check)

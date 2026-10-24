@@ -31,6 +31,15 @@ using Kadari.Infrastructure.Security;
 
 var builder = Host.CreateApplicationBuilder(args);
 
+// The runner registers the whole Application layer but only the persistence it needs, so handlers it never sends
+// (capture, proofs) have unresolvable dependencies such as blob storage. Development's build-time validation of every
+// registration would refuse to start on those; scope validation stays on.
+builder.ConfigureContainer(new DefaultServiceProviderFactory(new ServiceProviderOptions
+{
+    ValidateOnBuild = false,
+    ValidateScopes = true,
+}));
+
 var migrateOnly = args.Contains("--migrate-only", StringComparer.OrdinalIgnoreCase);
 var seedOnly = args.Contains("--seed-only", StringComparer.OrdinalIgnoreCase);
 var reencryptFields = args.Contains("--reencrypt-fields", StringComparer.OrdinalIgnoreCase);
