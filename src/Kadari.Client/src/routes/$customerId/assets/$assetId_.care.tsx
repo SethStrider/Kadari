@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
 import { CareCard } from "@/components/kadari/care-card";
+import { CareCases } from "@/components/kadari/care-cases";
 import { CareReminders } from "@/components/kadari/care-reminders";
 import { ExtraCover } from "@/components/kadari/extra-cover";
 import { formatCareDate } from "@/components/kadari/care-format";
@@ -23,7 +24,7 @@ export const Route = createFileRoute("/$customerId/assets/$assetId_/care")({
   component: CarePage,
 });
 
-const tabs = ["Overview", "Coverage", "History"] as const;
+const tabs = ["Overview", "Problems", "Coverage", "History"] as const;
 type Tab = (typeof tabs)[number];
 
 const coverageNames: Record<string, string> = {
@@ -54,7 +55,7 @@ const dateTime = new Intl.DateTimeFormat("en-ZA", {
   timeStyle: "short",
 });
 
-/** KADARI Care for one asset (CARE/05 C02 overview, C03 coverage, C28 history). */
+/** KADARI Care for one asset (CARE/05 C02 overview, C10–C27 problems, C03 coverage, C28 history). */
 function CarePage() {
   const { customerId, assetId } = Route.useParams();
   const queryClient = useQueryClient();
@@ -188,6 +189,15 @@ function CarePage() {
           </Section>
         </div>
       )}
+
+      {tab === "Problems" &&
+        (summary.enabled ? (
+          <CareCases customerId={customerId} assetId={assetId} />
+        ) : (
+          <p className="text-sm text-(--color-text-muted)">
+            Switch KADARI Care on above to report a problem.
+          </p>
+        ))}
 
       {tab === "Coverage" && (
         <CoverageTab
