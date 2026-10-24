@@ -1,0 +1,31 @@
+Retailer / Channel,Group / Owner,Retail Format,Main Categories,Representative Brands / Notes,Integration Stance,Priority,Primary Source
+Makro,Massmart / Walmart,National big-box + ecommerce,"Major appliances, small appliances, electronics, power, home","Samsung, LG, Hisense, AEG, Philips, De'Longhi, Milex and broad marketplace range",Self-capture first; later receipt/order import,P0,https://www.makro.co.za/appliances-store
+Game,Massmart / Walmart,National general merchandise,"Appliances, electronics, home","Defy, Samsung, LG, Hisense, Russell Hobbs, Bennett Read and others",Self-capture first,P0,https://www.game.co.za/
+Hirsch's,Hirsch's,Specialist appliance/electronics,"Large/small appliances, TV/audio, mobile","AEG, Beko, Bosch, Defy, Haier, Hisense, LG, Midea, Miele, Samsung, Siemens, Smeg, Whirlpool, many more",Self-capture + potential retailer partnership,P0,https://www.hirschs.co.za/brands
+Takealot,Takealot Group,Marketplace ecommerce,Nearly all consumer durable categories,Very broad; seller-specific warranty route matters,Order/receipt self-capture; seller metadata essential,P0,https://www.takealot.com/
+Incredible Connection,JD Group / Pepkor,IT/electronics specialist,"Computers, mobile, accessories, TVs","Apple, Samsung, Lenovo, HP, Dell, ASUS, Acer and others",Self-capture first,P0,https://www.incredible.co.za/
+HiFi Corp,JD Group / Pepkor,Electronics/appliances specialist,"TV/audio, appliances, mobile","Samsung, LG, Hisense, Defy, TCL and others",Self-capture first,P0,https://www.hificorp.co.za/
+House & Home,Shoprite Holdings,Furniture/appliance retail,"Appliances, audio, furniture","AEG, Beko, Bennett Read, Bosch, Defy, Hisense, LG, Philips, Samsung, Siemens, Sony, TCL, Toshiba, Whirlpool",Self-capture first,P0,https://www.houseandhome.co.za/brands
+Checkers / Checkers Hyper,Shoprite Holdings,Grocery + general merchandise,"Small appliances, electronics, home",Private label + national small-appliance brands,Self-capture; retailer-route important for low-value items,P0,https://www.checkers.co.za/
+Shoprite,Shoprite Holdings,Grocery + general merchandise,Value small appliances/home,Pineware and other mass brands,Self-capture,P1,https://www.shoprite.co.za/
+Pick n Pay,Pick n Pay Stores,Grocery + general merchandise,Small appliances/electrical,Pineware and assorted brands,Self-capture,P1,https://www.pnp.co.za/
+Clicks,Clicks Group,Health/beauty + electrical,"Small appliances, personal care, beauty electronics","Safeway, Kambrook, Milex, Mellerware, Philips, Dyson, Remington, Beurer, Alva",Retailer-route highly important,P0,https://www.clicks.co.za/electrical/c/OH10002
+Dis-Chem,Dis-Chem,Health + household,"Small kitchen/home appliances, personal care","Milex, Nutribullet, Philips, Russell Hobbs, Sunbeam, Alva, Dyson",Retailer/distributor hybrid,P1,https://www.dischem.co.za/shop-by-department/electrical/kitchen-household-appliances
+Tafelberg Furnishers,Independent,Appliance/furniture specialist,"Large/small appliances, AV","Bosch, Defy, Grundig, Hisense, LG, Miele, Philips, Samsung, Siemens, Smeg, Whirlpool, etc.",Self-capture; strong brand density,P1,https://www.tafelberg.co.za/
+Bradlows,JD Group / Pepkor,Furniture/appliance retail,"Large/small appliances, AV","Defy, Hisense, LG, Samsung, Bennett Read, Russell Hobbs, Beko, Midea",Self-capture,P1,https://www.bradlows.co.za/brands
+OK Furniture,Shoprite Holdings,Furniture/appliance retail,"Appliances, TVs, furniture",National appliance brands,Self-capture,P1,https://www.okfurniture.co.za/
+Lewis,Lewis Group,Furniture/appliance retail,"Appliances, AV, furniture",National/value brands,Self-capture,P1,https://www.lewisstores.co.za/
+Russells,JD Group / Pepkor,Furniture/appliance retail,Appliances/furniture,National appliance brands,Self-capture,P1,https://www.russells.co.za/
+Yuppiechef,Mr Price Group,Premium kitchen/home,"Small appliances, cookware, coffee","Smeg, De'Longhi, Kenwood, Nespresso, Nutribullet and many premium brands",Self-capture; warranty activation valuable,P1,https://www.yuppiechef.com/
+iStore,Core Group,Apple specialist,Apple hardware/accessories,Apple,Self-capture; AASP/service route,P0,https://www.istore.co.za/
+Samsung Store,Samsung,OEM direct retail,Samsung electronics/appliances,Samsung,Direct OEM route,P0,https://www.samsung.com/za/
+LG Online / Brand Store,LG Electronics,OEM direct/partner retail,LG electronics/appliances,LG,Direct OEM route,P0,https://www.lg.com/za/
+Builders,Massmart / Walmart,DIY/home improvement,"Power tools, home, appliances","Bosch Professional, Kärcher, Einhell, Makita and others",Self-capture; tool service routing,P1,https://www.builders.co.za/
+Leroy Merlin,Adeo,DIY/home improvement,"Tools, electrical, home, appliances","Bosch, Kärcher and broad DIY brands",Self-capture,P2,https://www.leroymerlin.co.za/
+Computer Mania,Independent / franchise-style specialist,IT specialist,"Computers, gaming, accessories","Lenovo, HP, ASUS, Acer, Dell, Apple, LG and others",Self-capture,P1,https://www.computermania.co.za/
+Evetech,Independent ecommerce,IT/gaming specialist,"PCs, laptops, components","Lenovo, HP, ASUS, Dell, Acer, Apple, MSI, Gigabyte",Self-capture; component-level warranties,P1,https://www.evetech.co.za/
+Wootware,Independent ecommerce,IT specialist,PCs/components/peripherals,Broad PC component brand set,Self-capture; serial/component routing,P2,https://www.wootware.co.za/
+HomeChoice,HomeChoice International,Distance retail,"Home, appliances, electronics",House/value brands + national brands,Self-capture,P2,https://www.homechoice.co.za/
+New World,Independent specialist,Appliance/electronics,"Large/small appliances, AV",Premium/national appliance brands,Self-capture,P2,https://newworld.co.za/
+Stax,Independent specialist,Appliance/electronics,"Large/small appliances, AV",Premium/national appliance brands,Self-capture,P2,https://www.stax.co.za/
+Amazon South Africa,Amazon,Marketplace ecommerce,Broad durable goods,Brand + seller warranty route,Digital order capture later,P1,https://www.amazon.co.za/

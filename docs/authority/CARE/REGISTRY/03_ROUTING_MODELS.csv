@@ -1,0 +1,11 @@
+Code,Model,When it Applies,KADARI Default Action,Typical Evidence Needed,Examples
+R1,Retailer return / credit,"Low-value, no-repair or retailer-controlled guarantee",Tell user which retailer; prepare proof pack; record handover/outcome,"Receipt, product, serial/model, photos",Hisense irons/some small appliances; Safeway/Clicks
+R2,OEM direct,OEM owns support and case intake,Create structured case; send/assist via OEM channel; capture reference,"Receipt, serial/model, fault evidence","LG, Samsung, Dell"
+R3,Authorised service network,OEM/distributor routes to approved centre,Choose correct centre by category/location; prepare case pack,"Receipt, serial/model, fault evidence","Philips, Apple, TCL"
+R4,Distributor-managed,Local distributor owns warranty/service across brands,Route to local administrator; recognise multi-brand ownership,"Receipt, model/serial, photos",HOLB; De'Longhi/Kenwood/Braun; TEVO
+R5,Onsite service,Large/fixed appliance repaired at premises,Book engineer/technician; maintain timeline,"Address, receipt, serial, fault details",Bosch major appliances
+R6,Workshop / carry-in,Portable/small item must be taken in,Identify authorised workshop; prepare digital proof pack,"Receipt, serial/model",Bosch small appliances
+R7,Collection / courier,Provider collects product for assessment,Arrange or guide collection; track chain of custody,"Receipt, serial/model, pickup address","Nespresso, some device programmes"
+R8,Hybrid by category,Same brand uses multiple models,Run rule engine on brand + category + warranty + retailer,Varies,"Hisense, ASUS, Samsung"
+R9,Extended-warranty activation,Extra cover available only after registration/within window,"Prompt and, with authority, automate registration","Receipt, serial, model, customer details","Bosch selected products, Bennett Read, Einhell, Kärcher, Milex"
+R10,Unknown / long-tail,No verified route in registry,Research-on-demand; default to retailer + official brand support; do not guess,"Receipt, product label",Marketplace/private-label brands

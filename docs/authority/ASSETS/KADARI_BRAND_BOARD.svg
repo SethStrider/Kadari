@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#15C9A3"/>
+      <stop offset="100%" stop-color="#0D7F72"/>
+    </linearGradient>
+    <style>
+      .bg{fill:#111315}.panel{fill:#191D20}.light{fill:#F4F7F6}.muted{fill:#A7B0AD}.teal{fill:#15C9A3}.line{stroke:#2A3134;stroke-width:2}.h1{font:700 76px Arial,sans-serif}.h2{font:600 34px Arial,sans-serif}.body{font:400 24px Arial,sans-serif}.small{font:500 18px Arial,sans-serif;letter-spacing:2px}
+    </style>
+  </defs>
+  <rect width="1600" height="1000" class="bg"/>
+  <rect x="70" y="70" width="1460" height="860" rx="28" class="panel"/>
+
+  <!-- Brand -->
+  <g transform="translate(120 125)">
+    <path d="M0 0h26v70L78 0h34L66 58l52 72H82L47 81l-21 25v24H0z" fill="url(#g)"/>
+    <text x="145" y="76" class="h1 light">KADARI</text>
+    <text x="148" y="122" class="small muted">Σ(V × C)</text>
+    <text x="148" y="170" class="h2 light">Every asset. Accounted for.</text>
+  </g>
+
+  <!-- Core idea -->
+  <g transform="translate(120 360)">
+    <text x="0" y="0" class="small teal">CORE POSITION</text>
+    <text x="0" y="55" class="h2 light">Living digital twins for physical assets.</text>
+    <text x="0" y="105" class="body muted">Know what you have. Know what it’s worth. Keep the proof.</text>
+  </g>
+
+  <!-- Visual DNA cards -->
+  <g transform="translate(120 525)">
+    <rect width="390" height="250" rx="22" fill="#111517"/>
+    <text x="28" y="45" class="small teal">01 · PHYSICAL</text>
+    <rect x="28" y="72" width="334" height="130" rx="16" fill="#252B2E"/>
+    <rect x="85" y="110" width="170" height="72" rx="8" fill="#394247"/>
+    <circle cx="278" cy="146" r="28" fill="none" stroke="#15C9A3" stroke-width="4"/>
+    <text x="28" y="232" class="body light">Real-world asset first.</text>
+  </g>
+
+  <g transform="translate(605 525)">
+    <rect width="390" height="250" rx="22" fill="#111517"/>
+    <text x="28" y="45" class="small teal">02 · SCAN</text>
+    <rect x="28" y="72" width="334" height="130" rx="16" fill="#252B2E"/>
+    <path d="M65 95h50M65 95v50M325 95h-50M325 95v50M65 180h50M65 180v-50M325 180h-50M325 180v-50" fill="none" stroke="#15C9A3" stroke-width="4"/>
+    <text x="28" y="232" class="body light">Camera-led recognition.</text>
+  </g>
+
+  <g transform="translate(1090 525)">
+    <rect width="390" height="250" rx="22" fill="#111517"/>
+    <text x="28" y="45" class="small teal">03 · INTELLIGENCE</text>
+    <rect x="28" y="72" width="334" height="130" rx="16" fill="#252B2E"/>
+    <text x="50" y="120" class="body light">Value</text><text x="280" y="120" class="body teal">R 27,499</text>
+    <text x="50" y="158" class="body light">Confidence</text><text x="292" y="158" class="body teal">97%</text>
+    <text x="28" y="232" class="body light">Evidence → position → insight.</text>
+  </g>
+
+  <!-- Palette -->
+  <g transform="translate(120 840)">
+    <text x="0" y="0" class="small muted">WORKING VISUAL REFERENCE · FINAL HEX / TYPE MAY BE REFINED WITHOUT CHANGING THE DIRECTION</text>
+    <rect x="0" y="28" width="150" height="44" rx="10" fill="#111315" stroke="#3A4245"/>
+    <rect x="165" y="28" width="150" height="44" rx="10" fill="#191D20"/>
+    <rect x="330" y="28" width="150" height="44" rx="10" fill="#15C9A3"/>
+    <rect x="495" y="28" width="150" height="44" rx="10" fill="#0D7F72"/>
+    <rect x="660" y="28" width="150" height="44" rx="10" fill="#F4F7F6"/>
+  </g>
+</svg>

@@ -1,0 +1,11 @@
+Workstream,Scope,Priority,Definition of Done,Notes
+Retailer census,National + regional appliance/electronics/DIY/grocery/device retailers,P0,"Retailer, group owner, channels, categories, brand families, return/warranty policy URL captured",Include marketplaces and direct OEM stores
+Brand census,All brands observed at priority retailers,P0,"Each brand linked to global parent, SA owner/distributor/admin, service operator",Do not assume brand owner = service operator
+Warranty rule extraction,Top 100 brand/category combinations,P0,"Standard warranty, statutory/retailer interaction, exclusions, proof needed, registration windows, extended cover encoded",Source + effective date mandatory
+Registration automation,All brands requiring/benefiting from registration,P0,Flow can be completed or assisted with explicit customer authorisation; success proof stored,Terms/consent and anti-bot constraints must be respected
+Service-centre registry,Authorised centres by brand/category/province,P0,"Address, phone, email, product families, onsite/carry-in/collection, authorisation source",Continuously refreshed
+Retail return rules,"Makro, Game, Takealot, Hirsch's, Checkers, Clicks, Dis-Chem, JD/Pepkor, Shoprite group etc.",P0,Time windows + whether retailer or OEM is correct counterparty,Crucial for low-value goods
+OEM case channels,"Email, WhatsApp, forms, phone, portals",P0,Preferred machine-assisted route + fallback; reference capture,Channel terms must allow automation
+Owner-group leverage map,Groups owning/administering multiple brands,P1,Parent/distributor + brands + single commercial contact hypothesis,Best route to scale OEM partnerships
+Category taxonomy,"Major appliances, small appliances, IT, mobile, AV, power tools, solar/power, personal care etc.",P0,Every asset maps to routing category,Keep generic enough for new brands
+Refresh engine,Warranty/service policy monitoring,P1,"Source checked date, change detection, human review queue",Registry must never silently go stale
