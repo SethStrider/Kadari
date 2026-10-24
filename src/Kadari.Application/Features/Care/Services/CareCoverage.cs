@@ -38,8 +38,15 @@ internal sealed class CareCoverage(IKadariDbContext db, ICurrentUser user, IOpti
             : await db.Set<Retailer>().AsNoTracking()
                 .FirstOrDefaultAsync(r => r.Slug == retailerSlug && r.CountryCode == country, ct);
 
+        var registeredOn = await db.Set<CoverageRegistration>().AsNoTracking()
+            .Where(r => r.AssetId == asset.Id && r.Status == RegistrationStatus.Completed)
+            .OrderBy(r => r.RegisteredOn)
+            .Select(r => r.RegisteredOn)
+            .FirstOrDefaultAsync(ct);
+
         var inputs = new CoverageInputs(
-            country, brand?.Id, profile.Category, facts?.Model, retailer?.Id, facts?.PurchasedOn, EvidenceFor(asset, purchase));
+            country, brand?.Id, profile.Category, facts?.Model, retailer?.Id, facts?.PurchasedOn, EvidenceFor(asset, purchase),
+            registeredOn);
 
         var brandId = brand?.Id;
         var rules = await db.Set<CoverageRuleVersion>().AsNoTracking()
@@ -56,11 +63,57 @@ internal sealed class CareCoverage(IKadariDbContext db, ICurrentUser user, IOpti
         var previous = profile.CoverageState;
         profile.ApplyEvaluation(evaluation, decision, now);
 
+        await RefreshOpportunitiesAsync(asset, inputs, now, ct);
+
         db.Set<AuditEvent>().Add(AuditEvent.Record(
             user.IsAuthenticated ? ActorKind.Account : ActorKind.System, "Asset", asset.Id.Value, "CareCoverageEvaluated",
             now, actorId: user.AccountId, previousState: previous.ToString(), newState: evaluation.State.ToString()));
 
         return decision;
+    }
+
+    /// <summary>
+    /// "Extra cover available" (CARE/05 C04): for every published registration rule that applies to this product, keep
+    /// one opportunity per asset and rule — surfaced when first seen, refreshed to the newest version and purchase date,
+    /// never offered again once the owner dismissed or took it, and not offered at all when the asset is already
+    /// registered under that rule. An opportunity past its deadline expires.
+    /// </summary>
+    private async Task RefreshOpportunitiesAsync(Asset asset, CoverageInputs inputs, DateTimeOffset now, CancellationToken ct)
+    {
+        if (inputs.BrandId is not { } brandId)
+        {
+            return;
+        }
+
+        var rules = (await db.Set<RegistrationRuleVersion>().AsNoTracking()
+                .Where(r => r.BrandId == brandId && r.CountryCode == inputs.CountryCode
+                            && (r.Status == RuleStatus.Published || r.Status == RuleStatus.Stale))
+                .ToListAsync(ct))
+            .Where(r => r.AppliesTo(inputs.CountryCode, inputs.BrandId, inputs.Category, inputs.ModelCode))
+            .GroupBy(r => r.LogicalRuleId)
+            .Select(g => g.OrderByDescending(r => r.Version).First())
+            .ToList();
+
+        if (rules.Count == 0)
+        {
+            return;
+        }
+
+        var existing = await db.Set<RegistrationOpportunity>()
+            .Where(o => o.AssetId == asset.Id)
+            .ToDictionaryAsync(o => o.LogicalRuleId, ct);
+
+        foreach (var rule in rules)
+        {
+            if (existing.TryGetValue(rule.LogicalRuleId, out var opportunity))
+            {
+                opportunity.Refresh(rule, inputs.PurchasedOn, now);
+            }
+            else if (inputs.RegisteredOn is null)
+            {
+                db.Set<RegistrationOpportunity>().Add(RegistrationOpportunity.Surface(asset.Id, rule, inputs.PurchasedOn, now));
+            }
+        }
     }
 
     /// <summary>
@@ -102,6 +155,7 @@ internal sealed class CareCoverage(IKadariDbContext db, ICurrentUser user, IOpti
                 retailerName = retailer?.Name,
                 inputs.PurchasedOn,
                 purchaseEvidence = inputs.PurchaseEvidence.ToString(),
+                inputs.RegisteredOn,
             },
             findings = evaluation.Findings.Select(f => new
             {

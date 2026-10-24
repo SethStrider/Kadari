@@ -14,6 +14,9 @@ public sealed class RegistryFilesOptions
     /// <summary>KADARI's own researched coverage rules (<c>docs/care/registry/coverage-rules.csv</c>).</summary>
     public string CoverageRulesFile { get; set; } = Path.Combine(AppContext.BaseDirectory, "registry", "coverage-rules.csv");
 
+    /// <summary>KADARI's own researched registration rules (<c>docs/care/registry/registration-rules.csv</c>).</summary>
+    public string RegistrationRulesFile { get; set; } = Path.Combine(AppContext.BaseDirectory, "registry", "registration-rules.csv");
+
     /// <summary>When the workbook research was done (CARE/16 is dated 2026-10-06). The workbook gives no per-row
     /// retrieval date, so this is what the sources record.</summary>
     public DateTimeOffset ResearchedAt { get; set; } = new(2026, 10, 6, 0, 0, 0, TimeSpan.Zero);
@@ -24,8 +27,9 @@ public sealed class RegistryFilesOptions
 
 /// <summary>
 /// Reads the registry's CSV files into a <see cref="RegistrySnapshot"/>. File I/O only — what the rows mean is the
-/// importer's job. The research backlog (05) is a planning document and the warranty-automation leads (04) feed the
-/// registration epic (CARE/14 C5); neither is imported here.
+/// importer's job. The research backlog (05) is a planning document, and the warranty-automation leads (04) are
+/// research notes without a mode, destination or deadline; researched registration rules go in
+/// <c>registration-rules.csv</c> instead. Neither 04 nor 05 is imported.
 /// </summary>
 public static class RegistryFiles
 {
@@ -41,6 +45,7 @@ public static class RegistryFiles
         var brands = await ReadAsync(Path.Combine(options.ResearchDirectory, Brands), required: true, ct);
         var routing = await ReadAsync(Path.Combine(options.ResearchDirectory, RoutingModels), required: true, ct);
         var rules = await ReadAsync(options.CoverageRulesFile, required: false, ct);
+        var registrations = await ReadAsync(options.RegistrationRulesFile, required: false, ct);
 
         return new RegistrySnapshot(
             options.ResearchedAt,
@@ -59,6 +64,10 @@ public static class RegistryFiles
                 r.Line, r["RuleKey"] ?? "", r["Country"], r["Brand"], r["Category"], r["Model"], r["Retailer"],
                 r["CoverageType"], r["DurationMonths"], r["StartBasis"], r["RegistrationRequired"],
                 r["RegistrationDeadlineDays"], r["ExtensionMonths"], r["Summary"], r["EffectiveFrom"], r["EffectiveTo"],
+                r["Confidence"], r["SourceTitle"], r["SourceUrl"], r["LastVerified"], r["Status"])).ToList(),
+            registrations.Select(r => new RegistrationRuleRow(
+                r.Line, r["RuleKey"] ?? "", r["Country"], r["Brand"], r["Category"], r["Model"], r["Mode"], r["DestinationType"],
+                r["Destination"], r["RequiredFields"], r["DeadlineDays"], r["ExtensionMonths"], r["Benefit"], r["Instructions"],
                 r["Confidence"], r["SourceTitle"], r["SourceUrl"], r["LastVerified"], r["Status"])).ToList());
     }
 

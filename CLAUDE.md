@@ -313,6 +313,10 @@ store.
   the exact rule version ids. Registry rows change only through the preview-then-apply import
   (`Features/CareRegistry`), which the migration runner runs from `docs/authority/CARE/REGISTRY` and
   `docs/care/registry/coverage-rules.csv`.
+- **External actions need authority, a key and an audit.** Anything that shares the owner's data with a provider
+  (a registration, a case handoff) starts from an `ExternalActionAuthorisation` that records exactly what is shared and
+  the wording version agreed, carries an idempotency key unique in the database, and writes an `ExternalActionAudit`
+  row per step. "Completed" needs proof from the provider (a reference), never "the form was opened".
 - **Enums by name at the edge.** JSON enums bind by ordinal here, so Care requests take a name (`"MajorAppliance"`)
   and validate it.
 - **Privacy.** Care tables that hold personal data are covered by `KadariErasure` and `KadariDataExport` — extend

@@ -40,11 +40,13 @@ internal sealed class RegistryImporter(IKadariDbContext db, TimeProvider clock)
         var retailers = await Load<Retailer>().Where(r => r.CountryCode == snapshot.CountryCode).ToDictionaryAsync(r => r.Slug, ct);
         var routing = await Load<RoutingModel>().ToDictionaryAsync(r => r.Code, ct);
         var rules = (await Load<CoverageRuleVersion>().ToListAsync(ct)).ToLookup(r => r.LogicalRuleId);
+        var registrationRules = (await Load<RegistrationRuleVersion>().ToListAsync(ct)).ToLookup(r => r.LogicalRuleId);
 
         ImportBrands(run, snapshot, brands, sources);
         ImportRetailers(run, snapshot, retailers, sources);
         ImportRoutingModels(run, snapshot, routing);
         ImportCoverageRules(run, snapshot, brands, retailers, sources, rules);
+        ImportRegistrationRules(run, snapshot, brands, sources, registrationRules);
 
         return new RegistryImportPlan(run.Changes, run.Errors);
     }
@@ -247,6 +249,125 @@ internal sealed class RegistryImporter(IKadariDbContext db, TimeProvider clock)
 
             db.Set<CoverageRuleVersion>().Add(candidate);
             if (parsed.Status == RuleStatus.Published)
+            {
+                foreach (var live in versions.Where(v => v.Status is RuleStatus.Published or RuleStatus.Stale))
+                {
+                    live.Supersede(run.Now);
+                }
+
+                candidate.Publish(run.Now);
+            }
+        }
+    }
+
+    private void ImportRegistrationRules(
+        Run run, RegistrySnapshot snapshot, Dictionary<string, Brand> brands,
+        Dictionary<SourceEvidenceId, SourceEvidence> sources, ILookup<Guid, RegistrationRuleVersion> existing)
+    {
+        var seen = new HashSet<string>();
+        foreach (var row in snapshot.RegistrationRules ?? [])
+        {
+            var key = row.RuleKey?.Trim().ToLowerInvariant() ?? "";
+            if (key.Length == 0 || !seen.Add(key))
+            {
+                run.Error(row.Line, "registration rules", $"Rule key '{row.RuleKey}' is blank or listed twice.");
+                continue;
+            }
+
+            if (!TrySlug(row.Brand, out var brandSlug) || !brands.TryGetValue(brandSlug, out var brand))
+            {
+                run.Error(row.Line, "registration rules", $"Brand '{row.Brand}' is not in the registry.");
+                continue;
+            }
+
+            var category = ParseEnum<CareCategory>(row.Category);
+            var mode = ParseEnum<RegistrationMode>(row.Mode);
+            var destinationType = string.IsNullOrWhiteSpace(row.DestinationType)
+                ? RegistrationDestinationType.WebPage : ParseEnum<RegistrationDestinationType>(row.DestinationType);
+            var confidence = ParseEnum<RegistryConfidence>(row.Confidence);
+            var status = string.IsNullOrWhiteSpace(row.Status) ? RuleStatus.Draft : ParseEnum<RuleStatus>(row.Status);
+            var fields = (row.RequiredFields ?? "").Split([';', '|'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                .Select(ParseEnum<RegistrationField>).ToList();
+
+            if ((!string.IsNullOrWhiteSpace(row.Category) && category is null) || mode is null || destinationType is null
+                || confidence is null || fields.Any(f => f is null)
+                || status is not (RuleStatus.Draft or RuleStatus.Published or RuleStatus.Retired)
+                || !TryInt(row.DeadlineDays, out var deadline) || !TryInt(row.ExtensionMonths, out var extension)
+                || !TryDate(row.LastVerified, out var verified) || verified is null || string.IsNullOrWhiteSpace(row.SourceTitle))
+            {
+                run.Error(row.Line, "registration rules",
+                    "Mode, destination type, category, required fields, confidence, status, a number, LastVerified or SourceTitle is not valid.");
+                continue;
+            }
+
+            var source = Source(run, sources, row.SourceUrl, row.SourceTitle,
+                string.IsNullOrWhiteSpace(row.SourceUrl) ? SourceType.Document : SourceType.WebPage, row.Line, row.SourceTitle);
+            if (source is null)
+            {
+                continue;
+            }
+
+            var logical = DeterministicGuid.From($"{IdPrefix}registration-rule:{key}");
+            var versions = existing[logical].OrderBy(v => v.Version).ToList();
+            var latest = versions.LastOrDefault();
+            var next = (latest?.Version ?? 0) + 1;
+
+            RegistrationRuleVersion candidate;
+            try
+            {
+                candidate = RegistrationRuleVersion.Draft(
+                    new RegistrationRuleVersionId(DeterministicGuid.From($"{IdPrefix}registration-rule:{key}:v{next}")), logical, next,
+                    string.IsNullOrWhiteSpace(row.Country) ? snapshot.CountryCode : row.Country.Trim().ToUpperInvariant(),
+                    brand.Id, category, row.Model, mode.Value, destinationType.Value, row.Destination ?? "",
+                    fields.Select(f => f!.Value), deadline, extension, row.Benefit ?? "", row.Instructions, confidence.Value,
+                    source.Value, new DateTimeOffset(verified.Value.ToDateTime(TimeOnly.MinValue), TimeSpan.Zero));
+            }
+            catch (Exception ex) when (ex is DomainException or ArgumentException)
+            {
+                run.Error(row.Line, "registration rules", ex.Message);
+                continue;
+            }
+
+            var latestIsLive = latest?.Status is RuleStatus.Published or RuleStatus.Stale;
+            var unchanged = latest is not null && candidate.HasSameContentAs(latest) && status switch
+            {
+                RuleStatus.Published => latestIsLive,
+                RuleStatus.Retired => latest.Status == RuleStatus.Retired,
+                _ => latest.Status == RuleStatus.Draft,
+            };
+
+            var detail = $"v{(unchanged ? latest!.Version : next)}|{status}|{candidate.Mode}|{candidate.DeadlineDays}d";
+            if (unchanged)
+            {
+                run.Change(RegistryEntity.RegistrationRule, key, RegistryAction.Unchanged, detail);
+                continue;
+            }
+
+            if (status == RuleStatus.Retired)
+            {
+                if (latest is null)
+                {
+                    run.Error(row.Line, "registration rules", "There is no rule to retire.");
+                    continue;
+                }
+
+                run.Change(RegistryEntity.RegistrationRule, key, RegistryAction.Update, $"v{latest.Version}|Retired");
+                if (run.Apply)
+                {
+                    latest.Retire(run.Now);
+                }
+
+                continue;
+            }
+
+            run.Change(RegistryEntity.RegistrationRule, key, latest is null ? RegistryAction.Add : RegistryAction.NewVersion, detail);
+            if (!run.Apply)
+            {
+                continue;
+            }
+
+            db.Set<RegistrationRuleVersion>().Add(candidate);
+            if (status == RuleStatus.Published)
             {
                 foreach (var live in versions.Where(v => v.Status is RuleStatus.Published or RuleStatus.Stale))
                 {

@@ -179,4 +179,31 @@ public class CoverageEvaluatorTests
 
         Assert.Equal(first, second with { Findings = first.Findings });
     }
+
+    [Fact]
+    public void Evaluate_WhenRegistrationIsRequiredAndCompleted_IsActive()
+    {
+        var inputs = Inputs() with { RegisteredOn = new DateOnly(2026, 3, 20) };
+
+        var result = CoverageEvaluator.Evaluate(inputs, [RuleFactory.Rule(registrationRequired: true)], Now);
+
+        Assert.Equal(CoverageState.Active, result.State);
+    }
+
+    [Fact]
+    public void Evaluate_AfterRegistration_AddsTheExtensionMonths()
+    {
+        var rule = CoverageRuleVersion.Draft(
+            new CoverageRuleVersionId(Guid.CreateVersion7()), Guid.CreateVersion7(), 1, "ZA", RuleFactory.Bosch, null, null,
+            null, CoverageType.Manufacturer, 24, CoverageStartBasis.PurchaseDate, false, null, 12,
+            "Two years, three when registered.", null, null, RegistryConfidence.High, RuleFactory.Source, Now.AddDays(-10));
+        rule.Publish(Now.AddDays(-1));
+
+        var registered = CoverageEvaluator.Evaluate(Inputs() with { RegisteredOn = new DateOnly(2026, 3, 20) }, [rule], Now);
+        var unregistered = CoverageEvaluator.Evaluate(Inputs(), [rule], Now);
+
+        Assert.Equal(
+            (new DateOnly(2029, 3, 14), new DateOnly(2028, 3, 14)),
+            (registered.Primary!.ExpiresOn, unregistered.Primary!.ExpiresOn));
+    }
 }

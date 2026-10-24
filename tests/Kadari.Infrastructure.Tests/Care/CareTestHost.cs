@@ -35,6 +35,7 @@ internal static class CareTestHost
         services.AsStaff();
         services.AddSingleton<IKadariDbContext>(context);
         services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+        services.AddSingleton<Kadari.Application.Abstractions.Storage.IBlobStorage>(new NullBlobStorage());
         services.AddSingleton(TimeProvider.System);
         return services.BuildServiceProvider().GetRequiredService<ISender>();
     }
@@ -68,6 +69,15 @@ internal static class CareTestHost
         new(2, key, "ZA", "Bosch Home", "MajorAppliance", null, null, "Manufacturer", months, "PurchaseDate", "no", null,
             null, "Two-year manufacturer warranty from the date of purchase.", null, null, "High",
             "Bosch ZA warranty terms", "https://www.bosch-home.com/za/service/warranty", "2026-10-01", status);
+
+    public static RegistrationRuleRow BoschRegistration(string status = "Published") =>
+        new(2, "bosch-mybosch", "ZA", "Bosch Home", "MajorAppliance", null, "Guided", "WebPage",
+            "https://www.bosch-home.com/za/mybosch", "OwnerName;Email;SerialNumber;PurchaseDate", "28", "12",
+            "Register within 28 days to add a year to your warranty.", "Sign in to MyBosch and add the appliance.", "High",
+            "MyBosch registration terms", "https://www.bosch-home.com/za/mybosch/terms", "2026-10-01", status);
+
+    public static RegistrySnapshot SnapshotWith(IReadOnlyList<CoverageRuleRow> rules, IReadOnlyList<RegistrationRuleRow> registrations) =>
+        Snapshot([.. rules]) with { RegistrationRules = registrations };
 
     public static RegistrySnapshot Snapshot(params CoverageRuleRow[] rules) => new(
         ResearchedAt, "ZA",

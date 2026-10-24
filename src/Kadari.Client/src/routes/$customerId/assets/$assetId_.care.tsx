@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
 import { CareCard } from "@/components/kadari/care-card";
+import { ExtraCover } from "@/components/kadari/extra-cover";
 import { formatCareDate } from "@/components/kadari/care-format";
 import { KadariShell } from "@/components/kadari/kadari-shell";
 import { OwnershipProofForm } from "@/components/kadari/ownership-proof-form";
@@ -144,6 +145,13 @@ function CarePage() {
 
       {tab === "Overview" && (
         <div className="flex flex-col gap-(--space-6)">
+          {summary.enabled && (
+            <ExtraCover
+              customerId={customerId}
+              assetId={assetId}
+              onChanged={() => void refresh()}
+            />
+          )}
           {summary.evidenceGaps.length > 0 && (
             <p className="rounded-(--radius-md) bg-(--color-info-subtle) px-(--space-5) py-(--space-4) text-sm">
               To be sure of the dates, KADARI still needs{" "}

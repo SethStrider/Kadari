@@ -31,3 +31,26 @@ plan (`Kadari.Migration --registry-preview` shows the plan without applying it).
 | `SourceUrl` | no | The page the rule was read from. |
 | `LastVerified` | yes | `yyyy-MM-dd`. A rule not re-verified within a year can only produce "likely". |
 | `Status` | no | `Draft` (default), `Published`, `Retired`. Only published rules are used. |
+
+---
+
+# Registration rules
+
+`registration-rules.csv` holds the registrations KADARI can offer ("Extra cover available"). It also ships **empty**:
+the workbook's `04_WARRANTY_AUTOMATION.csv` lists leads ("research exact model rules before production"), not rules.
+
+| Column | Required | Values |
+|---|---|---|
+| `RuleKey` | yes | A stable name, e.g. `bosch-mybosch-major`. |
+| `Country` | no | Default `ZA`. |
+| `Brand` | yes | Must match `02_BRAND_REGISTRY.csv`. |
+| `Category`, `Model` | no | As for coverage rules; narrow the rule. |
+| `Mode` | yes | `Guided` (KADARI walks the owner through the official site), `Assisted` (KADARI prepares everything; the owner does the one step only they can), or `Automatic` (runs as Assisted until an OEM integration exists). |
+| `DestinationType` | no | `WebPage` (default, must be https), `Email`, `Phone`. |
+| `Destination` | yes | The official registration page, address or number. |
+| `RequiredFields` | no | `;`-separated: `OwnerName;Email;Mobile;Brand;Model;SerialNumber;PurchaseDate;Retailer;ProofOfPurchase`. Only these are shown to and shared by the owner. |
+| `DeadlineDays` | no | Days from purchase to register. |
+| `ExtensionMonths` | no | Informational here; the coverage rule's `ExtensionMonths` is what extends the cover once registered. |
+| `Benefit` | yes | The sentence the owner reads, e.g. "Register within 28 days to add 2 years to your motor warranty." |
+| `Instructions` | no | Steps on the official site. |
+| `Confidence`, `SourceTitle`, `SourceUrl`, `LastVerified`, `Status` | as for coverage rules | |

@@ -13,7 +13,8 @@ public sealed record RegistrySnapshot(
     IReadOnlyList<BrandRow> Brands,
     IReadOnlyList<RetailerRow> Retailers,
     IReadOnlyList<RoutingModelRow> RoutingModels,
-    IReadOnlyList<CoverageRuleRow> CoverageRules);
+    IReadOnlyList<CoverageRuleRow> CoverageRules,
+    IReadOnlyList<RegistrationRuleRow>? RegistrationRules = null);
 
 public sealed record BrandRow(
     int Line,
@@ -65,6 +66,29 @@ public sealed record CoverageRuleRow(
     string? Summary,
     string? EffectiveFrom,
     string? EffectiveTo,
+    string? Confidence,
+    string? SourceTitle,
+    string? SourceUrl,
+    string? LastVerified,
+    string? Status);
+
+/// <summary>One researched registration rule. <see cref="RuleKey"/> is the stable logical name ("bosch-mybosch");
+/// a changed row becomes a new version of the same rule.</summary>
+public sealed record RegistrationRuleRow(
+    int Line,
+    string RuleKey,
+    string? Country,
+    string? Brand,
+    string? Category,
+    string? Model,
+    string? Mode,
+    string? DestinationType,
+    string? Destination,
+    string? RequiredFields,
+    string? DeadlineDays,
+    string? ExtensionMonths,
+    string? Benefit,
+    string? Instructions,
     string? Confidence,
     string? SourceTitle,
     string? SourceUrl,

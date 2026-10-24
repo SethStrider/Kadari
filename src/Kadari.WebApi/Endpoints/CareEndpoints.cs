@@ -6,7 +6,14 @@ using Kadari.Application.Features.Assets.ReadProductLabel;
 using Kadari.Application.Features.Assets.ReadReceipt;
 using Kadari.Application.Features.Assets.Services;
 using Kadari.Application.Features.Assets.RecordPurchaseDetails;
+using Kadari.Application.Features.Care.AuthoriseRegistration;
+using Kadari.Application.Features.Care.CancelRegistration;
+using Kadari.Application.Features.Care.CompleteRegistration;
+using Kadari.Application.Features.Care.DismissOpportunity;
 using Kadari.Application.Features.Care.EnableCare;
+using Kadari.Application.Features.Care.GetRegistration;
+using Kadari.Application.Features.Care.ReportRegistrationProblem;
+using Kadari.Application.Features.Care.Services;
 using Kadari.Application.Features.Care.EvaluateCare;
 using Kadari.Application.Features.Care.GetCareSummary;
 using Kadari.Application.Features.Care.GetCoverage;
@@ -58,6 +65,58 @@ public static class CareEndpoints
             .Produces<CoverageDetailDto>()
             .WithName("GetCoverage")
             .WithSummary("Each kind of cover KADARI found, with its dates, summary and how KADARI knows it (source, verification, rule version).");
+
+        group.MapGet("/care/registration", async (Guid customerId, Guid assetId, ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new GetRegistrationQuery(customerId, assetId), ct)))
+            .RequirePermission(Permission.CareView)
+            .Produces<RegistrationOverviewDto>()
+            .WithName("GetRegistration")
+            .WithSummary("Extra cover for the asset: open offers (benefit, deadline, who receives what data, the wording to agree to) and every registration.");
+
+        group.MapPost("/care/registration-opportunities/{opportunityId:guid}/authorise", async (
+                Guid customerId, Guid assetId, Guid opportunityId, AuthoriseRegistrationRequest body,
+                [FromHeader(Name = IdempotencyKeyFilter.HeaderName)] string idempotencyKey, ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new AuthoriseRegistrationCommand(
+                    customerId, assetId, opportunityId, body.AcceptedTermsVersion, body.ExplicitConsent, idempotencyKey), ct)))
+            .RequirePermission(Permission.CareManage)
+            .AddEndpointFilter<IdempotencyKeyFilter>()
+            .Produces<RegistrationDto>()
+            .WithName("AuthoriseRegistration")
+            .WithSummary("Authorise KADARI to register the product for extra cover. Needs explicit consent to the current wording and an Idempotency-Key; a replay returns the same registration.");
+
+        group.MapPost("/care/registrations/{registrationId:guid}/complete", async (
+                Guid customerId, Guid assetId, Guid registrationId, CompleteRegistrationRequest body, ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new CompleteRegistrationCommand(
+                    customerId, assetId, registrationId, body.ExternalReference, body.RegisteredOn), ct)))
+            .RequirePermission(Permission.CareManage)
+            .Produces<CompleteRegistrationResponse>()
+            .WithName("CompleteRegistration")
+            .WithSummary("Record the provider's confirmation reference. Without it a registration is never complete; with it the cover is worked out again.");
+
+        group.MapPost("/care/registrations/{registrationId:guid}/problem", async (
+                Guid customerId, Guid assetId, Guid registrationId, RegistrationProblemRequest body, ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new ReportRegistrationProblemCommand(
+                    customerId, assetId, registrationId, body.Reason, body.ProviderUnavailable), ct)))
+            .RequirePermission(Permission.CareManage)
+            .Produces<RegistrationStatusResponse>()
+            .WithName("ReportRegistrationProblem")
+            .WithSummary("The registration did not work. Provider unavailable keeps it open to retry; anything else goes to a person.");
+
+        group.MapPost("/care/registrations/{registrationId:guid}/cancel", async (
+                Guid customerId, Guid assetId, Guid registrationId, ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new CancelRegistrationCommand(customerId, assetId, registrationId), ct)))
+            .RequirePermission(Permission.CareManage)
+            .Produces<RegistrationStatusResponse>()
+            .WithName("CancelRegistration")
+            .WithSummary("Cancel a registration before it is confirmed; its authority is revoked.");
+
+        group.MapPost("/care/registration-opportunities/{opportunityId:guid}/dismiss", async (
+                Guid customerId, Guid assetId, Guid opportunityId, ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new DismissOpportunityCommand(customerId, assetId, opportunityId), ct)))
+            .RequirePermission(Permission.CareManage)
+            .Produces<DismissOpportunityResponse>()
+            .WithName("DismissRegistrationOpportunity")
+            .WithSummary("Not now: the offer is not shown again for this asset.");
 
         group.MapPost("/purchase", async (
                 Guid customerId, Guid assetId, PurchaseDetailsRequest body, ISender sender, CancellationToken ct) =>
@@ -116,6 +175,15 @@ public static class CareEndpoints
 
     /// <summary>Body of the enable-Care endpoint — the Care category by name (e.g. "MajorAppliance").</summary>
     public sealed record EnableCareRequest(string Category);
+
+    /// <summary>Body of the authorise-registration endpoint: the wording version the owner read, and their consent.</summary>
+    public sealed record AuthoriseRegistrationRequest(string AcceptedTermsVersion, bool ExplicitConsent);
+
+    /// <summary>Body of the complete-registration endpoint: the provider's reference and the registration date.</summary>
+    public sealed record CompleteRegistrationRequest(string ExternalReference, DateOnly RegisteredOn);
+
+    /// <summary>Body of the registration-problem endpoint.</summary>
+    public sealed record RegistrationProblemRequest(string Reason, bool ProviderUnavailable);
 
     /// <summary>Body of the purchase-details endpoint. Every field optional; at least one required.</summary>
     public sealed record PurchaseDetailsRequest(string? Brand, string? Model, string? Retailer, DateOnly? PurchasedOn);

@@ -10,6 +10,7 @@ public enum RegistryEntity
     Retailer,
     RoutingModel,
     CoverageRule,
+    RegistrationRule,
 }
 
 public enum RegistryAction

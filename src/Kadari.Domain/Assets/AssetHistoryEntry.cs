@@ -17,6 +17,7 @@ public enum AssetHistoryKind
     CareEnabled,
     CoverageFound,
     CoverageChanged,
+    RegistrationCompleted,
 }
 
 /// <summary>

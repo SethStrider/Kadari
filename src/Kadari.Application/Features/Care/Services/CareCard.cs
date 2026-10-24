@@ -15,6 +15,8 @@ public enum CareCardState
     Expired,
     CaseOpen,
     AttentionRequired,
+    RegistrationAvailable,
+    RegistrationInProgress,
 }
 
 /// <summary>The one primary action the card offers (CARE/05 C01 "primary CTA by state").</summary>
@@ -27,6 +29,8 @@ public enum CarePrimaryAction
     ViewCoverage,
     CheckMyProduct,
     ViewCase,
+    ActivateExtraCover,
+    FinishRegistration,
 }
 
 /// <summary>What is missing for a confident answer (CARE/13 §2 evidenceGaps).</summary>
@@ -54,7 +58,10 @@ public static class CareCard
 
     public static bool IsCareRelevant(AssetCategory category) => !NotCareRelevant.Contains(category);
 
-    public static CareCardView For(Asset asset, CareProfile? profile)
+    /// <param name="openOffer">An extra-cover offer the owner can still take, if any.</param>
+    /// <param name="openRegistration">A registration waiting for the owner's step, if any.</param>
+    public static CareCardView For(
+        Asset asset, CareProfile? profile, RegistrationOpportunity? openOffer = null, CoverageRegistration? openRegistration = null)
     {
         if (profile is null)
         {
@@ -74,6 +81,22 @@ public static class CareCard
         }
 
         var expires = profile.CoverageExpiresOn is { } date ? date.ToString("d MMMM yyyy") : null;
+
+        // Activation outranks the coverage headline: it is the one thing the owner can do now that improves their
+        // cover, and it may have a deadline (CARE/05 C01 REGISTRATION_AVAILABLE).
+        if (openRegistration is not null)
+        {
+            return new CareCardView(CareCardState.RegistrationInProgress, "Finish your registration",
+                "KADARI has everything ready. Complete the last step on the official site, then tell KADARI the reference.",
+                CarePrimaryAction.FinishRegistration, gaps);
+        }
+
+        if (openOffer is not null)
+        {
+            var deadline = openOffer.DeadlineOn is { } by ? $" Register by {by:d MMMM yyyy}." : "";
+            return new CareCardView(CareCardState.RegistrationAvailable, "Extra cover available",
+                $"{openOffer.BenefitSummary}{deadline}", CarePrimaryAction.ActivateExtraCover, gaps);
+        }
 
         return profile.CoverageState switch
         {

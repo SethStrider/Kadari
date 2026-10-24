@@ -55,6 +55,17 @@ public sealed class KadariErasure(IKadariDbContext db, IBlobStorage blobs, ILogg
         var passports = await db.AssetPassports.Where(p => assetIds.Contains(p.AssetId)).ToListAsync(ct);
         var careProfiles = await db.CareProfiles.Where(p => assetIds.Contains(p.AssetId)).ToListAsync(ct);
 
+        // Every authority this customer's account gave records what it shared — redact it, whoever keeps the asset.
+        var accountId = await db.UserAccounts.Where(u => u.CustomerId == customerId).Select(u => (Guid?)u.Id.Value).FirstOrDefaultAsync(ct);
+        if (accountId is { } account)
+        {
+            foreach (var authority in await db.Set<Domain.Care.ExternalActionAuthorisation>()
+                         .Where(a => a.GrantedByAccountId == account).ToListAsync(ct))
+            {
+                authority.Redact(now);
+            }
+        }
+
         int erased = 0, handedOver = 0, files = 0;
         foreach (var asset in assets)
         {

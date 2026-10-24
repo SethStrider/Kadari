@@ -43,6 +43,14 @@ const tone: Record<string, { box: string; icon: typeof ShieldCheck }> = {
     box: "border-(--color-border) bg-(--color-surface)",
     icon: ShieldQuestion,
   },
+  RegistrationAvailable: {
+    box: "border-(--color-success) bg-(--color-success-subtle)",
+    icon: ShieldCheck,
+  },
+  RegistrationInProgress: {
+    box: "border-(--color-info) bg-(--color-info-subtle)",
+    icon: ShieldAlert,
+  },
   NotEnabled: {
     box: "border-(--color-border) bg-(--color-surface)",
     icon: ShieldQuestion,
@@ -56,6 +64,8 @@ const actionLabels: Record<string, string> = {
   AddProofOfPurchase: "Add proof of purchase",
   WorkOutMyCover: "Work out my cover",
   ViewCase: "View case",
+  ActivateExtraCover: "Activate extra cover",
+  FinishRegistration: "Finish registration",
 };
 
 /**

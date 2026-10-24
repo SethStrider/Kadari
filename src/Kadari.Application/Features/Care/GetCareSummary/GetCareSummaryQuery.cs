@@ -45,7 +45,21 @@ internal sealed class GetCareSummaryHandler(IKadariDbContext db, OwnedAssets ass
         var asset = await assets.GetAsync(query.CustomerId, query.AssetId, ct);
         var profile = await db.CareProfiles.AsNoTracking().FirstOrDefaultAsync(p => p.AssetId == asset.Id, ct);
 
-        var card = CareCard.For(asset, profile);
+        var offer = profile is null
+            ? null
+            : await db.Set<Domain.Care.RegistrationOpportunity>().AsNoTracking()
+                .Where(o => o.AssetId == asset.Id && o.Status == Domain.Care.OpportunityStatus.Available)
+                .OrderBy(o => o.DeadlineOn)
+                .FirstOrDefaultAsync(ct);
+        var registration = profile is null
+            ? null
+            : await db.Set<Domain.Care.CoverageRegistration>().AsNoTracking()
+                .Where(r => r.AssetId == asset.Id
+                            && (r.Status == Domain.Care.RegistrationStatus.WaitingUserStep
+                                || r.Status == Domain.Care.RegistrationStatus.FailedRetryable))
+                .FirstOrDefaultAsync(ct);
+
+        var card = CareCard.For(asset, profile, offer, registration);
         var purchase = asset.LatestPurchase;
 
         return new CareSummaryDto(

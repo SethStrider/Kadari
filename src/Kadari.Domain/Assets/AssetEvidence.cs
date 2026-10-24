@@ -12,7 +12,8 @@ public readonly record struct AssetEvidenceId(Guid Value)
 /// assurance ladder (see <c>AssetAssurance</c>): an image is an observation, an identification names the
 /// item, ownership evidence supports that it is the subject's, value evidence supports what it is worth.
 /// <see cref="Purchase"/> carries the structured purchase facts KADARI Care reads (brand, model, retailer, date);
-/// it is not a rung of the ladder.</summary>
+/// it is not a rung of the ladder. <see cref="Registration"/> is a provider's confirmation that the product was
+/// registered (its reference); not a rung either.</summary>
 public enum AssetEvidenceKind
 {
     Image,
@@ -20,6 +21,7 @@ public enum AssetEvidenceKind
     Ownership,
     Value,
     Purchase,
+    Registration,
 }
 
 /// <summary>
@@ -215,6 +217,17 @@ public sealed class AssetEvidence : Entity<AssetEvidenceId>
         {
             Purchase = facts,
         };
+    }
+
+    /// <summary>The provider's confirmation reference for a warranty registration (KADARI Care). Self-asserted: the owner
+    /// typed what the provider showed them.</summary>
+    public static AssetEvidence RegistrationConfirmed(string provider, string reference, DateTimeOffset assertedAt)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(provider);
+        ArgumentException.ThrowIfNullOrWhiteSpace(reference);
+        var source = provider.Trim();
+        return new AssetEvidence(AssetEvidenceId.New(), AssetEvidenceKind.Registration, EvidenceStrength.SelfAsserted,
+            source.Length > 80 ? source[..80] : source, assertedAt, confidence: null, reference: reference.Trim(), amount: null);
     }
 
     /// <summary>A professional (independent) valuation submitted by a valuer (D10) — an <see cref="ValueSupported"/>

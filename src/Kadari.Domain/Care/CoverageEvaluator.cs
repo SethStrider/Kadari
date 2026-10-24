@@ -19,7 +19,8 @@ public sealed record CoverageInputs(
     string? ModelCode,
     RetailerId? RetailerId,
     DateOnly? PurchasedOn,
-    PurchaseEvidence PurchaseEvidence);
+    PurchaseEvidence PurchaseEvidence,
+    DateOnly? RegisteredOn = null);
 
 /// <summary>The engine's answer for one kind of cover, with the parts that made it (CARE/07 §18).</summary>
 public sealed record CoverageFinding(
@@ -58,12 +59,14 @@ public sealed record CoverageEvaluation(CoverageState State, IReadOnlyList<Cover
 /// <see cref="CoverageState.LikelyActive"/>, or <see cref="CoverageState.Unknown"/> where the dates have passed —
 /// KADARI will not tell an owner their cover has ended on weak evidence.</item>
 /// </list>
-/// A warranty <c>ExpiresOn</c> is purchase date + duration (month-end clamped): cover runs until that day.
+/// A warranty <c>ExpiresOn</c> is purchase date + duration (month-end clamped): cover runs until that day. A completed
+/// registration (proven by a provider reference) satisfies a rule's registration requirement and adds its extension
+/// months.
 /// </summary>
 public static class CoverageEvaluator
 {
     /// <summary>Bumped whenever the rules above change, and stored on every decision.</summary>
-    public const string EngineVersion = "coverage-1";
+    public const string EngineVersion = "coverage-2";
 
     /// <summary>How far ahead of expiry cover counts as expiring (CARE/03 §8: the 90-day reminder).</summary>
     public const int ExpiringWithinDays = 90;
@@ -129,12 +132,14 @@ public static class CoverageEvaluator
                 "Likely warranty found. Add the purchase date so KADARI can work out the dates.");
         }
 
-        var expires = purchased.AddMonths(rule.DurationMonths!.Value);
+        var registered = inputs.RegisteredOn is not null;
+        var months = rule.DurationMonths!.Value + (registered ? rule.ExtensionMonths ?? 0 : 0);
+        var expires = purchased.AddMonths(months);
         var strong = inputs.PurchaseEvidence == PurchaseEvidence.Independent
                      && rule.Confidence >= RegistryConfidence.High
                      && !stale
                      && rule.StartBasis == CoverageStartBasis.PurchaseDate
-                     && !rule.RegistrationRequired;
+                     && (!rule.RegistrationRequired || registered);
 
         if (!strong)
         {
@@ -165,7 +170,7 @@ public static class CoverageEvaluator
             return "Likely warranty found. Add your proof of purchase so KADARI can confirm the dates.";
         }
 
-        if (rule.RegistrationRequired)
+        if (rule.RegistrationRequired && inputs.RegisteredOn is null)
         {
             return "This cover depends on the product being registered with the manufacturer.";
         }

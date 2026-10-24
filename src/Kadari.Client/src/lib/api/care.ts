@@ -153,3 +153,110 @@ export const unavailableReasons: Record<string, string> = {
   NothingRead:
     "KADARI couldn't read anything useful. Type the details instead.",
 };
+
+export type RegistrationOverview =
+  components["schemas"]["RegistrationOverviewDto"];
+export type Opportunity = components["schemas"]["OpportunityDto"];
+export type Registration = components["schemas"]["RegistrationDto"];
+
+export function getRegistration(
+  customerId: string,
+  assetId: string,
+  signal?: AbortSignal,
+) {
+  return apiClient.get(
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/registration",
+    { path: { customerId, assetId }, signal },
+  );
+}
+
+/**
+ * Authorise a registration. The idempotency key makes a retried click return the same registration; keep it for the
+ * life of the screen.
+ */
+export async function authoriseRegistration(
+  customerId: string,
+  assetId: string,
+  opportunityId: string,
+  termsVersion: string,
+  idempotencyKey: string,
+): Promise<Registration> {
+  const response = await apiClient.fetch(
+    `/api/v1/kadari/customers/${customerId}/assets/${assetId}/care/registration-opportunities/${opportunityId}/authorise`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Idempotency-Key": idempotencyKey,
+      },
+      body: JSON.stringify({
+        acceptedTermsVersion: termsVersion,
+        explicitConsent: true,
+      }),
+    },
+  );
+  if (!response.ok) {
+    const problem = (await response.json().catch(() => null)) as {
+      detail?: string;
+    } | null;
+    throw new Error(
+      problem?.detail ??
+        `Could not start the registration (${response.status}).`,
+    );
+  }
+  return (await response.json()) as Registration;
+}
+
+export function completeRegistration(
+  customerId: string,
+  assetId: string,
+  registrationId: string,
+  externalReference: string,
+  registeredOn: string,
+) {
+  return apiClient.post(
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/registrations/{registrationId}/complete",
+    {
+      path: { customerId, assetId, registrationId },
+      body: { externalReference, registeredOn },
+    },
+  );
+}
+
+export function reportRegistrationProblem(
+  customerId: string,
+  assetId: string,
+  registrationId: string,
+  reason: string,
+  providerUnavailable: boolean,
+) {
+  return apiClient.post(
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/registrations/{registrationId}/problem",
+    {
+      path: { customerId, assetId, registrationId },
+      body: { reason, providerUnavailable },
+    },
+  );
+}
+
+export function cancelRegistration(
+  customerId: string,
+  assetId: string,
+  registrationId: string,
+) {
+  return apiClient.post(
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/registrations/{registrationId}/cancel",
+    { path: { customerId, assetId, registrationId } },
+  );
+}
+
+export function dismissOpportunity(
+  customerId: string,
+  assetId: string,
+  opportunityId: string,
+) {
+  return apiClient.post(
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/registration-opportunities/{opportunityId}/dismiss",
+    { path: { customerId, assetId, opportunityId } },
+  );
+}
