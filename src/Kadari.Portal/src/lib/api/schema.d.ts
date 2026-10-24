@@ -970,6 +970,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kadari/customers/{customerId}/care/reminders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Care reminders that need attention now, across the ledger or for one asset (?assetId=).
+         * @description **Requires permission:** `CareView`
+         */
+        get: operations["GetCareReminders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kadari/customers/{customerId}/care/reminders/{reminderId}/snooze": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Remind me later: the reminder comes back after the given number of days (1–90).
+         * @description **Requires permission:** `CareManage`
+         */
+        post: operations["SnoozeCareReminder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kadari/customers/{customerId}/care/reminders/{reminderId}/dismiss": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Dismiss a reminder.
+         * @description **Requires permission:** `CareManage`
+         */
+        post: operations["DismissCareReminder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kadari/customers/{customerId}/care/reminders/{reminderId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mark a reminder done.
+         * @description **Requires permission:** `CareManage`
+         */
+        post: operations["CompleteCareReminder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1067,6 +1147,24 @@ export interface components {
             primaryColor: string;
             accentColor: string;
             logoReference: null | string;
+        };
+        CareReminderDto: {
+            /** Format: uuid */
+            reminderId: string;
+            /** Format: uuid */
+            assetId: string;
+            assetName: string;
+            type: string;
+            headline: string;
+            message: string;
+            /** Format: date */
+            dueOn: string;
+            status: string;
+        };
+        CareReminderStatusResponse: {
+            /** Format: uuid */
+            reminderId: string;
+            status: string;
         };
         CareSummaryDto: {
             /** Format: uuid */
@@ -1487,6 +1585,10 @@ export interface components {
             expiresAt: string;
             /** Format: uuid */
             userAccountId: string;
+        };
+        SnoozeReminderRequest: {
+            /** Format: int32 */
+            days: number | string;
         };
         SubmitValuationRequest: {
             /** Format: int64 */
@@ -7387,6 +7489,471 @@ export interface operations {
             };
             /** @description Resource not found. (code: `not-found`) */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    GetCareReminders: {
+        parameters: {
+            query?: {
+                assetId?: string;
+            };
+            header?: never;
+            path: {
+                customerId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareReminderDto"][];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    SnoozeCareReminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                reminderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SnoozeReminderRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareReminderStatusResponse"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description The request conflicts with the current state. (code: `conflict`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    DismissCareReminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                reminderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareReminderStatusResponse"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description The request conflicts with the current state. (code: `conflict`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    CompleteCareReminder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                reminderId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareReminderStatusResponse"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description The request conflicts with the current state. (code: `conflict`) */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

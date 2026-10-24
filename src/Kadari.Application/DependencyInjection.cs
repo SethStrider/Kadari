@@ -74,6 +74,8 @@ public static class DependencyInjection
         // registry importer behind preview-then-apply.
         services.AddOptions<Features.Care.Services.CareOptions>();
         services.AddScoped<Features.Care.Services.CareCoverage>();
+        services.AddScoped<Features.Care.Services.CareReminders>();
+        services.AddScoped<Features.Care.Services.OwnedReminders>();
         services.AddScoped<Features.CareRegistry.Services.RegistryImporter>();
 
         // AI: the one way to call a model (consent, quota, once-per-request, usage + cost), and the one usage writer.

@@ -64,6 +64,8 @@ x-kadari-env: &kadari-env
   # KADARI Care stays off until docs/care/registry/coverage-rules.csv holds published, researched rules; without them
   # every asset would read "not confirmed yet".
   Features__Care: "false"
+  # Links in Care reminders point here.
+  Care__AppBaseUrl: https://app.${KADARI_DOMAIN}
   Twilio__AccountSid: ${TWILIO_ACCOUNT_SID}
   Twilio__AuthToken: ${TWILIO_AUTH_TOKEN}
   Twilio__FromNumber: ${TWILIO_WHATSAPP_FROM}

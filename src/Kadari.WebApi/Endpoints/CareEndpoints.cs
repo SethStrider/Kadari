@@ -8,7 +8,11 @@ using Kadari.Application.Features.Assets.Services;
 using Kadari.Application.Features.Assets.RecordPurchaseDetails;
 using Kadari.Application.Features.Care.AuthoriseRegistration;
 using Kadari.Application.Features.Care.CancelRegistration;
+using Kadari.Application.Features.Care.CompleteCareReminder;
 using Kadari.Application.Features.Care.CompleteRegistration;
+using Kadari.Application.Features.Care.DismissCareReminder;
+using Kadari.Application.Features.Care.GetCareReminders;
+using Kadari.Application.Features.Care.SnoozeCareReminder;
 using Kadari.Application.Features.Care.DismissOpportunity;
 using Kadari.Application.Features.Care.EnableCare;
 using Kadari.Application.Features.Care.GetRegistration;
@@ -170,8 +174,45 @@ public static class CareEndpoints
             .WithName("GetAssetHistory")
             .WithSummary("The asset's permanent history, newest first: registration, transfers, theft and recovery, and material Care outcomes.");
 
+        // Reminders span the customer's ledger (the "needs attention" list and notification deep links).
+        var reminders = app.MapGroup("/api/v1/kadari/customers/{customerId:guid}/care/reminders")
+            .WithTags("Care")
+            .RequireFeature(features => features.Care);
+
+        reminders.MapGet("/", async (Guid customerId, Guid? assetId, ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new GetCareRemindersQuery(customerId, assetId), ct)))
+            .RequirePermission(Permission.CareView)
+            .Produces<IReadOnlyList<CareReminderDto>>()
+            .WithName("GetCareReminders")
+            .WithSummary("Care reminders that need attention now, across the ledger or for one asset (?assetId=).");
+
+        reminders.MapPost("/{reminderId:guid}/snooze", async (
+                Guid customerId, Guid reminderId, SnoozeReminderRequest body, ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new SnoozeCareReminderCommand(customerId, reminderId, body.Days), ct)))
+            .RequirePermission(Permission.CareManage)
+            .Produces<CareReminderStatusResponse>()
+            .WithName("SnoozeCareReminder")
+            .WithSummary("Remind me later: the reminder comes back after the given number of days (1–90).");
+
+        reminders.MapPost("/{reminderId:guid}/dismiss", async (Guid customerId, Guid reminderId, ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new DismissCareReminderCommand(customerId, reminderId), ct)))
+            .RequirePermission(Permission.CareManage)
+            .Produces<CareReminderStatusResponse>()
+            .WithName("DismissCareReminder")
+            .WithSummary("Dismiss a reminder.");
+
+        reminders.MapPost("/{reminderId:guid}/complete", async (Guid customerId, Guid reminderId, ISender sender, CancellationToken ct) =>
+                Results.Ok(await sender.Send(new CompleteCareReminderCommand(customerId, reminderId), ct)))
+            .RequirePermission(Permission.CareManage)
+            .Produces<CareReminderStatusResponse>()
+            .WithName("CompleteCareReminder")
+            .WithSummary("Mark a reminder done.");
+
         return group;
     }
+
+    /// <summary>Body of the snooze endpoint.</summary>
+    public sealed record SnoozeReminderRequest(int Days);
 
     /// <summary>Body of the enable-Care endpoint — the Care category by name (e.g. "MajorAppliance").</summary>
     public sealed record EnableCareRequest(string Category);

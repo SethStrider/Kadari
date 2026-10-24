@@ -82,6 +82,19 @@ public sealed class RegistrationOpportunity : AggregateRoot<RegistrationOpportun
 
     public void Dismiss(DateTimeOffset at) => Close(OpportunityStatus.Dismissed, at);
 
+    /// <summary>The deadline passed while the offer was open. Returns whether it expired now.</summary>
+    public bool ExpireIfLapsed(DateOnly today, DateTimeOffset at)
+    {
+        if (!IsOpen || DeadlineOn is not { } deadline || today <= deadline)
+        {
+            return false;
+        }
+
+        Status = OpportunityStatus.Expired;
+        ResolvedAt = at;
+        return true;
+    }
+
     internal void Take(DateTimeOffset at) => Close(OpportunityStatus.Taken, at);
 
     private void Close(OpportunityStatus status, DateTimeOffset at)

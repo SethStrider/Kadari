@@ -17,7 +17,8 @@ namespace Kadari.Application.Features.Care.Services;
 /// the exact inputs and rule versions, applies it to the <see cref="CareProfile"/> and audits it. The one place a
 /// coverage decision is made — shared by enabling Care, the explicit re-evaluation and the evidence reaction.
 /// </summary>
-internal sealed class CareCoverage(IKadariDbContext db, ICurrentUser user, IOptions<CareOptions> options, TimeProvider clock)
+internal sealed class CareCoverage(
+    IKadariDbContext db, ICurrentUser user, CareReminders reminders, IOptions<CareOptions> options, TimeProvider clock)
 {
     private static readonly JsonSerializerOptions SnapshotJson = new(JsonSerializerDefaults.Web);
 
@@ -63,7 +64,8 @@ internal sealed class CareCoverage(IKadariDbContext db, ICurrentUser user, IOpti
         var previous = profile.CoverageState;
         profile.ApplyEvaluation(evaluation, decision, now);
 
-        await RefreshOpportunitiesAsync(asset, inputs, now, ct);
+        var openOffers = await RefreshOpportunitiesAsync(asset, inputs, now, ct);
+        await reminders.SyncAsync(profile, openOffers, ct);
 
         db.Set<AuditEvent>().Add(AuditEvent.Record(
             user.IsAuthenticated ? ActorKind.Account : ActorKind.System, "Asset", asset.Id.Value, "CareCoverageEvaluated",
@@ -78,11 +80,16 @@ internal sealed class CareCoverage(IKadariDbContext db, ICurrentUser user, IOpti
     /// never offered again once the owner dismissed or took it, and not offered at all when the asset is already
     /// registered under that rule. An opportunity past its deadline expires.
     /// </summary>
-    private async Task RefreshOpportunitiesAsync(Asset asset, CoverageInputs inputs, DateTimeOffset now, CancellationToken ct)
+    private async Task<IReadOnlyList<RegistrationOpportunity>> RefreshOpportunitiesAsync(
+        Asset asset, CoverageInputs inputs, DateTimeOffset now, CancellationToken ct)
     {
+        var existing = await db.Set<RegistrationOpportunity>()
+            .Where(o => o.AssetId == asset.Id)
+            .ToDictionaryAsync(o => o.LogicalRuleId, ct);
+
         if (inputs.BrandId is not { } brandId)
         {
-            return;
+            return existing.Values.Where(o => o.IsOpen).ToList();
         }
 
         var rules = (await db.Set<RegistrationRuleVersion>().AsNoTracking()
@@ -94,15 +101,6 @@ internal sealed class CareCoverage(IKadariDbContext db, ICurrentUser user, IOpti
             .Select(g => g.OrderByDescending(r => r.Version).First())
             .ToList();
 
-        if (rules.Count == 0)
-        {
-            return;
-        }
-
-        var existing = await db.Set<RegistrationOpportunity>()
-            .Where(o => o.AssetId == asset.Id)
-            .ToDictionaryAsync(o => o.LogicalRuleId, ct);
-
         foreach (var rule in rules)
         {
             if (existing.TryGetValue(rule.LogicalRuleId, out var opportunity))
@@ -111,9 +109,13 @@ internal sealed class CareCoverage(IKadariDbContext db, ICurrentUser user, IOpti
             }
             else if (inputs.RegisteredOn is null)
             {
-                db.Set<RegistrationOpportunity>().Add(RegistrationOpportunity.Surface(asset.Id, rule, inputs.PurchasedOn, now));
+                var surfaced = RegistrationOpportunity.Surface(asset.Id, rule, inputs.PurchasedOn, now);
+                db.Set<RegistrationOpportunity>().Add(surfaced);
+                existing[rule.LogicalRuleId] = surfaced;
             }
         }
+
+        return existing.Values.Where(o => o.IsOpen).ToList();
     }
 
     /// <summary>

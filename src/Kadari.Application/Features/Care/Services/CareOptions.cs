@@ -11,4 +11,8 @@ public sealed class CareOptions
     /// customers this deployment serves.
     /// </summary>
     public string CountryCode { get; set; } = "ZA";
+
+    /// <summary>The customer app's public address (e.g. https://app.kadari.co.za), for links in reminders. Without it,
+    /// reminders carry no link.</summary>
+    public string? AppBaseUrl { get; set; }
 }

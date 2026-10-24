@@ -260,3 +260,44 @@ export function dismissOpportunity(
     { path: { customerId, assetId, opportunityId } },
   );
 }
+
+export type CareReminder = components["schemas"]["CareReminderDto"];
+
+/** Care reminders that need attention now — across the ledger, or for one asset. Null when Care is switched off. */
+export async function getCareReminders(
+  customerId: string,
+  assetId?: string,
+  signal?: AbortSignal,
+): Promise<CareReminder[] | null> {
+  try {
+    return await apiClient.get(
+      "/api/v1/kadari/customers/{customerId}/care/reminders",
+      {
+        path: { customerId },
+        query: { assetId },
+        signal,
+      },
+    );
+  } catch (error) {
+    if (error instanceof ApiProblem && error.status === 404) return null;
+    throw error;
+  }
+}
+
+export function snoozeCareReminder(
+  customerId: string,
+  reminderId: string,
+  days: number,
+) {
+  return apiClient.post(
+    "/api/v1/kadari/customers/{customerId}/care/reminders/{reminderId}/snooze",
+    { path: { customerId, reminderId }, body: { days } },
+  );
+}
+
+export function dismissCareReminder(customerId: string, reminderId: string) {
+  return apiClient.post(
+    "/api/v1/kadari/customers/{customerId}/care/reminders/{reminderId}/dismiss",
+    { path: { customerId, reminderId } },
+  );
+}

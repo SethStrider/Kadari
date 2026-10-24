@@ -43,10 +43,14 @@ internal static class MessagingExtensions
                 });
             });
 
-            // Every consumer endpoint de-duplicates through the inbox and writes its own published messages through
-            // the outbox, in the consumer's transaction.
+            // Every consumer endpoint retries a failed message a few times with back-off (a provider that is briefly
+            // down), de-duplicates through the inbox, and writes its own published messages through the outbox, in the
+            // consumer's transaction.
             bus.AddConfigureEndpointsCallback((context, _, endpoint) =>
-                endpoint.UseEntityFrameworkOutbox<KadariDbContext>(context));
+            {
+                endpoint.UseMessageRetry(retry => retry.Exponential(5, TimeSpan.FromSeconds(2), TimeSpan.FromMinutes(2), TimeSpan.FromSeconds(5)));
+                endpoint.UseEntityFrameworkOutbox<KadariDbContext>(context);
+            });
 
             configureConsumers?.Invoke(bus);
 

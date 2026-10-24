@@ -27,8 +27,10 @@ public class MessagingRuleTests
     [Fact]
     public void Contracts_reference_no_Kadari_project_and_no_package()
     {
-        var allowed = new[] { "System.Runtime", "netstandard", "System.Private.CoreLib" };
-        var unexpected = ReferencedNames(Contracts).Where(n => !allowed.Contains(n)).ToArray();
+        // Only the .NET base library (System.*): records compile against System.Runtime and System.Collections.
+        var unexpected = ReferencedNames(Contracts)
+            .Where(n => !(n == "netstandard" || n.StartsWith("System.", StringComparison.Ordinal)))
+            .ToArray();
 
         Assert.True(unexpected.Length == 0, $"Kadari.Contracts must stay dependency-free: {string.Join(", ", unexpected)}");
     }

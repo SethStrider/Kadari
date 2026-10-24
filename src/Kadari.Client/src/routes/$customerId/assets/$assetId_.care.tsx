@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
 import { CareCard } from "@/components/kadari/care-card";
+import { CareReminders } from "@/components/kadari/care-reminders";
 import { ExtraCover } from "@/components/kadari/extra-cover";
 import { formatCareDate } from "@/components/kadari/care-format";
 import { KadariShell } from "@/components/kadari/kadari-shell";
@@ -145,6 +146,13 @@ function CarePage() {
 
       {tab === "Overview" && (
         <div className="flex flex-col gap-(--space-6)">
+          {summary.enabled && (
+            <CareReminders
+              customerId={customerId}
+              assetId={assetId}
+              showOptIn
+            />
+          )}
           {summary.enabled && (
             <ExtraCover
               customerId={customerId}

@@ -20,6 +20,11 @@ builder.AddServiceDefaults();
 builder.Services.AddApplication();
 builder.AddWorkerInfrastructure(bus => bus.AddConsumers(typeof(Program).Assembly));
 
+// Scheduled sweeps.
+builder.Services.Configure<Kadari.Worker.Sweeps.CareSweepOptions>(
+    builder.Configuration.GetSection(Kadari.Worker.Sweeps.CareSweepOptions.SectionName));
+builder.Services.AddHostedService<Kadari.Worker.Sweeps.CareReminderSweep>();
+
 var host = builder.Build();
 
 // Same refusal as the API: no placeholder providers or development secrets outside Development.

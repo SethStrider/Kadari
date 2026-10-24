@@ -25,6 +25,27 @@ internal sealed class OwnedAssets(IKadariDbContext db)
         await Query(customerId, assetId, tracked: false, ct)
         ?? throw new NotFoundException(nameof(Asset), assetId);
 
+    /// <summary>The ids of every asset in the customer's ledger (owned or co-owned, inside their tenant).</summary>
+    public async Task<IReadOnlyList<AssetId>> IdsAsync(Guid customerId, CancellationToken ct)
+    {
+        var customer = new CustomerId(customerId);
+        var subject = await db.Owners.AsNoTracking()
+            .Where(o => o.CustomerId == customer)
+            .Select(o => (OwnerId?)o.Id)
+            .FirstOrDefaultAsync(ct);
+        if (subject is not { } owner)
+        {
+            return [];
+        }
+
+        var tenant = await db.TenantOfCustomerAsync(customer, ct);
+        return await db.Assets.AsNoTracking()
+            .Where(a => a.OwnerId == owner || a.CoOwners.Any(c => c.MemberId == owner))
+            .ForTenant(tenant)
+            .Select(a => a.Id)
+            .ToListAsync(ct);
+    }
+
     private async Task<Asset?> Query(Guid customerId, Guid assetId, bool tracked, CancellationToken ct)
     {
         var customer = new CustomerId(customerId);
