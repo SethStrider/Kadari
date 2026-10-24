@@ -66,6 +66,15 @@ public static class DependencyInjection
         services.AddScoped<Features.AnalyzeSnap.VisionQuota>();
         services.AddOptions<Features.AnalyzeSnap.VisionQuotaOptions>();
 
+        // Assets: the one place asset-level ownership is decided for the asset and Care slices.
+        services.AddScoped<Features.Assets.Services.OwnedAssets>();
+
+        // KADARI Care: the coverage engine runner (shared by enable, re-evaluate and the evidence reaction), and the
+        // registry importer behind preview-then-apply.
+        services.AddOptions<Features.Care.Services.CareOptions>();
+        services.AddScoped<Features.Care.Services.CareCoverage>();
+        services.AddScoped<Features.CareRegistry.Services.RegistryImporter>();
+
         // Owners: the customer -> owning subject bridge (get-or-create).
         services.AddScoped<Features.Owners.Services.OwnerRegistrar>();
 

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Kadari.Application.Abstractions.Persistence;
 using Kadari.Domain.Abstractions;
 using Kadari.Domain.Assets;
+using Kadari.Domain.Care;
 using Kadari.Domain.Customers;
 using Kadari.Domain.Identity;
 using Kadari.Domain.Owners;
@@ -34,6 +35,9 @@ public class KadariDbContext(DbContextOptions<KadariDbContext> options)
     public DbSet<VisionUsage> VisionUsages => Set<VisionUsage>();
     public DbSet<TenantMembership> TenantMemberships => Set<TenantMembership>();
     public DbSet<InsurerUser> InsurerUsers => Set<InsurerUser>();
+
+    public DbSet<AssetHistoryEntry> AssetHistory => Set<AssetHistoryEntry>();
+    public DbSet<CareProfile> CareProfiles => Set<CareProfile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

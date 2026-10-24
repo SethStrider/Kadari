@@ -288,6 +288,31 @@ commands — no Quartz or Hangfire. (The evidence-retention sweep predates the W
 Without a `messaging` connection string the bus runs in-memory with outbox delivery switched off, so events wait in
 the table; the production readiness guard refuses to start like that outside Development.
 
+## 6b. KADARI Care — rules every Care slice follows
+
+Care is **additive** to the asset (`docs/care/00-RECONCILIATION.md`): one asset identity, one history, one evidence
+store.
+
+- **Attach, never duplicate.** Care rows reference `AssetId`; `CareProfile` is unique per asset. Asset ownership for
+  asset and Care slices is decided in one place, `Features/Assets/Services/OwnedAssets` (owner or household co-owner,
+  inside the customer's tenant, else 404).
+- **Facts are evidence.** What the owner bought, where and when is `AssetEvidenceKind.Purchase` evidence — appended,
+  never edited; the latest wins. Extraction (AI) proposes; only what the owner confirms is recorded.
+- **One history.** Material events append an `AssetHistoryEntry` in the same transaction, from a reaction
+  (`On{Event}AppendHistory`). History is append-only, never updated or soft-deleted, and holds no personal data.
+- **No guessing.** Coverage comes only from the `CoverageEvaluator` over **published** registry rules. Active, expiring
+  or expired is claimed only on independent purchase evidence and a high-confidence, current rule; otherwise
+  "likely" or "unknown". Conflicting rules → `NeedsReview`, never a pick.
+- **Rules are versioned and immutable.** A `CoverageRuleVersion` never changes after creation; a change is the next
+  version, publishing it supersedes the live one. Every `CoverageDecision` is append-only and stores its inputs and
+  the exact rule version ids. Registry rows change only through the preview-then-apply import
+  (`Features/CareRegistry`), which the migration runner runs from `docs/authority/CARE/REGISTRY` and
+  `docs/care/registry/coverage-rules.csv`.
+- **Enums by name at the edge.** JSON enums bind by ordinal here, so Care requests take a name (`"MajorAppliance"`)
+  and validate it.
+- **Privacy.** Care tables that hold personal data are covered by `KadariErasure` and `KadariDataExport` — extend
+  both when adding one.
+
 ## 7. Testing (xUnit)
 
 - **Every slice = at least one test.** Domain invariants → `Kadari.Domain.Tests`; handler behaviour

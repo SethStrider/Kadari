@@ -706,6 +706,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The Care card for an asset: coverage headline, next important date, open cases, missing evidence and one next action.
+         * @description **Requires permission:** `CareView`
+         */
+        get: operations["GetCareSummary"];
+        put?: never;
+        /**
+         * Switch KADARI Care on for an asset (idempotent) and work out its cover from the registry.
+         * @description **Requires permission:** `CareManage`
+         */
+        post: operations["EnableCare"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/evaluate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Re-run the coverage engine against the asset's latest evidence and the current published rules. Appends a decision; never rewrites one.
+         * @description **Requires permission:** `CareManage`
+         */
+        post: operations["EvaluateCare"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/care/coverage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Each kind of cover KADARI found, with its dates, summary and how KADARI knows it (source, verification, rule version).
+         * @description **Requires permission:** `CareView`
+         */
+        get: operations["GetCoverage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/purchase": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record what was bought, where and when. Appended as evidence (a correction never overwrites); Care re-evaluates.
+         * @description **Requires permission:** `CareManage`
+         */
+        post: operations["RecordPurchaseDetails"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/kadari/customers/{customerId}/assets/{assetId}/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The asset's permanent history, newest first: registration, transfers, theft and recovery, and material Care outcomes.
+         * @description **Requires permission:** `CareView`
+         */
+        get: operations["GetAssetHistory"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -737,6 +841,22 @@ export interface components {
             /** Format: int64 */
             amountMinor: null | number | string;
             currency: null | string;
+        };
+        AssetHistoryDto: {
+            /** Format: uuid */
+            assetId: string;
+            entries: components["schemas"]["AssetHistoryEntryDto"][];
+        };
+        AssetHistoryEntryDto: {
+            /** Format: uuid */
+            id: string;
+            kind: string;
+            summary: string;
+            /** Format: date-time */
+            occurredAt: string;
+            sourceType: null | string;
+            /** Format: uuid */
+            sourceId: null | string;
         };
         AssetPassportDto: {
             /** Format: uuid */
@@ -784,6 +904,61 @@ export interface components {
             accentColor: string;
             logoReference: null | string;
         };
+        CareSummaryDto: {
+            /** Format: uuid */
+            assetId: string;
+            enabled: boolean;
+            category: null | string;
+            cardState: string;
+            headline: string;
+            detail: string;
+            primaryAction: string;
+            coverageState: null | string;
+            /** Format: date */
+            coverageExpiresOn: null | string;
+            /** Format: date */
+            nextAttentionOn: null | string;
+            /** Format: int32 */
+            openCaseCount: number | string;
+            evidenceGaps: string[];
+            purchase: null | components["schemas"]["PurchaseDetailsDto"];
+            /** Format: date-time */
+            lastEvaluatedAt: null | string;
+        };
+        CoverageDetailDto: {
+            /** Format: uuid */
+            assetId: string;
+            coverageState: string;
+            records: components["schemas"]["CoverageRecordDto"][];
+        };
+        CoverageProvenanceDto: {
+            sourceTitle: string;
+            sourceUrl: null | string;
+            /** Format: date-time */
+            lastVerifiedAt: string;
+            confidence: string;
+            /** Format: uuid */
+            ruleVersionId: string;
+            /** Format: int32 */
+            ruleVersion: number | string;
+            ruleStatus: string;
+            /** Format: uuid */
+            decisionId: string;
+            /** Format: date-time */
+            decidedAt: string;
+        };
+        CoverageRecordDto: {
+            coverageType: string;
+            state: string;
+            /** Format: date */
+            startsOn: null | string;
+            /** Format: date */
+            expiresOn: null | string;
+            registrationRequired: boolean;
+            summary: null | string;
+            explanation: string;
+            howKadariKnows: null | components["schemas"]["CoverageProvenanceDto"];
+        };
         CreateInsurerTenantCommand: {
             name: string;
             branding: null | components["schemas"]["BrandingInput"];
@@ -816,6 +991,17 @@ export interface components {
             dateOfBirth: null | string;
             status: string;
         };
+        EnableCareRequest: {
+            category: string;
+        };
+        EnableCareResponse: {
+            /** Format: uuid */
+            assetId: string;
+            /** Format: uuid */
+            careProfileId: string;
+            coverageState: string;
+            created: boolean;
+        };
         EraseCustomerResponse: {
             /** Format: int32 */
             assetsErased: number | string;
@@ -823,6 +1009,13 @@ export interface components {
             assetsHandedOver: number | string;
             /** Format: int32 */
             filesDeleted: number | string;
+        };
+        EvaluateCareResponse: {
+            /** Format: uuid */
+            assetId: string;
+            /** Format: uuid */
+            coverageDecisionId: string;
+            coverageState: string;
         };
         GrantConsentRequest: {
             scope: components["schemas"]["KadariConsentScope"];
@@ -863,6 +1056,16 @@ export interface components {
             registeredAt: string;
             evidence: components["schemas"]["KadariEvidenceExport"][];
         };
+        KadariCareExport: {
+            /** Format: uuid */
+            assetId: string;
+            category: string;
+            coverageState: string;
+            /** Format: date */
+            coverageExpiresOn: null | string;
+            /** Format: date-time */
+            enabledAt: string;
+        };
         KadariConsentDto: {
             scope: string;
             granted: boolean;
@@ -885,6 +1088,8 @@ export interface components {
             assets: components["schemas"]["KadariAssetExport"][];
             passports: components["schemas"]["KadariPassportExport"][];
             consents: components["schemas"]["KadariConsentExport"][];
+            care: components["schemas"]["KadariCareExport"][];
+            history: components["schemas"]["KadariHistoryExport"][];
         };
         KadariEvidenceExport: {
             kind: string;
@@ -896,6 +1101,19 @@ export interface components {
             amountMinor: null | number | string;
             currency: null | string;
             hasFile: boolean;
+            purchaseBrand: null | string;
+            purchaseModel: null | string;
+            purchaseRetailer: null | string;
+            /** Format: date */
+            purchasedOn: null | string;
+        };
+        KadariHistoryExport: {
+            /** Format: uuid */
+            assetId: string;
+            kind: string;
+            summary: string;
+            /** Format: date-time */
+            occurredAt: string;
         };
         KadariPassportExport: {
             /** Format: uuid */
@@ -947,10 +1165,34 @@ export interface components {
             /** Format: int64 */
             exposureMinor: number | string;
         };
+        PurchaseDetailsDto: {
+            brand: null | string;
+            model: null | string;
+            retailer: null | string;
+            /** Format: date */
+            purchasedOn: null | string;
+            backedByReceipt: boolean;
+            /** Format: date-time */
+            recordedAt: string;
+        };
+        PurchaseDetailsRequest: {
+            brand: null | string;
+            model: null | string;
+            retailer: null | string;
+            /** Format: date */
+            purchasedOn: null | string;
+        };
         RecordOwnershipProofResponse: {
             /** Format: uuid */
             assetId: string;
             assurance: string;
+        };
+        RecordPurchaseDetailsResponse: {
+            /** Format: uuid */
+            assetId: string;
+            /** Format: uuid */
+            evidenceId: string;
+            backedByReceipt: boolean;
         };
         RefreshRequest: {
             refreshToken: null | string;
@@ -5246,6 +5488,680 @@ export interface operations {
             };
             /** @description The request conflicts with the current state. (code: `conflict`) */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    GetCareSummary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CareSummaryDto"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    EnableCare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EnableCareRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EnableCareResponse"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description The request conflicts with the current state. (code: `conflict`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    EvaluateCare: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["EvaluateCareResponse"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description The request conflicts with the current state. (code: `conflict`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    GetCoverage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CoverageDetailDto"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    RecordPurchaseDetails: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PurchaseDetailsRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RecordPurchaseDetailsResponse"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description The request conflicts with the current state. (code: `conflict`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description An unexpected error occurred. (code: `internal-error`) */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+        };
+    };
+    GetAssetHistory: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                customerId: string;
+                assetId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AssetHistoryDto"];
+                };
+            };
+            /** @description The request could not be read. (code: `malformed-request`) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Authentication is required. (code: `unauthenticated`) */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description You do not have permission to perform this action. (code: `forbidden`) */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": {
+                        type?: null | string;
+                        title?: null | string;
+                        /** Format: int32 */
+                        status?: null | number | string;
+                        detail?: null | string;
+                        instance?: null | string;
+                    };
+                };
+            };
+            /** @description Resource not found. (code: `not-found`) */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };

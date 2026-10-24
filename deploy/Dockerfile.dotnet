@@ -19,6 +19,9 @@ WORKDIR /repo
 
 COPY global.json Directory.Build.props Directory.Packages.props ./
 COPY src/ src/
+# The Care registry's research files, which the migration runner ships and imports.
+COPY docs/authority/CARE/REGISTRY/ docs/authority/CARE/REGISTRY/
+COPY docs/care/registry/ docs/care/registry/
 RUN dotnet restore "src/${PROJECT}/${PROJECT}.csproj"
 RUN dotnet publish "src/${PROJECT}/${PROJECT}.csproj" -c Release --no-restore -o /app /p:UseAppHost=false
 

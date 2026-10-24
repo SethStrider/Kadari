@@ -8,8 +8,12 @@ using Kadari.Application;
 using Kadari.Application.Abstractions.Identity;
 using Kadari.Application.Abstractions.Messaging;
 using Kadari.Application.Abstractions.Persistence;
+using Kadari.Application.Features.CareRegistry.ApplyRegistryImport;
+using Kadari.Application.Features.CareRegistry.PreviewRegistryImport;
+using Kadari.Application.Features.CareRegistry.Services;
 using Kadari.Application.Features.Identity.SeedAdministrator;
 using Kadari.Application.Features.SeedDefaultTenant;
+using Kadari.Infrastructure.CareRegistry;
 using Kadari.Infrastructure.Messaging;
 using Kadari.Infrastructure.Persistence;
 using Kadari.Infrastructure.Persistence.Interceptors;
@@ -27,6 +31,11 @@ using Kadari.Infrastructure.Security;
 //               --seed-only          seed only (database must already be migrated)
 //               --reencrypt-fields   after the rest, move every encrypted column onto the current
 //                                    FieldEncryption key (run once after a key rotation, GL-24)
+//               --registry-preview   show what the Care registry import would change, and apply nothing
+//               --skip-registry      seed without importing the Care registry
+//
+//   The Care registry (docs/authority/CARE/REGISTRY + docs/care/registry) is imported on every seeding run:
+//   previewed, then the same plan applied. A plan with errors fails the run; an unchanged registry is a no-op.
 // ---------------------------------------------------------------------------------------------------
 
 var builder = Host.CreateApplicationBuilder(args);
@@ -43,6 +52,8 @@ builder.ConfigureContainer(new DefaultServiceProviderFactory(new ServiceProvider
 var migrateOnly = args.Contains("--migrate-only", StringComparer.OrdinalIgnoreCase);
 var seedOnly = args.Contains("--seed-only", StringComparer.OrdinalIgnoreCase);
 var reencryptFields = args.Contains("--reencrypt-fields", StringComparer.OrdinalIgnoreCase);
+var registryPreview = args.Contains("--registry-preview", StringComparer.OrdinalIgnoreCase);
+var skipRegistry = args.Contains("--skip-registry", StringComparer.OrdinalIgnoreCase);
 
 // The same field-encryption key ring the API uses (GL-24), so anything this job writes or re-encrypts
 // reads back in them.
@@ -118,6 +129,17 @@ try
         }
     }
 
+    if (!migrateOnly && !skipRegistry)
+    {
+        var registryOptions = builder.Configuration.GetSection(RegistryFilesOptions.SectionName).Get<RegistryFilesOptions>()
+            ?? new RegistryFilesOptions();
+        var sender = scope.ServiceProvider.GetRequiredService<ISender>();
+        if (!await ImportCareRegistryAsync(sender, registryOptions, registryPreview, logger))
+        {
+            return 1;
+        }
+    }
+
     if (reencryptFields)
     {
         var columns = await new FieldReencryptor(db, fieldKeys, logger).ReencryptAsync(CancellationToken.None);
@@ -141,6 +163,51 @@ catch (Exception ex)
 {
     logger.LogError(ex, "Kadari.Migration failed.");
     return 1;
+}
+
+// Care registry: preview the import, log the plan, and apply exactly that plan (unless previewing only). False = fail.
+static async Task<bool> ImportCareRegistryAsync(ISender sender, RegistryFilesOptions options, bool previewOnly, ILogger logger)
+{
+    var snapshot = await RegistryFiles.LoadAsync(options, CancellationToken.None);
+    var plan = await sender.Send(new PreviewRegistryImportQuery(snapshot));
+
+    logger.LogInformation(
+        "Care registry plan: {Add} to add, {Update} to update, {Versions} new rule versions, {Unchanged} unchanged ({Rules} researched coverage rules in the file).",
+        plan.Count(RegistryAction.Add), plan.Count(RegistryAction.Update), plan.Count(RegistryAction.NewVersion),
+        plan.Count(RegistryAction.Unchanged), snapshot.CoverageRules.Count);
+
+    foreach (var change in plan.Changes.Where(c => c.Action != RegistryAction.Unchanged))
+    {
+        logger.LogDebug("  {Action} {Entity} {Key}: {Detail}", change.Action, change.Entity, change.Key, change.Detail);
+    }
+
+    if (!plan.CanApply)
+    {
+        foreach (var error in plan.Errors)
+        {
+            logger.LogError("Care registry: {Error}", error);
+        }
+
+        return false;
+    }
+
+    if (previewOnly)
+    {
+        logger.LogInformation("Care registry preview only — nothing applied (plan {Fingerprint}).", plan.Fingerprint[..12]);
+        return true;
+    }
+
+    if (plan.Changes.All(c => c.Action == RegistryAction.Unchanged))
+    {
+        logger.LogInformation("Care registry is up to date.");
+        return true;
+    }
+
+    var result = await sender.Send(new ApplyRegistryImportCommand(snapshot, plan.Fingerprint));
+    logger.LogInformation(
+        "Care registry imported: {Added} added, {Updated} updated, {Versions} new rule versions.",
+        result.Added, result.Updated, result.NewVersions);
+    return true;
 }
 
 // The database container may still be starting (local spin-up) — poll before giving up.

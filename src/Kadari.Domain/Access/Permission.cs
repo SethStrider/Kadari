@@ -15,6 +15,10 @@ public enum Permission
     AssetEstateSettle,
     AssetTenantAssign,
 
+    // KADARI Care on an asset: read the card and coverage; enable Care, record purchase details, re-evaluate.
+    CareView,
+    CareManage,
+
     // Insurers
     InsurerPortfolioView,
 

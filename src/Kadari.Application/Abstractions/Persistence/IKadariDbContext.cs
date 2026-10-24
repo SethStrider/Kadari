@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Kadari.Domain.Abstractions;
 using Kadari.Domain.Assets;
+using Kadari.Domain.Care;
 using Kadari.Domain.Customers;
 using Kadari.Domain.Identity;
 using Kadari.Domain.Owners;
@@ -30,6 +31,10 @@ public interface IKadariDbContext
     DbSet<VisionUsage> VisionUsages { get; }
     DbSet<TenantMembership> TenantMemberships { get; }
     DbSet<InsurerUser> InsurerUsers { get; }
+
+    // The asset's permanent history, and KADARI Care on the asset. Registry rows are reached through Set<T>().
+    DbSet<AssetHistoryEntry> AssetHistory { get; }
+    DbSet<CareProfile> CareProfiles { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 
