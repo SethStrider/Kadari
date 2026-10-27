@@ -66,6 +66,29 @@ public static class DependencyInjection
         services.AddScoped<Features.AnalyzeSnap.VisionQuota>();
         services.AddOptions<Features.AnalyzeSnap.VisionQuotaOptions>();
 
+        // Assets: the one place asset-level ownership is decided for the asset and Care slices.
+        services.AddScoped<Features.Assets.Services.OwnedAssets>();
+        services.AddScoped<Features.Assets.Services.PurchaseReader>();
+
+        // KADARI Care: the coverage engine runner (shared by enable, re-evaluate and the evidence reaction), and the
+        // registry importer behind preview-then-apply.
+        services.AddOptions<Features.Care.Services.CareOptions>();
+        services.AddScoped<Features.Care.Services.CareCoverage>();
+        services.AddScoped<Features.Care.Services.CareReminders>();
+        services.AddScoped<Features.Care.Services.CareRouting>();
+        services.AddScoped<Features.Care.Services.CaseCommands>();
+        services.AddScoped<Features.Care.Services.CaseReminders>();
+        services.AddScoped<Features.Care.Services.RegistryLookup>();
+        services.AddScoped<Features.CareOps.Services.OpsQueue>();
+        services.AddScoped<Features.Care.Services.OwnedReminders>();
+        services.AddScoped<Features.CareRegistry.Services.RegistryImporter>();
+
+        // AI: the one way to call a model (consent, quota, once-per-request, usage + cost), and the one usage writer.
+        services.AddOptions<Features.Intelligence.Services.ModelPricingOptions>();
+        services.AddScoped<Features.Intelligence.Services.ModelUsageRecorder>();
+        services.AddScoped<Features.Intelligence.Services.MeteredModel>();
+        services.TryAddSingleton<Abstractions.Intelligence.IModelGateway, Common.NoModelGateway>();
+
         // Owners: the customer -> owning subject bridge (get-or-create).
         services.AddScoped<Features.Owners.Services.OwnerRegistrar>();
 

@@ -21,6 +21,10 @@ public enum KadariConsentScope
     /// <summary>The <b>distinct</b> disclosure that a captured still may be sent to a third-party AI outside SA
     /// (Gemini / a hosted model) for identification — a cross-border transfer the customer opts into separately.</summary>
     CrossBorderAiEnrichment,
+
+    /// <summary>KADARI Care may send reminders (registration deadlines, warranty expiry) by email or SMS. Without it,
+    /// reminders only appear in the app (CARE/03 §9: useful, not engagement-for-engagement's-sake).</summary>
+    CareReminders,
 }
 
 public enum KadariConsentStatus

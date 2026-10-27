@@ -151,7 +151,8 @@ app.MapDefaultEndpoints();
 
 if (app.Environment.IsDevelopment())
 {
-    // Development: bring the schema to the latest migration on start, so the AppHost needs no migration runner.
+    // Development: bring the schema to the latest migration on start. Under the AppHost the migration runner has
+    // already done it (a no-op here); this keeps a bare `dotnet run` of the API working.
     using (var scope = app.Services.CreateScope())
     {
         await scope.ServiceProvider.GetRequiredService<Kadari.Infrastructure.Persistence.KadariDbContext>()

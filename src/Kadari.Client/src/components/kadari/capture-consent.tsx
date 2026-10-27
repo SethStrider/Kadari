@@ -25,6 +25,11 @@ const disclosures: Record<
     body: "A captured photo may be sent to an AI provider outside South Africa to name the item more precisely. Without this, identification happens on your device and the photo stays in South Africa.",
     required: false,
   },
+  CareReminders: {
+    title: "Send me KADARI Care reminders",
+    body: "KADARI may email or text you when a warranty registration deadline is near or a warranty is about to end. Without this, reminders only appear in the app.",
+    required: false,
+  },
 };
 
 const scopeNames = Object.keys(disclosures) as ConsentScopeName[];

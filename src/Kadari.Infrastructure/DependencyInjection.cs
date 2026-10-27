@@ -1,4 +1,5 @@
 using Amazon.S3;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -22,21 +23,36 @@ using Kadari.Infrastructure.Storage;
 namespace Kadari.Infrastructure;
 
 /// <summary>
-/// Registers the infrastructure layer: PostgreSQL (EF Core), S3-compatible blob storage (envelope-encrypted), sign-in
-/// security, SMS/WhatsApp code delivery and vision enrichment. The "kadaridb" connection string is supplied by the
-/// Aspire AppHost at run time.
+/// Registers the infrastructure layer: PostgreSQL (EF Core), the outbox-backed bus, S3-compatible blob storage
+/// (envelope-encrypted), sign-in security, SMS/WhatsApp code delivery and vision enrichment. The "kadaridb" and
+/// "messaging" connection strings are supplied by the Aspire AppHost at run time.
 /// </summary>
 public static class DependencyInjection
 {
+    /// <summary>
+    /// The Web API's infrastructure: everything shared, plus the boot work only the API does (seeds, bucket creation,
+    /// the evidence-retention sweep) and the bus with no consumers — the API publishes through the outbox and ships
+    /// it, but never consumes.
+    /// </summary>
     public static IHostApplicationBuilder AddInfrastructure(this IHostApplicationBuilder builder)
     {
-        builder.Services.TryAddSingleton(TimeProvider.System);
-        builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
-        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();   // real transactional UoW (overrides the Application default)
-        AddPersistence(builder);
-        AddBlobStorage(builder);
-        AddSecurity(builder);
-        AddVisionEnrichment(builder);
+        AddShared(builder);
+        MessagingExtensions.AddMessaging(builder, configureConsumers: null);
+
+        // Idempotent boot seeds: the consumer-direct default tenant, and the first administrator.
+        builder.Services.AddHostedService<DefaultTenantSeeder>();
+        builder.Services.Configure<AdministratorSeedOptions>(builder.Configuration.GetSection(AdministratorSeedOptions.SectionName));
+        builder.Services.AddHostedService<AdministratorSeeder>();
+
+        // Development only: the demo cast (an insurer, staff and customers with households), when DemoSeed:Enabled.
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Services.Configure<DemoSeedOptions>(builder.Configuration.GetSection(DemoSeedOptions.SectionName));
+            builder.Services.AddHostedService<DemoDataSeeder>();
+        }
+
+        // Ensure the bucket exists before anything uploads (idempotent, non-fatal).
+        builder.Services.AddHostedService<BlobStorageInitializer>();
 
         // Evidence retention: purges ephemeral capture frames past their retention date.
         builder.Services.Configure<Tasks.AssetEvidenceRetentionOptions>(
@@ -47,8 +63,33 @@ public static class DependencyInjection
     }
 
     /// <summary>
-    /// Vision enrichment for capture. Provider-agnostic: Gemini or any OpenAI-compatible endpoint when configured,
-    /// otherwise the pass-through (the capture keeps the on-device detections), so capture runs without any key.
+    /// The Worker's infrastructure: everything shared, plus the bus with the Worker's consumers. No seeds and no
+    /// API boot work — those stay with the API so two hosts never race to create the same rows.
+    /// </summary>
+    public static IHostApplicationBuilder AddWorkerInfrastructure(
+        this IHostApplicationBuilder builder, Action<IBusRegistrationConfigurator> configureConsumers)
+    {
+        ArgumentNullException.ThrowIfNull(configureConsumers);
+        AddShared(builder);
+        MessagingExtensions.AddMessaging(builder, configureConsumers);
+        return builder;
+    }
+
+    private static void AddShared(IHostApplicationBuilder builder)
+    {
+        builder.Services.TryAddSingleton(TimeProvider.System);
+        builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
+        builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();   // real transactional UoW (overrides the Application default)
+        AddPersistence(builder);
+        AddBlobStorage(builder);
+        AddSecurity(builder);
+        AddVisionEnrichment(builder);
+    }
+
+    /// <summary>
+    /// The AI provider (<c>VisionEnricher:Provider</c>): Gemini or any OpenAI-compatible endpoint when configured,
+    /// otherwise none — capture keeps the on-device detections and extraction says it is unavailable, so the app
+    /// runs without any key.
     /// </summary>
     private static void AddVisionEnrichment(IHostApplicationBuilder builder)
     {
@@ -61,19 +102,27 @@ public static class DependencyInjection
         var options = new Enrichment.VisionEnricherOptions();
         config.GetSection(Enrichment.VisionEnricherOptions.SectionName).Bind(options);
 
+        // One gateway to the configured provider: capture and every other model call go through it, and the
+        // Application's MeteredModel / ModelUsageRecorder record what each call used and cost.
+        builder.Services.Configure<Application.Features.Intelligence.Services.ModelPricingOptions>(
+            config.GetSection(Application.Features.Intelligence.Services.ModelPricingOptions.SectionName));
+
         switch (options.Provider)
         {
             case Enrichment.VisionProvider.Gemini:
-                builder.Services.AddHttpClientWithBudget(Enrichment.GeminiVisionEnricher.HttpClientName, TimeSpan.FromSeconds(options.TimeoutSeconds));
-                builder.Services.AddScoped<Application.Features.AnalyzeSnap.IVisionEnricher, Enrichment.GeminiVisionEnricher>();
+                builder.Services.AddHttpClientWithBudget(Intelligence.GeminiModelGateway.HttpClientName, TimeSpan.FromSeconds(options.TimeoutSeconds));
+                builder.Services.AddScoped<Application.Abstractions.Intelligence.IModelGateway, Intelligence.GeminiModelGateway>();
+                builder.Services.AddScoped<Application.Features.AnalyzeSnap.IVisionEnricher, Enrichment.ModelVisionEnricher>();
                 break;
 
             case Enrichment.VisionProvider.OpenAiCompatible:
-                builder.Services.AddHttpClientWithBudget(Enrichment.OpenAiCompatibleVisionEnricher.HttpClientName, TimeSpan.FromSeconds(options.TimeoutSeconds));
-                builder.Services.AddScoped<Application.Features.AnalyzeSnap.IVisionEnricher, Enrichment.OpenAiCompatibleVisionEnricher>();
+                builder.Services.AddHttpClientWithBudget(Intelligence.OpenAiCompatibleModelGateway.HttpClientName, TimeSpan.FromSeconds(options.TimeoutSeconds));
+                builder.Services.AddScoped<Application.Abstractions.Intelligence.IModelGateway, Intelligence.OpenAiCompatibleModelGateway>();
+                builder.Services.AddScoped<Application.Features.AnalyzeSnap.IVisionEnricher, Enrichment.ModelVisionEnricher>();
                 break;
 
             default:
+                builder.Services.AddSingleton<Application.Abstractions.Intelligence.IModelGateway, Intelligence.UnconfiguredModelGateway>();
                 builder.Services.AddScoped<Application.Features.AnalyzeSnap.IVisionEnricher, Enrichment.PassThroughVisionEnricher>();
                 break;
         }
@@ -160,17 +209,6 @@ public static class DependencyInjection
         builder.Services.Configure<Application.Features.AnalyzeSnap.VisionQuotaOptions>(
             builder.Configuration.GetSection(Application.Features.AnalyzeSnap.VisionQuotaOptions.SectionName));
 
-        // Idempotent boot seeds: the consumer-direct default tenant, and the first administrator.
-        builder.Services.AddHostedService<DefaultTenantSeeder>();
-        builder.Services.Configure<AdministratorSeedOptions>(builder.Configuration.GetSection(AdministratorSeedOptions.SectionName));
-        builder.Services.AddHostedService<AdministratorSeeder>();
-
-        // Development only: the demo cast (an insurer, staff and customers with households), when DemoSeed:Enabled.
-        if (builder.Environment.IsDevelopment())
-        {
-            builder.Services.Configure<DemoSeedOptions>(builder.Configuration.GetSection(DemoSeedOptions.SectionName));
-            builder.Services.AddHostedService<DemoDataSeeder>();
-        }
     }
 
     private static void AddBlobStorage(IHostApplicationBuilder builder)
@@ -204,7 +242,5 @@ public static class DependencyInjection
             sp.GetRequiredService<S3BlobStorage>(),
             sp.GetRequiredService<Application.Abstractions.Security.ISensitiveDataProtector>()));
 
-        // Ensure the bucket exists before anything uploads (idempotent, non-fatal).
-        builder.Services.AddHostedService<BlobStorageInitializer>();
     }
 }

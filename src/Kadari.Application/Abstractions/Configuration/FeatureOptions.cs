@@ -21,4 +21,11 @@ public sealed class FeatureOptions
     /// ledger into an insurer's view, which needs the customer's own consent first.
     /// </summary>
     public bool InsurerConsole { get; set; } = true;
+
+    /// <summary>
+    /// KADARI Care on the customer's assets: the Care card, coverage, purchase details and asset history (CARE/14 C1).
+    /// Off in production until the registry holds published, researched coverage rules — without them every asset
+    /// would honestly read "not confirmed yet".
+    /// </summary>
+    public bool Care { get; set; } = true;
 }

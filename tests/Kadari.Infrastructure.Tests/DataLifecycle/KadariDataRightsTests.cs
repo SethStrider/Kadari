@@ -9,6 +9,8 @@ using Kadari.Application.Features.Customers.EraseCustomer;
 using Kadari.Application.Features.Customers.ExportCustomerData;
 using Kadari.Domain.Customers;
 using Kadari.Domain.Assets;
+using Kadari.Domain.Care;
+using Kadari.Domain.CareRegistry;
 using Kadari.Domain.Owners;
 using Kadari.Infrastructure.Messaging;
 using Kadari.Infrastructure.Persistence;
@@ -98,6 +100,8 @@ public sealed class KadariDataRightsTests(PostgresFixture fixture) : InfraTest(f
                 AssetPassport.Mint(ownedAlone, $"AP-{Guid.NewGuid():N}"[..14], Now),
                 AssetPassport.Mint(shared, $"AP-{Guid.NewGuid():N}"[..14], Now));
             seed.KadariConsents.Add(KadariConsent.Grant(customer.Id, KadariConsentScope.AssetImageProcessing, Now));
+            seed.CareProfiles.Add(CareProfile.Enable(ownedAlone.Id, CareCategory.Computing, Now));
+            seed.AssetHistory.Add(AssetHistoryEntry.Record(ownedAlone.Id, AssetHistoryKind.CareEnabled, "KADARI Care switched on.", Now));
             await seed.SaveChangesAsync();
         }
 
@@ -151,6 +155,33 @@ public sealed class KadariDataRightsTests(PostgresFixture fixture) : InfraTest(f
         Assert.Equal("[erased]", subject.DisplayName);
         var consent = await read.KadariConsents.SingleAsync(c => c.CustomerId == h.Customer.Id);
         Assert.Equal(KadariConsentStatus.Withdrawn, consent.Status);
+    }
+
+    [Fact]
+    public async Task Erase_takes_Care_away_with_the_asset()
+    {
+        var h = await SeedHouseholdAsync();
+
+        await using (var db = NewContext())
+        {
+            await BuildSender(db).Send(new EraseCustomerCommand(h.Customer.Id.Value));
+        }
+
+        await using var read = NewContext();
+        Assert.False(await read.CareProfiles.AnyAsync(p => p.AssetId == h.OwnedAlone.Id));
+    }
+
+    [Fact]
+    public async Task Export_includes_Care_and_the_asset_history()
+    {
+        var h = await SeedHouseholdAsync();
+
+        await using var db = NewContext();
+        var export = await BuildSender(db).Send(new ExportCustomerDataQuery(h.Customer.Id.Value));
+
+        Assert.Equal(
+            (h.OwnedAlone.Id.Value, "Computing", "CareEnabled"),
+            (Assert.Single(export.Ledger.Care).AssetId, export.Ledger.Care[0].Category, Assert.Single(export.Ledger.History).Kind));
     }
 
     [Fact]

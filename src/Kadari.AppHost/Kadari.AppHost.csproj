@@ -7,12 +7,15 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.PostgreSQL" />
+    <PackageReference Include="Aspire.Hosting.RabbitMQ" />
     <PackageReference Include="CommunityToolkit.Aspire.Hosting.Minio" />
     <PackageReference Include="CommunityToolkit.Aspire.Hosting.MailPit" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Kadari.Migration\Kadari.Migration.csproj" />
     <ProjectReference Include="..\Kadari.WebApi\Kadari.WebApi.csproj" />
+    <ProjectReference Include="..\Kadari.Worker\Kadari.Worker.csproj" />
   </ItemGroup>
 
 </Project>

@@ -60,6 +60,13 @@ public static class ProductionReadinessGuard
             problems.Add("Jwt:SigningKey is still the shared development key — issue a real secret");
         }
 
+        if (scope.ServiceProvider.GetService<Messaging.MessagingTransport>() is { BrokerConfigured: false })
+        {
+            problems.Add(
+                "no message broker is configured (ConnectionStrings:messaging) — integration events would wait in " +
+                "the outbox forever");
+        }
+
         if (problems.Count > 0)
         {
             throw new InvalidOperationException(
